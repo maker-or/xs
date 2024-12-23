@@ -1,29 +1,30 @@
-# Create T3 App
+# Sphere
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+[Sphere](https://www.sphereai.tech/) is an open source learning mangment system that aim to empower educatinal institution with their own custom LLMS
 
-## What's next? How do I make an app with this?
+## ✨ Features
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- Centralized Repository: Access study materials like notes, question papers, and assignments uploaded by lecturers.
+- Rich-Text Note-Taking: Block-based editor for creating structured and shareable notes.
+- Task Management: Organize tasks with a built-in to-do list and calendar.
+- Whiteboard: whiteboard for teachers for the better explanion during the online sessions.
+- Cloud Storage: Securely store and organize your resources.
+- Intelligent Companion: Analyze files in your space to answer questions and summarize content.
+- Custom LLMs for Institutions: Transform your institution’s repository into a knowledge powerhouse with AI tailored to your needs.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## 🌟 Vision
 
-## Learn More
+Sphere aims to redefine academic productivity by blending resource management, collaboration, and AI capabilities into a single platform.
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+##📩 Contact
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+For support,suggestion reach out to us at:
 
-## How do I deploy this?
+- Email: harshith10295032@gmail.com
+- Instagram: (https://www.instagram.com/_imchinnu_?igsh=OHc5cDMzYm5qYnZm)
+- Twitter: https://x.com/pasupuleti73628?t=VSASy8epZqcQQfSGVb4tLw&s=09
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+## 📝 License
+This project is licensed under the MIT License. See the LICENSE file for details.

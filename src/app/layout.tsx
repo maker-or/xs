@@ -9,6 +9,7 @@ import { ourFileRouter } from "./api/uploadthing/core";
 // import { Analytics } from "@vercel/analytics/react";
 import { CSPostHogProvider } from "~/app/_analytics/providers";
 import CommandPlate from "~/components/ui/CommandPlate";
+import { TimeProvider } from "~/providers/TimerProvider";
 
 export const metadata: Metadata = {
   title: "Sphere",
@@ -26,24 +27,26 @@ export default function RootLayout({
         <html lang="en" className={`font-sans`}>
           <body>
             <SignedOut>
-              <div className="flex h-screen w-screen flex-col items-center justify-center bg-[#0c0c0c] 	scroll-behavior: auto;">
+              <div className="scroll-behavior: auto; flex h-screen w-screen flex-col items-center justify-center bg-[#0c0c0c]">
                 <SignIn routing="hash" />
               </div>
             </SignedOut>
 
             <SignedIn>
-              <div className="m-1 p-6">
-                {/* <Greeting/>
+              <TimeProvider>
+                <div className="m-1 p-6">
+                  {/* <Greeting/>
           <Navbar/>  */}
-                <CommandPlate />
-                {/* <Cmd/> */}
-                <FolderProvider>
-                  <NextSSRPlugin
-                    routerConfig={extractRouterConfig(ourFileRouter)}
-                  />
-                  {children}
-                </FolderProvider>
-              </div>
+                  <CommandPlate />
+                  {/* <Cmd/> */}
+                  <FolderProvider>
+                    <NextSSRPlugin
+                      routerConfig={extractRouterConfig(ourFileRouter)}
+                    />
+                    {children}
+                  </FolderProvider>
+                </div>
+              </TimeProvider>
             </SignedIn>
           </body>
         </html>

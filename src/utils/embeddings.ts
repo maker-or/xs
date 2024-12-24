@@ -20,7 +20,7 @@ export async function getEmbedding(text: string): Promise<number[]> {
 
     // Get embedding result and safely check its existence
     const result = await embeddings.embedQuery(text);
-    if (!result ) {
+    if (!result || !Array.isArray(result)) {
       throw new Error("Embedding result or values are undefined.");
     }
 

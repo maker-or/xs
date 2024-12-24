@@ -105,7 +105,7 @@ export async function POST(req: Request): Promise<Response> {
     console.log("+++++++++++++++++++++++++++++++++++++++++++++");
     console.log("thisa is contttttt", context)
 
-    const result = await streamText({
+    const result =  streamText({
       model: model,
       system: 'Your job is to genrate the answers to the given question make the answer is clean clear in a strucured format if no context is given the return s0s if no question is provided then return s1s',
       prompt: final_prompt,

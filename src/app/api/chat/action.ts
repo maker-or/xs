@@ -23,12 +23,12 @@ const model = google('models/gemini-1.5-pro-latest', {
 });
 
 
-/**
- * Executes a SQL query and returns the result data
- * @param {string} query - The SQL query to execute
- * @returns {Promise<Result[]>} Array of query results
- * @throws {Error} If query is not a SELECT statement or table doesn't exist
- */
+// /**
+//  * Executes a SQL query and returns the result data
+//  * @param {string} query - The SQL query to execute
+//  * @returns {Promise<Result[]>} Array of query results
+//  * @throws {Error} If query is not a SELECT statement or table doesn't exist
+//  */
 export const runGeneratedSQLQuery = async (query: string) => {
     "use server";
 
@@ -49,7 +49,7 @@ export const runGeneratedSQLQuery = async (query: string) => {
     }
 
 
-    const { userId } = auth();
+    const { userId } = (await auth()) as { userId: string | null };
     console.log(userId)
     let data: unknown;  
     try {
@@ -72,7 +72,7 @@ export const runGeneratedSQLQuery = async (query: string) => {
 
 export const generateQuery = async (input: string) => {
     'use server';
-    const { userId } = auth();
+    const { userId } = (await auth()) as { userId: string | null };
     console.log(userId)
     try {
         const result = await generateObject({

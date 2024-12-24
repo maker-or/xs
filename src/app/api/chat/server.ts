@@ -29,8 +29,14 @@ export async function POST(req: Request): Promise<Response> {
     const query = lastMessage.content;
     console.log(query);
 
+    const apiKey = process.env.PINECONE_API_KEY;
+
+    if (!apiKey) {
+      throw new Error("PINECONE_API_KEY is not defined");
+    }
+
     const pinecone = new Pinecone({
-      apiKey: process.env.PINECONE_API_KEY ?? "",
+      apiKey: apiKey,
     });
 
     // Get embeddings for the query
@@ -87,7 +93,7 @@ export async function POST(req: Request): Promise<Response> {
     console.log(query)
     console.log(final_prompt)
 
-    const result = await streamText({
+    const result = streamText({
       model: model,
       system: 'Your job is to genrate the answers to the given question make the answer is clean clear in a strucured format',
       prompt: final_prompt,

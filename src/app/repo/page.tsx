@@ -3,7 +3,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Greeting from "~/components/ui/Greeting";
 import Navbar from "~/components/ui/Navbar";
-import { StepBack } from "lucide-react";
+import PdfViewer from "~/components/ui/PDFViewer";
+import { X } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 
 // Define the type for branches and structure for subjects, chapters, and notes.
@@ -27,7 +29,7 @@ type SubjectsByBranch = Record<Branch, Subject>;
 const subjects: SubjectsByBranch = {
   CSE: {
     "DSA": {
-      Notes:"https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI-All%20Units.pdf?alt=media&token=c57ad992-412f-436e-8d66-35a7abc83cf5",
+      Notes:"https://utfs.io/f/wmgM9Nb0RUmsvdIHF2sg4fYKQ2e9lRqSkuU6AiEMZVnTIPg0",
       chapter1:'https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20I%20R20.pdf?alt=media&token=0fc404c5-bcf6-47d4-a9c1-4bbb30133999',
       'chapter2':'https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20II.pdf?alt=media&token=a0182391-b3df-48d0-939d-db6a821509e4',
       "Chapter 3":
@@ -272,12 +274,20 @@ const subjects: SubjectsByBranch = {
   AI: {},
 };
 
+
 const Page = () => {
   const [selectedBranch, setSelectedBranch] = useState<Branch>("CSE");
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<"notes" | "questionPapers">(
     "notes",
   );
+
+  
+const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
+const openPdfViewer = (url: string) => {
+  setSelectedPdfUrl(url);
+  console.log("the url",url);
+};
 
   return (
     <div className="p-6">
@@ -306,12 +316,12 @@ const Page = () => {
 
       {/* Selection between Notes and Question Papers */}
       {selectedSubject === null ? (
-        <div className="flex flex-col gap-12 overflow-x-auto items-center justify-center mt-6">
+        <div className="flex flex-col gap-12 overflow-x-auto items-center justify-center mt-6 motion-preset-focus ">
           {Object.keys(subjects[selectedBranch] || {}).map((subject) => (
             <div
               key={subject}
               onClick={() => setSelectedSubject(subject)}
-              className="relative flex  w-full cursor-pointer flex-col p-3 text-3xl text-[#f7eee3]  border-b-2 border-[#f7eee334] hover:text-orange-600 hover:text-4xl"
+              className="relative flex  w-full cursor-pointer flex-col p-3 text-3xl text-[#f7eee3]  border-b-2 border-[#f7eee334] hover:text-orange-600  "
             >
               {/* <div className="absolute bottom-0 right-0 w-full rounded-b-xl bg-[#f7eee3] px-3 py-1 text-center text-lg font-medium text-[#0c0c0c]">
                 {subject}
@@ -325,9 +335,9 @@ const Page = () => {
           <div className="mt-16 flex items-center justify-between p-2">
             <button
               onClick={() => setSelectedSubject(null)}
-              className="mb-4 flex rounded-full py-2 text-sm text-[#f7eee3] hover:text-[#0f7b7c] lg:text-lg"
+              className="mb-4 flex rounded-full py-2 text-sm text-[#f7eee3] hover:text-orange-600 lg:text-lg"
             >
-              <StepBack />
+              <ChevronLeft />
               
             </button>
             {/* Type Selection */}
@@ -349,19 +359,18 @@ const Page = () => {
 
           {/* Content Display based on Type Selection */}
           {selectedType === "notes" ? (
-            <div className="flex flex-wrap items-center justify-center  gap-6 overflow-x-auto lg:justify-start">
+            <div className="flex flex-wrap items-start justify-center  gap-6 overflow-x-auto lg:justify-start">
               {selectedSubject &&
                 subjects[selectedBranch][selectedSubject] &&
                 Object.entries(subjects[selectedBranch][selectedSubject]).map(
                   ([chapter, link]) => (
-                    <Link key={chapter} href={link} target="_blank">
-                      <div className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg">
-                        <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+                    <div key={chapter} className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg" 
+                    onClick={() => openPdfViewer(link)}>
+                      
+                      <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
                         {chapter}
-                        </div>
-                        
                       </div>
-                    </Link>
+                    </div>
                   ),
                 )}
             </div>
@@ -389,6 +398,21 @@ const Page = () => {
           )}
         </div>
       )}
+    {selectedPdfUrl && (
+        <div className="fixed inset-0 flex w-[100svw] bg-orange-700 bg-opacity-50">
+          <div className="relative w-[100svw]  items-center justify-center rounded-lg bg-[#0c0c0c] ">
+            <button
+              onClick={() => setSelectedPdfUrl(null)}
+              className="absolute right-2 top-2 z-10 rounded-full bg-[#f7eee3] p-1 text-[#ff5e00]"
+              aria-label="Close PDF Viewer"
+            >
+              <X />
+            </button>
+            <PdfViewer fileUrl={selectedPdfUrl}/>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

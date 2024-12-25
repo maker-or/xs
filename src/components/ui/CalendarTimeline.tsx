@@ -5,8 +5,6 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-// import { Plus } from "lucide-react";
-// import { Button } from "~/components/ui/button";
 
 type Event = {
   id: number;
@@ -14,7 +12,60 @@ type Event = {
   text: string;
   month: number;
   year: number;
+  isSpecial?: boolean;
 };
+
+// Hardcoded special events that everyone will see
+const SPECIAL_EVENTS: Event[] = [
+  { 
+    id: -1, 
+    date: 27, 
+    text: "Life Skills-III ", 
+    month: new Date().getMonth(), 
+    year: new Date().getFullYear(), 
+    isSpecial: true 
+  },
+  { 
+    id: -2, 
+    date: 30, 
+    text: "MANAGERIAL ECONOMICS AND FINANCIAL ANALYSIS", 
+    month: new Date().getMonth(), 
+    year: new Date().getFullYear(), 
+    isSpecial: true 
+  },
+  { 
+    id: -3, 
+    date: 3, 
+    text: "PROBABILITY AND STATISTICS Product Release Day", 
+    month: 1, 
+    year: 2025, 
+    isSpecial: true 
+  },
+  { 
+    id: -4, 
+    date: 7, 
+    text: "ADVANCED DATA STRUCTURES AND ALGORITHM ANALYSIS ", 
+    month: 1, 
+    year: 2025, 
+    isSpecial: true 
+  },
+  { 
+    id: -5, 
+    date: 9, 
+    text: "DIGITAL LOGIC AND COMPUTER ORGANIZATION", 
+    month: 1, 
+    year: 2025, 
+    isSpecial: true 
+  },
+  { 
+    id: -6, 
+    date:11, 
+    text: "OBJECT ORIENTED PROGRAMMING THROUGH JAVA ", 
+    month: 1, 
+    year: 2025, 
+    isSpecial: true 
+  },
+];
 
 export default function CalendarTimeline() {
   const currentDate = useMemo(() => new Date(), []);
@@ -30,18 +81,8 @@ export default function CalendarTimeline() {
   const activeDateRef = useRef<HTMLButtonElement | null>(null);
 
   const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
   ];
 
   const getDaysInMonth = (year: number, month: number) => {
@@ -67,8 +108,6 @@ export default function CalendarTimeline() {
         task: string;
         date: string;
       }[];
-      console.log("response", response);
-      console.log("dataget", data);
 
       const formattedEvents: Event[] = data.map((task) => ({
         id: task.taskId,
@@ -76,11 +115,15 @@ export default function CalendarTimeline() {
         text: task.task,
         month: parseInt(task.month, 12),
         year: parseInt(task.year, 2024),
+        isSpecial: false,
       }));
 
-      setEvents(formattedEvents);
+      // Combine user events with special events
+      setEvents([...SPECIAL_EVENTS, ...formattedEvents]);
     } catch (error) {
       console.error("Error fetching tasks:", error);
+      // Still show special events even if fetch fails
+      setEvents(SPECIAL_EVENTS);
     }
   };
 
@@ -91,6 +134,7 @@ export default function CalendarTimeline() {
       id: 0,
       month: currentMonth,
       year: currentYear,
+      isSpecial: false,
     };
     setEvents([...events, newEvent]);
     setEditingEvent(newEvent);
@@ -98,6 +142,7 @@ export default function CalendarTimeline() {
   };
 
   const handleEditStart = (event: Event) => {
+    if (event.isSpecial) return; // Prevent editing special events
     setEditingEvent(event);
     setEditText(event.text);
   };
@@ -127,7 +172,7 @@ export default function CalendarTimeline() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      // console.log("datapost",data)
+      
       if (!response.ok) {
         console.error("Failed to save task:", response.statusText);
       } else {
@@ -144,7 +189,6 @@ export default function CalendarTimeline() {
   }, []);
 
   useEffect(() => {
-    // Scroll to the active date button on load
     if (activeDateRef.current && datePickerRef.current) {
       const datePicker = datePickerRef.current;
       const activeDateButton = activeDateRef.current;
@@ -189,15 +233,13 @@ export default function CalendarTimeline() {
         <div className="flex items-center space-x-2">
           <button
             onClick={handleNewEvent}
-            // variant="default"
             className="border-2 flex px-4 py-1 rounded-md border-[#f7eee323] font-serif hover:border-none justify-center items-end hover:bg-orange-600"
           >
-            Add 
+            Add
           </button>
         </div>
       </div>
 
-      {/* Date Picker */}
       <div
         ref={datePickerRef}
         className="no-scrollbar mb-4 flex h-auto space-x-4 overflow-x-auto border-b border-neutral-800 pb-2"
@@ -218,18 +260,19 @@ export default function CalendarTimeline() {
         ))}
       </div>
 
-      {/* Events box for the selected date */}
       <div className="relative h-40 overflow-y-auto" id="box">
         {filteredEvents.map((event, index) => (
           <div
             key={event.id || index}
-            className="absolute flex h-8 items-center justify-center rounded-md bg-neutral-800 p-2 text-[#f7eee3]"
+            className={`absolute flex h-8 items-center justify-center rounded-md p-2 text-[#f7eee3] ${
+              event.isSpecial ? 'border-[#FF5E00]/20 border-2 bg-neutral-800' : 'bg-neutral-800'
+            }`}
             style={{
               left: "0",
               right: "0",
               top: `${index * 3}rem`,
             }}
-            onDoubleClick={() => handleEditStart(event)}
+            onDoubleClick={() => !event.isSpecial && handleEditStart(event)}
           >
             {editingEvent === event ? (
               <input
@@ -242,7 +285,9 @@ export default function CalendarTimeline() {
                 autoFocus
               />
             ) : (
-              <span>{event.text}</span>
+              <span className="flex items-center gap-2">
+                {event.text}
+              </span>
             )}
           </div>
         ))}

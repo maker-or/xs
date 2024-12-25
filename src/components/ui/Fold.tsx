@@ -76,6 +76,7 @@ const Fold = () => {
       const newFolder = (await response.json()) as FolderType;
 
       setFolders((prevFolders) => [...prevFolders, newFolder]);
+      window.location.reload()
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error creating folder:", error.message);
@@ -109,6 +110,7 @@ const Fold = () => {
             folderId={folder.folderId}
           />
         ))}
+        
       </div>
     </div>
   );

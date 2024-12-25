@@ -76,9 +76,10 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
           }),
         })
       );
-
+      
       await Promise.all(uploadPromises);
       setModalOpen(false);
+       window.location.reload()
       
       // You might want to refresh your images list here
       // Either through a server action or by refetching the data
@@ -147,6 +148,7 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
 
                   
                   void handleUploadComplete(res);
+                 
                 }
               }}
               className="h-2/3 w-full rounded border-2 border-dashed border-[#f7eee3]/30 py-2 text-[#f7eee3] hover:border-[#f7eee3]"

@@ -41,16 +41,16 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
       setNewTask("");
       setShowInput(false);
     }
-    addTask();
+    void addTask();
   };
 
   useEffect(() => {
     const getTasks = async () => {
       await fetch("/api/userTasks/")
         .then((res) => res.json())
-        .then((res) => {
+        .then((res: TaskTypes[]) => {
           console.log(res);
-          const updatedTasks = res.map((task: TaskTypes) => ({
+          const updatedTasks: TaskTypes[] = res.map((task) => ({
             ...task,
             completed:
               typeof task.completed === "string"
@@ -65,7 +65,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
           setTasks(filteredTasks);
         });
     };
-    getTasks();
+    void getTasks();
   }, []);
 
   const handleDeleteTask = (taskId: string) => {
@@ -90,7 +90,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
       ),
     );
     handleDeleteTask(taskId); // Trigger the deletion after marking complete
-    taskComplete(taskId);
+    void taskComplete(taskId);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

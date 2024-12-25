@@ -18,14 +18,18 @@ export const timeContext = createContext<ContextType>({
     throw new Error("setTimeLeft must be used within a TimeProvider");
   },
   isRunning: false,
-  setIsRunning: () => {},
+  setIsRunning: () => {
+    throw new Error("setIsRunning must be used within a TimeProvider");
+  },
   duration: 30,
-  setDuration: () => {},
+  setDuration: () => {
+    throw new Error("setDuration must be used within a TimeProvider");
+  },
 });
 
 // TimeProvider component
 export const TimeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [timeLeft, setTimeLeft] = useState(25 * 60);
+  const [timeLeft, setTimeLeft] = useState(30 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [duration, setDuration] = useState(30);
 

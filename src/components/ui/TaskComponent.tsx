@@ -118,7 +118,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
         {tasks.map((task) => (
           <div
             key={task.id}
-            className={`flex items-center justify-between p-3 transition-all duration-500 ${
+            className={`flex items-center justify-between p-3 transition-all duration-500   ${
               removingTask === task.id
                 ? "scale-90 opacity-0" // Fading out and shrinking animation
                 : task.completed
@@ -129,10 +129,10 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => handleToggleComplete(task.id)}
-                className={`flex h-6 w-6 items-center justify-center rounded-md border ${
+                className={`flex h-6 w-6 items-center justify-center rounded-md border  ${
                   task.completed
-                    ? "border-green-500/70 bg-green-500/70"
-                    : "border-[#f7eee3]/30 hover:border-orange-400/50"
+                    ? "border-green-500/70 bg-green-500/70 motion-preset-confetti motion-duration-1000"
+                    : "border-[#f7eee3]/30 hover:border-orange-400/50 "
                 }`}
               >
                 {task.completed && <Check size={16} />}
@@ -141,7 +141,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
             </div>
             <button
               onClick={() => handleDeleteTask(task.id)}
-              className="rounded-full p-2 text-[#f7eee3] transition-colors hover:text-red-500"
+              className="rounded-full p-2 text-[#f7eee3]  transition-colors hover:text-red-500"
             >
               {/* <Trash2 size={18} /> */}
             </button>

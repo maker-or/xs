@@ -17,7 +17,7 @@ const Folder: React.FC<FolderProps> = ({ folderName, folderId }) => {
   return (
     
       
-              <div onClick={handleFolderClick} className="md:-ml-12 flex max-h-60 min-h-52 ml-12 min-w-16 max-w-52 flex-col  ">
+      <div onClick={handleFolderClick} className="md:-ml-12 flex max-h-60 min-h-52 ml-12 min-w-16 max-w-52 flex-col motion-scale-in-[0.84] hover:motion-scale-in-[0.74]">
         <button className="folder">
           <div className="folder-top text-md p-1 font-medium">{folderName}</div>
           <div className="folder-body p-1">

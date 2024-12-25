@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, {  useContext } from "react";
 // import { Button } from "~/components/ui/button";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import { timeContext } from "~/providers/TimerProvider";
@@ -93,7 +93,7 @@ const PomodoroTimer = () => {
               // variant={duration === minutes ? "default" : "secondary"}
               // size="sm"
               onClick={() => setPresetDuration(minutes)}
-              className="text-md h-12 w-12 bg-[#0c0c0c] text-[#f7eee3]"
+              className="text-md h-12 w-12 bg-[#f7eee3]/80 text-[#0c0c0c] rounded-md hover:scale-105 hover:bg-[#f7eee3]"
             >
               {label}
             </button>
@@ -105,10 +105,10 @@ const PomodoroTimer = () => {
           <button
             // size="icon"
             onClick={toggleTimer}
-            className="h-12 w-12 bg-[#0c0c0c] transition-transform hover:scale-105"
+            className="h-12 w-12 bg-[#f7eee3]/80 text-[#0c0c0c]  transition-transform hover:scale-105 flex items-center justify-center rounded-md hover:bg-[#f7eee3]"
           >
             {isRunning ? (
-              <Pause className="h-6 w-6" />
+              <Pause className="h-6 w-6" strokeWidth={1}/>
             ) : (
               <Play className="h-6 w-6" />
             )}
@@ -116,7 +116,7 @@ const PomodoroTimer = () => {
           <button
             // size="icon"
             onClick={resetTimer}
-            className="h-12 w-12 bg-[#0c0c0c] transition-transform hover:scale-105"
+            className="h-12 w-12 bg-[#f7eee3]/80 text-[#0c0c0c]  transition-transform hover:scale-105 flex items-center justify-center rounded-md hover:bg-[#f7eee3]"
           >
             <RotateCcw className="h-6 w-6" />
           </button>

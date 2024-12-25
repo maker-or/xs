@@ -115,7 +115,7 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="text-md rounded-lg bg-orange-600 px-3 py-1 text-[#f7eee3]"
+          className="text-md rounded-lg bg-orange-600 px-3 py-1 text-[#f7eee3] "
         >
           +
         </button>
@@ -156,11 +156,11 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
       )}
 
       {/* Images Grid */}
-      <div className="item-center flex h-[250px] w-full flex-wrap gap-4">
+      <div className="item-center flex h-[250px] w-full flex-wrap gap-4 ">
         {images?.map((image, index) => (
           <div
             key={`${image.id}-${index}`}
-            className="flex flex-col items-center justify-center gap-6"
+            className="flex flex-col items-center justify-center gap-6 motion-scale-in-[0.83]  "
           >
             <div
               onClick={() => openPdfViewer(image.url)}

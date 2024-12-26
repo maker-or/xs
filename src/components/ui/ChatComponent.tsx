@@ -1,7 +1,7 @@
 
 'use client'
-import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Check, ChevronLeft, Search, Pause, Play, RotateCw } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { ChevronLeft, Search } from 'lucide-react';
 import { useChat } from 'ai/react';
 
 
@@ -13,7 +13,7 @@ const ChatComponent = ({ onClose }: { onClose: () => void }) => {
     handleSubmit: aiHandleSubmit,
   } = useChat({
     initialMessages: [],
-    api:'/api/chat/server',
+    api: '/api/Intelligent',
   });
 
   // const [submitted, setSubmitted] = useState(false);
@@ -86,9 +86,9 @@ const ChatComponent = ({ onClose }: { onClose: () => void }) => {
           <div
             key={message.id}
             className={`px-3 rounded-lg max-w-[90%} ${message.role === 'user'
-                ? ' text-[#f7eee3]/60 font-serif text-[1.8rem]'
-                : ' text-[#f7eee3] text-[1.2rem] tracking-tight'
-              }`} 
+              ? ' text-[#f7eee3]/60 font-serif text-[1.8rem]'
+              : ' text-[#f7eee3] text-[1.2rem] tracking-tight'
+              }`}
           >
             {message.content}
           </div>

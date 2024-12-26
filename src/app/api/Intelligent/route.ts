@@ -2,7 +2,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { getEmbedding } from '~/utils/embeddings';
 import { type ConvertibleMessage } from '~/utils/types';
 import { streamText } from "ai";
-import { Pinecone } from '@pinecone-database/pinecone';
+// import { Pinecone } from '@pinecone-database/pinecone';
 import { runGeneratedSQLQuery, generateQuery, explainQuery } from '~/app/api/chat/action';
 
 // Define a type for the expected request body structure
@@ -29,37 +29,37 @@ export async function POST(req: Request): Promise<Response> {
     const query = lastMessage.content;
     console.log(query);
 
-    const apiKey = process.env.PINECONE_API_KEY;
+    // const apiKey = process.env.PINECONE_API_KEY;
 
-    if (!apiKey) {
-      throw new Error("PINECONE_API_KEY is not defined");
-    }
+    // if (!apiKey) {
+    //   throw new Error("PINECONE_API_KEY is not defined");
+    // }
 
-    const pinecone = new Pinecone({
-      apiKey: apiKey,
-    });
+    // const pinecone = new Pinecone({
+    //   apiKey: apiKey,
+    // });
 
     // Get embeddings for the query
     const queryEmbedding = await getEmbedding(query);
     console.log(queryEmbedding);
 
     // Query Pinecone
-    const index = pinecone.index('k');
-    const queryResponse = await index.query({
-      vector: queryEmbedding,
-      topK: 5,
-      includeMetadata: true,
-    });
+    // const index = pinecone.index('k');
+    // const queryResponse = await index.query({
+    //   vector: queryEmbedding,
+    //   topK: 5,
+    //   includeMetadata: true,
+    // });
 
-    console.log(queryResponse);
+    // console.log(queryResponse);
 
     // Safely filter and map matches with metadata
-    const context = queryResponse.matches
-      .filter((match) => match.metadata && typeof match.metadata.content === 'string')
-      .map((match) => match.metadata!.content as string)
-      .join('\n\n');
+    // const context = queryResponse.matches
+    //   .filter((match) => match.metadata && typeof match.metadata.content === 'string')
+    //   .map((match) => match.metadata!.content as string)
+    //   .join('\n\n');
 
-    console.log(context);
+    // console.log(context);
 
     const google = createGoogleGenerativeAI({
       baseURL: 'https://generativelanguage.googleapis.com/v1beta',
@@ -79,7 +79,7 @@ export async function POST(req: Request): Promise<Response> {
     const sqlExplanation = await explainQuery(query, generatedSQL);
 
     const final_prompt = `
-    Context: ${context}
+   
 
     User Query: ${query}
     Generated SQL Query: ${generatedSQL}
@@ -89,7 +89,7 @@ export async function POST(req: Request): Promise<Response> {
     Please provide a comprehensive and detailed answer to the user's query.
     `;
 
-    console.log(context)
+    // console.log(context)
     console.log(query)
     console.log(final_prompt)
 

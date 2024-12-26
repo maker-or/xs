@@ -1,12 +1,10 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
 import Greeting from "~/components/ui/Greeting";
 import Navbar from "~/components/ui/Navbar";
 import PdfViewer from "~/components/ui/PDFViewer";
 import { X } from "lucide-react";
 import { ChevronLeft } from "lucide-react";
-
 
 // Define the type for branches and structure for subjects, chapters, and notes.
 const branches = [
@@ -24,23 +22,69 @@ const branches = [
 type Branch = (typeof branches)[number];
 type Subject = Record<string, Record<string, string>>;
 type SubjectsByBranch = Record<Branch, Subject>;
+type QuestionPapers = Record<Branch, Record<string, Record<string, string>>>;
+const questionPapers: QuestionPapers = {
+  CSE: {
+    DSA: {
+      "Question Paper 1": "#",
+      "Question Paper 2": "#",
+      "Question Paper 3": "#",
+      "Question Paper 4": "#",
+    },
+    Java: {
+      "Question Paper 1": "#",
+      "Question Paper 2": "#",
+      "Question Paper 3": "#",
+      "Question Paper 4": "#",
+    },
+    DAA: {
+      "Question Paper 1": "#",
+      "Question Paper 2": "#",
+      "Question Paper 3": "#",
+      "Question Paper 4": "#",
+    },
+    ADS: {
+      "Question Paper 1": "#",
+      "Question Paper 2": "#",
+      "Question Paper 3": "#",
+      "Question Paper 4": "#",
+    },
+    FLAT: {
+      "Question Paper 1": "#",
+      "Question Paper 2": "#",
+      "Question Paper 3": "#",
+      "Question Paper 4": "#",
+    },
+  },
+  EEE: {},
+  ECE: {},
+  MEC: {},
+  CIV: {},
+  IT: {},
+  CSO: {},
+  CSM: {},
+  CIC: {},
+  AI: {},
+};
 
 // Define subjects for different branches
 const subjects: SubjectsByBranch = {
   CSE: {
-    "DSA": {
-      Notes:"https://utfs.io/f/wmgM9Nb0RUmsvdIHF2sg4fYKQ2e9lRqSkuU6AiEMZVnTIPg0",
-      chapter1:'https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20I%20R20.pdf?alt=media&token=0fc404c5-bcf6-47d4-a9c1-4bbb30133999',
-      'chapter2':'https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20II.pdf?alt=media&token=a0182391-b3df-48d0-939d-db6a821509e4',
+    DSA: {
+      Notes:
+        "https://utfs.io/f/wmgM9Nb0RUmsvdIHF2sg4fYKQ2e9lRqSkuU6AiEMZVnTIPg0",
+      chapter1:
+        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20I%20R20.pdf?alt=media&token=0fc404c5-bcf6-47d4-a9c1-4bbb30133999",
+      chapter2:
+        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20II.pdf?alt=media&token=a0182391-b3df-48d0-939d-db6a821509e4",
       "Chapter 3":
         "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20III.pdf?alt=media&token=b454a389-fd14-4f44-9387-b9acb922e7cf",
       "Chapter 4":
         "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20IV.pdf?alt=media&token=830425f0-386c-4580-8084-9a2e3b711ef4",
       "Chapter 5":
         "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20V%20GRD.pdf?alt=media&token=a07c3c1a-5e3b-48af-8286-d9c5e2b23566",
-
     },
-    "Java": {
+    Java: {
       "Chapter 1":
         "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FCN%2FCN%20UNIT%201.pdf?alt=media&token=8a3ffd90-ccde-4439-b8a6-e22862c9e9df",
       "Chapter 2":
@@ -52,7 +96,7 @@ const subjects: SubjectsByBranch = {
       "Chapter 5":
         "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
     },
-    'DAA': {
+    DAA: {
       "Chapter 1":
         "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%201.pdf?alt=media&token=fdec5cef-9e2c-414e-8744-366f5a8361d7",
       "Chapter 2":
@@ -69,12 +113,9 @@ const subjects: SubjectsByBranch = {
         "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FVipin%20Kumar_Text%20Book.pdf?alt=media&token=35e87e92-5351-4b64-aa8c-7e8d197e90b8",
     },
     ADS: {
-      "HTML":
-        "https://developer.mozilla.org/en-US/docs/Web/HTML",
-      "React":
-        "https://react.dev/learn",
-      "MongoDB":
-        "https://www.mongodb.com/docs/manual/",
+      HTML: "https://developer.mozilla.org/en-US/docs/Web/HTML",
+      React: "https://react.dev/learn",
+      MongoDB: "https://www.mongodb.com/docs/manual/",
     },
     FLAT: {
       Textbook:
@@ -274,7 +315,6 @@ const subjects: SubjectsByBranch = {
   AI: {},
 };
 
-
 const Page = () => {
   const [selectedBranch, setSelectedBranch] = useState<Branch>("CSE");
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
@@ -282,12 +322,11 @@ const Page = () => {
     "notes",
   );
 
-  
-const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
-const openPdfViewer = (url: string) => {
-  setSelectedPdfUrl(url);
-  console.log("the url",url);
-};
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
+  const openPdfViewer = (url: string) => {
+    setSelectedPdfUrl(url);
+    console.log("the url", url);
+  };
 
   return (
     <div className="p-6">
@@ -316,12 +355,12 @@ const openPdfViewer = (url: string) => {
 
       {/* Selection between Notes and Question Papers */}
       {selectedSubject === null ? (
-        <div className="flex flex-col gap-12 overflow-x-auto items-center justify-center mt-6 motion-preset-focus ">
+        <div className="motion-preset-focus mt-6 flex flex-col items-start justify-center gap-12 overflow-x-auto">
           {Object.keys(subjects[selectedBranch] || {}).map((subject) => (
             <div
               key={subject}
               onClick={() => setSelectedSubject(subject)}
-              className="relative flex  w-full cursor-pointer flex-col p-3 text-3xl text-[#f7eee3]  border-b-2 border-[#f7eee334] hover:text-orange-600  "
+              className="relative flex w-full cursor-pointer flex-col border-b-2 border-[#f7eee334] p-3 text-3xl text-[#f7eee3] hover:text-orange-600"
             >
               {/* <div className="absolute bottom-0 right-0 w-full rounded-b-xl bg-[#f7eee3] px-3 py-1 text-center text-lg font-medium text-[#0c0c0c]">
                 {subject}
@@ -338,13 +377,12 @@ const openPdfViewer = (url: string) => {
               className="mb-4 flex rounded-full py-2 text-sm text-[#f7eee3] hover:text-orange-600 lg:text-lg"
             >
               <ChevronLeft />
-              
             </button>
             {/* Type Selection */}
             <div className="mb-4 flex gap-4">
               <button
                 onClick={() => setSelectedType("notes")}
-                className={`rounded-xl px-3 text-sm py-2 lg:px-4 ${selectedType === "notes" ? "bg-[#f7eee3] text-[#0c0c0c]" : "bg-[#454545] text-[#f7eee3]"}`}
+                className={`rounded-xl px-3 py-2 text-sm lg:px-4 ${selectedType === "notes" ? "bg-[#f7eee3] text-[#0c0c0c]" : "bg-[#454545] text-[#f7eee3]"}`}
               >
                 Notes
               </button>
@@ -359,14 +397,16 @@ const openPdfViewer = (url: string) => {
 
           {/* Content Display based on Type Selection */}
           {selectedType === "notes" ? (
-            <div className="flex flex-wrap items-start justify-center  gap-6 overflow-x-auto lg:justify-start">
+            <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
               {selectedSubject &&
                 subjects[selectedBranch][selectedSubject] &&
                 Object.entries(subjects[selectedBranch][selectedSubject]).map(
                   ([chapter, link]) => (
-                    <div key={chapter} className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg" 
-                    onClick={() => openPdfViewer(link)}>
-                      
+                    <div
+                      key={chapter}
+                      className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
+                      onClick={() => openPdfViewer(link)}
+                    >
                       <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
                         {chapter}
                       </div>
@@ -375,32 +415,55 @@ const openPdfViewer = (url: string) => {
                 )}
             </div>
           ) : (
-            <div className="flex flex-wrap gap-6 overflow-x-auto">
-              {/* Example Question Papers; replace with actual data */}
-              <Link
-                href={`https://cloud.link/to/${selectedBranch}/${selectedSubject}/qp1`}
-                target="_blank"
-              >
-                <div className="flex h-[100px] w-[200px] items-center justify-center rounded-lg bg-[#0f7b7c] p-2 text-center text-white ">
-                  Question Paper 1
-                </div>
-              </Link>
-              <Link
-                href={`https://cloud.link/to/${selectedBranch}/${selectedSubject}/qp2`}
-                target="_blank"
-              >
-                <div className="flex h-[100px] w-[200px] items-center justify-center rounded-lg bg-[#434080] p-2 text-center text-white">
-                  Question Paper 2
-                </div>
-              </Link>
-              {/* Add more question papers as needed */}
+            // <div className="flex flex-wrap gap-6 overflow-x-auto">
+            //   {/* Example Question Papers; replace with actual data */}
+            //   <Link
+            //     href={https://cloud.link/to/${selectedBranch}/${selectedSubject}/qp1}
+            //     target="_blank"
+            //   >
+            //     <div
+            //       className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
+            //       onClick={() => openPdfViewer("#")}
+            //     >
+            //       <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+            //         {" "}
+            //         Question paper1
+            //       </div>
+            //     </div>
+            //   </Link>
+            //   <Link
+            //     href={https://cloud.link/to/${selectedBranch}/${selectedSubject}/qp2}
+            //     target="_blank"
+            //   >
+            //     <div className="flex h-[100px] w-[200px] items-center justify-center rounded-lg bg-[#434080] p-2 text-center text-white">
+            //       Question Paper 2
+            //     </div>
+            //   </Link>
+            //   {/* Add more question papers as needed */}
+            // </div>
+            <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
+              {selectedSubject &&
+                questionPapers[selectedBranch][selectedSubject] &&
+                Object.entries(
+                  questionPapers[selectedBranch][selectedSubject],
+                ).map(([paper, link]) => (
+                  <div
+                    key={paper}
+                    className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
+                    onClick={() => openPdfViewer(link)}
+                  >
+                    <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+                      {paper}
+                    </div>
+                  </div>
+                ))}
             </div>
           )}
         </div>
       )}
-    {selectedPdfUrl && (
+      {selectedPdfUrl && (
         <div className="fixed inset-0 flex w-[100svw] bg-orange-700 bg-opacity-50">
-          <div className="relative w-[100svw]  items-center justify-center rounded-lg bg-[#0c0c0c] ">
+          <div className="relative w-[100svw] items-center justify-center rounded-lg bg-[#0c0c0c]">
             <button
               onClick={() => setSelectedPdfUrl(null)}
               className="absolute right-2 top-2 z-10 rounded-full bg-[#f7eee3] p-1 text-[#ff5e00]"
@@ -408,11 +471,10 @@ const openPdfViewer = (url: string) => {
             >
               <X />
             </button>
-            <PdfViewer fileUrl={selectedPdfUrl}/>
+            <PdfViewer fileUrl={selectedPdfUrl} />
           </div>
         </div>
       )}
-
     </div>
   );
 };

@@ -83,6 +83,8 @@ export const generateQuery = async (input: string) => {
               "userId": varchar("userId", { length: 1024 }).notNull(),
               "task": varchar("task", { length: 255 }).notNull(),
               "date": varchar("date").notNull(),
+              "month":varchar("month").notNull(),{current month},
+              "year":varchar("year").notNull(), {current year}
               "createdAt": timestamp,
               "updatedAt": timestamp
             }`,

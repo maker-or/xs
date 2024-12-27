@@ -463,7 +463,7 @@ const Page = () => {
       )}
       {selectedPdfUrl && (
         <div className="fixed inset-0 flex w-[100svw] bg-orange-700 bg-opacity-50">
-          <div className="relative w-[100svw] items-center justify-center rounded-lg bg-[#0c0c0c]">
+          <div className="relative w-[100svw] items-start justify-center rounded-lg bg-[#0c0c0c]">
             <button
               onClick={() => setSelectedPdfUrl(null)}
               className="absolute right-2 top-2 z-10 rounded-full bg-[#f7eee3] p-1 text-[#ff5e00]"

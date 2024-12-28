@@ -70,19 +70,19 @@ const questionPapers: QuestionPapers = {
 // Define subjects for different branches
 const subjects: SubjectsByBranch = {
   CSE: {
-    DSA: {
+    MEFA: {
       Notes:
         "https://utfs.io/f/wmgM9Nb0RUmsvdIHF2sg4fYKQ2e9lRqSkuU6AiEMZVnTIPg0",
       chapter1:
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20I%20R20.pdf?alt=media&token=0fc404c5-bcf6-47d4-a9c1-4bbb30133999",
+        "https://utfs.io/f/P1G716yuMhtQnlZR5Zgdk8T5fVQK7EIMBcmsxYSzCXeWZOG9",
       chapter2:
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20II.pdf?alt=media&token=a0182391-b3df-48d0-939d-db6a821509e4",
+        "https://utfs.io/f/P1G716yuMhtQY0Apz4CnJFw40xE1UtNmYj69VSuPvZkDA8pR",
       "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20III.pdf?alt=media&token=b454a389-fd14-4f44-9387-b9acb922e7cf",
+        "https://utfs.io/f/P1G716yuMhtQMNaeq6jibSejnaCKzv2uBFDE7Pp58YGdhsgW",
       "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20IV.pdf?alt=media&token=830425f0-386c-4580-8084-9a2e3b711ef4",
+        "https://utfs.io/f/P1G716yuMhtQiJUWiRD2LFaTG1ZmRsiXf0I6kNwtoHP3x8pz",
       "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI%20-%20UNIT%20V%20GRD.pdf?alt=media&token=a07c3c1a-5e3b-48af-8286-d9c5e2b23566",
+        "https://utfs.io/f/P1G716yuMhtQPaC012yuMhtQ45xieHKBZq0vpowrLT6I7YyS",
     },
     Java: {
       "Chapter 1":

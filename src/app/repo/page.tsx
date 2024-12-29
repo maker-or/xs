@@ -9,15 +9,8 @@ import { ChevronLeft } from "lucide-react";
 // Define the type for branches and structure for subjects, chapters, and notes.
 const branches = [
   "CSE",
-  "EEE",
-  "ECE",
-  "MEC",
-  "CIV",
-  "IT",
-  "CSO",
-  "CSM",
-  "CIC",
-  "AI",
+
+
 ] as const;
 type Branch = (typeof branches)[number];
 type Subject = Record<string, Record<string, string>>;
@@ -25,11 +18,11 @@ type SubjectsByBranch = Record<Branch, Subject>;
 type QuestionPapers = Record<Branch, Record<string, Record<string, string>>>;
 const questionPapers: QuestionPapers = {
   CSE: {
-    DSA: {
-      "Question Paper 1": "#",
-      "Question Paper 2": "#",
-      "Question Paper 3": "#",
-      "Question Paper 4": "#",
+    MEFA: {
+      "Question Paper 1": "https://utfs.io/f/P1G716yuMhtQZde2dtFmxvlGHNiMpS8X3RuJQWy29waPsk74",
+      "Question Paper 2": "https://utfs.io/f/P1G716yuMhtQG0ufXvP17PuIF0Si5LKZ8WXOUfQnYpRMmzJ2",
+      "Question Paper 3": "https://utfs.io/f/P1G716yuMhtQXuIXsJjV7aRSlAgJ5Ohx40iLuwbW1ZUnd6vq",
+      "Question Paper 4": "https://utfs.io/f/P1G716yuMhtQpnTfud21dGZbO2yhoUa5CQgKYj8iAr7zEeTu",
     },
     Java: {
       "Question Paper 1": "#",
@@ -49,30 +42,22 @@ const questionPapers: QuestionPapers = {
       "Question Paper 3": "#",
       "Question Paper 4": "#",
     },
-    FLAT: {
+    "P&S": {
       "Question Paper 1": "#",
       "Question Paper 2": "#",
       "Question Paper 3": "#",
       "Question Paper 4": "#",
     },
   },
-  EEE: {},
-  ECE: {},
-  MEC: {},
-  CIV: {},
-  IT: {},
-  CSO: {},
-  CSM: {},
-  CIC: {},
-  AI: {},
+
+
+
 };
 
 // Define subjects for different branches
 const subjects: SubjectsByBranch = {
   CSE: {
     MEFA: {
-      Notes:
-        "https://utfs.io/f/wmgM9Nb0RUmsvdIHF2sg4fYKQ2e9lRqSkuU6AiEMZVnTIPg0",
       chapter1:
         "https://utfs.io/f/P1G716yuMhtQnlZR5Zgdk8T5fVQK7EIMBcmsxYSzCXeWZOG9",
       chapter2:
@@ -86,233 +71,60 @@ const subjects: SubjectsByBranch = {
     },
     Java: {
       "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FCN%2FCN%20UNIT%201.pdf?alt=media&token=8a3ffd90-ccde-4439-b8a6-e22862c9e9df",
+        "#",
       "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FCN%2FCN%20UNIT%202.pdf?alt=media&token=172a3a1d-70d8-4036-a585-f54950674e6e",
+        "#",
       "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FCN%2FCN%20UNIT%203.pdf?alt=media&token=e0f2543e-36fb-4835-a3b0-5c414a4c5b87",
+        "#",
       "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FCN%2FCN%20UNIT%204.pdf?alt=media&token=806e04ca-eda9-428e-8235-c95c5ebc3544",
+        "#",
       "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
+        "#",
     },
     DAA: {
       "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%201.pdf?alt=media&token=fdec5cef-9e2c-414e-8744-366f5a8361d7",
+        "#",
       "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%202.pdf?alt=media&token=3a990ec6-f705-44ec-90a4-a654cbebc3a0",
+        "#",
       "Chapter 3-1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%203_Part-1.pdf?alt=media&token=efd24687-2713-4676-b5be-82bfe1335e0b",
+        "#",
       "Chapter 3-2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%203_Part-2.pdf?alt=media&token=17c474a2-e84b-4b2e-ae93-913a7d1bdd8c",
+        "#",
       "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%204.pdf?alt=media&token=e487369e-7f3d-407a-b152-2ae342ebb97f",
+        "#",
       "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%205.pdf?alt=media&token=c48d0fca-8fb3-40cf-909f-ff80d6347b5b",
+        "#",
       textbook:
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FVipin%20Kumar_Text%20Book.pdf?alt=media&token=35e87e92-5351-4b64-aa8c-7e8d197e90b8",
+        "#",
     },
     ADS: {
-      HTML: "https://developer.mozilla.org/en-US/docs/Web/HTML",
-      React: "https://react.dev/learn",
-      MongoDB: "https://www.mongodb.com/docs/manual/",
+      "Chapter 1":
+        "#",
+      "Chapter 2":
+        "#",
+      "Chapter 3":
+        "#",
+      "Chapter 4":
+        "#",
+      "Chapter 5":
+        "#",
     },
-    FLAT: {
-      Textbook:
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FShyamalendu%20Kandar%20-%20Introduction%20to%20Automata%20Theory%2C%20Formal%20Languages%20and%20Computation-Pearson%20Education%20India%20(2016).pdf?alt=media&token=bc2608ce-5508-4004-9e55-621294be2027",
+    "P&S": {
+      "Chapter 1":
+      "#",
+    "Chapter 2":
+      "#",
+    "Chapter 3":
+      "#",
+    "Chapter 4":
+      "#",
+    "Chapter 5":
+      "#",
     },
   },
-  EEE: {},
-  ECE: {
-    OOP: {
-      "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-    },
-    ADC: {
-      Notes:
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/EEE%2FADC%20COMPLETE%20NOTES.pdf?alt=media&token=b8e955f1-3072-4f4c-8573-b2ef087d1133",
-    },
-    "VlSI Design ": {
-      "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/EEE%2FVLSI%2FVLSI%20Design_Unit-3%20%26%204.pdf?alt=media&token=e2c8dd14-a767-4709-a134-37635d8e83bc",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-    },
-    LICA: {
-      "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/EEE%2FLICA%20COMPLETE%20NOTES.pdf?alt=media&token=814b8a61-c5dd-400c-a449-aa8a49a33ae0",
-      "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-    },
-    Oops: {
-      "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-    },
-  },
-  MEC: {},
-  CIV: {},
-  IT: {
-    "Artificial Intelligence": {
-      Notes:
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FAI-All%20Units.pdf?alt=media&token=c57ad992-412f-436e-8d66-35a7abc83cf5",
-    },
-    "Computer Networks": {
-      "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-    },
-    DWM: {
-      "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%201.pdf?alt=media&token=fdec5cef-9e2c-414e-8744-366f5a8361d7",
-      "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%202.pdf?alt=media&token=3a990ec6-f705-44ec-90a4-a654cbebc3a0",
-      "Chapter 3-1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%203_Part-1.pdf?alt=media&token=efd24687-2713-4676-b5be-82bfe1335e0b",
-      "Chapter 3-2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%203_Part-2.pdf?alt=media&token=17c474a2-e84b-4b2e-ae93-913a7d1bdd8c",
-      "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%204.pdf?alt=media&token=e487369e-7f3d-407a-b152-2ae342ebb97f",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FDWDM%20Unit%205.pdf?alt=media&token=c48d0fca-8fb3-40cf-909f-ff80d6347b5b",
-      textbook:
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FDWM%2FVipin%20Kumar_Text%20Book.pdf?alt=media&token=35e87e92-5351-4b64-aa8c-7e8d197e90b8",
-    },
-    FED: {
-      "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-    },
-    FLAT: {
-      Textbook:
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSE%2FShyamalendu%20Kandar%20-%20Introduction%20to%20Automata%20Theory%2C%20Formal%20Languages%20and%20Computation-Pearson%20Education%20India%20(2016).pdf?alt=media&token=bc2608ce-5508-4004-9e55-621294be2027",
-    },
-  },
-  CSO: {
-    DAA: {
-      "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FDAA%2FDAA-UNIT-1.pdf?alt=media&token=8f3c5f0c-fcc9-43c8-b229-0fcc6903895c",
-      "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FDAA%2FDAA-UNIT-2.pdf?alt=media&token=d517217b-9716-4ad9-9ca0-1c264845bdd1",
-      "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FDAA%2FDAA-UNIT-3.pdf?alt=media&token=f970bc14-76e6-4325-8cb1-4ee98fd568f1",
-      "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FDAA%2FDAA-UNIT-4.pdf?alt=media&token=8a1f3ac1-ab8b-4cbe-85a0-a7906f97746e",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FDAA%2FDAA-UNIT-5.pdf?alt=media&token=28d19346-7027-4552-b1b7-7d3c147a2fd0",
-    },
-    ML: {
-      "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FML%2FMachine%20Learning%20intro.pdf?alt=media&token=edb61190-4844-4025-a5c0-3f42f5e309a5",
-      "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FML%2FML%20UNIT-II.pdf?alt=media&token=7e1183f2-09c2-4457-b246-76e872c88b8d",
-      "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FML%2Funit%20-III.pdf?alt=media&token=cd418cb9-388b-47ac-92e1-49c2e1d79359",
-      "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FML%2FUNIT-IV.pdf?alt=media&token=68fdbc82-4d16-4cc6-8ec4-c9c08f5a1ffa",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FML%2FUNIT-V.pdf?alt=media&token=fab8e32f-aaa6-4061-a4cb-4a11772c8d6e",
-    },
-    MPMC: {
-      "Chapter 1":
-        "https://firebasestorage.goFMPMC%20UNIT-1.pdf?alt=media&token=f0e7c0f8-a0c8-4f9c3f3e3d7",
-      "Chapter 2":
-        "https://fireba79.appspot.com/o/CSO%2FMPMC%2FMPMC%20UNIT-2.pdf?alt=media&token=f0ee3d7",
-      "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FMPMC%2FMpmc%20unit%203.pdf?alt=media&token=7b7f58af-e0c2-4dbe-a6eb-5d5690ddbbdd",
-      "Chapter 4":
-        "https://MC%2FMPMC%20UNIT-4.pdf?alt=media&token=f0e7c0f8-a0c8-4f9c-b0d1-c1c3b3f3e3d7",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/404.png?alt=media&token=4ecab361-4c2e-461e-b5b2-49a49971361a",
-    },
-    "P&A": {
-      "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FP%26A%2FP%20and%20A%20for%20WSN-Unit-1.pdf?alt=media&token=3f8bddf0-c5be-4239-8be4-62b5f35b2f6e",
-      "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FP%26A%2FP%20and%20A%20for%20WSN-Unit-2.pdf?alt=media&token=6f0554a4-e448-4e63-aecb-f7ae33dc59fe",
-      "Chapter 3-1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FP%26A%2FP%20and%20A%20for%20WSN-Unit-3.1.pdf?alt=media&token=00fba0d4-7740-4c16-bd39-789ad6a57828",
-      "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FP%26A%2FP%26A%20UNIT-4.pdf?alt=media&token=f0e7c0f8-a0c8-4f9c-b0d1-c1c3b3f3e3d7",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FP%26A%2FP%26A%20UNIT-5.pdf?alt=media&token=f0e7c0f8-a0c8-4f9c-b0d1-c1c3b3f3e3d7",
-    },
-  },
-  CSM: {
-    IIP: {
-      "Chapter 1-1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSM%2FIPP%2FIPP%20Unit-1%20Part-I_Fundamentals%20of%20Image%20Processing.pdf?alt=media&token=3fdb584b-15c2-47e4-8258-7222558ffe5f",
-      "Chapter 1-2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSM%2FIPP%2FIPP%20Unit-1%20Part-II_Fundamentals%20of%20Color%20Image%20Processing.pdf?alt=media&token=d3d54280-d27a-4aae-be95-7098c7a8279f",
-      "Chapter 2-1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSM%2FIPP%2FIPP%20UNIT-II%20Part-I%20Image%20Enhancement%20in%20Spatial%20Domain.pdf?alt=media&token=63fdd863-c336-4703-b3f2-a3998356dc72",
-      "Chapter 2-2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSM%2FIPP%2FIPP%20UNIT-II%20Part-II%20Image%20Enhancement%20in%20Frequency%20Domain.pdf?alt=media&token=51c54da6-1eff-410a-b7a4-a1dd69daee3c",
-      "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSM%2FIPP%2FIPP%20UNIT-III%20Image%20Restoration%20and%20Reconstruction.pdf?alt=media&token=34a6f83c-4932-4fd7-9851-cc91d368d0ab",
-      "Chapter 4-1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSM%2FIPP%2FIPP%20UNIT-IV%20Part-I%20Image%20Segmentation.pdf?alt=media&token=748afb72-9c0a-4652-a0f5-d090ed47d160",
-      "Chapter 4-2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSM%2FIPP%2FIPP%20Unit-IV%20Part-II_Morphological%20Image%20Processing.pdf?alt=media&token=3b654107-46da-4bcb-aff7-4a074cbd5531",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSM%2FIPP%2FIPP%20UNIT-V%20Image%20Compression.pdf?alt=media&token=e84cef75-7dc3-41e0-9319-cf8bd21cfc11",
-    },
-    ML: {
-      "Chapter 1":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FML%2FMachine%20Learning%20intro.pdf?alt=media&token=edb61190-4844-4025-a5c0-3f42f5e309a5",
-      "Chapter 2":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FML%2FML%20UNIT-II.pdf?alt=media&token=7e1183f2-09c2-4457-b246-76e872c88b8d",
-      "Chapter 3":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FML%2Funit%20-III.pdf?alt=media&token=cd418cb9-388b-47ac-92e1-49c2e1d79359",
-      "Chapter 4":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FML%2FUNIT-IV.pdf?alt=media&token=68fdbc82-4d16-4cc6-8ec4-c9c08f5a1ffa",
-      "Chapter 5":
-        "https://firebasestorage.googleapis.com/v0/b/file-c6979.appspot.com/o/CSO%2FML%2FUNIT-V.pdf?alt=media&token=fab8e32f-aaa6-4061-a4cb-4a11772c8d6e",
-    },
-  },
-  CIC: {},
-  AI: {},
+ 
+
+
 };
 
 const Page = () => {

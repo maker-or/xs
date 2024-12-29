@@ -23,30 +23,33 @@ const questionPapers: QuestionPapers = {
       "Question Paper 2": "https://utfs.io/f/P1G716yuMhtQG0ufXvP17PuIF0Si5LKZ8WXOUfQnYpRMmzJ2",
       "Question Paper 3": "https://utfs.io/f/P1G716yuMhtQXuIXsJjV7aRSlAgJ5Ohx40iLuwbW1ZUnd6vq",
       "Question Paper 4": "https://utfs.io/f/P1G716yuMhtQpnTfud21dGZbO2yhoUa5CQgKYj8iAr7zEeTu",
+      "Mid-2" : "https://utfs.io/f/mK0Z48FDIuXriSZHO5o83eYnoCsZhqkyg94Rz1imVjf6dO0A",
+      "Mid-1": "https://utfs.io/f/mK0Z48FDIuXrLrnkBnwzo4fbU8Hj2d0iD9YxZPghF1t3nLCk"
     },
     Java: {
-      "Question Paper 1": "#",
-      "Question Paper 2": "#",
-      "Question Paper 3": "#",
-      "Question Paper 4": "#",
+      "Question Paper 1": "https://utfs.io/f/mK0Z48FDIuXreAyHBDUTvxkR13w2dPmYXOqzuNWMV7Q0ZrCA",
+      "Question Paper 2": "https://utfs.io/f/mK0Z48FDIuXr1AP5etNAb5Q4qFDspItvC3kiKhVrldU9xBgX",
+      "Question Paper 3": "https://utfs.io/f/mK0Z48FDIuXrcyDdwsPQ35OVhG0BLfyWdv9bcu2nUqI87kt1",
+      "Question Paper 4": "https://utfs.io/f/mK0Z48FDIuXrjh26ys31R1OCMsIfKUgAEzJpd6YuklLZSD85",
     },
     DAA: {
-      "Question Paper 1": "#",
-      "Question Paper 2": "#",
-      "Question Paper 3": "#",
-      "Question Paper 4": "#",
+      "Question Paper 1": "https://utfs.io/f/mK0Z48FDIuXraiuHgprxgXrAdsOHinlRxIYWkz50bKcCeQ2h",
+      "Question Paper 2": "https://utfs.io/f/mK0Z48FDIuXrN4PFcUhOHlMNW2VArY4XQaJ6GTp5KjFztq9E",
+      "Question Paper 3": "https://utfs.io/f/mK0Z48FDIuXrDdeW1eJLb7JIu6ZnPM9pcfrUFWCgGBAXatkq",
+      
     },
     ADS: {
-      "Question Paper 1": "#",
-      "Question Paper 2": "#",
+      "Mid-1": "https://utfs.io/f/mK0Z48FDIuXrLrnkBnwzo4fbU8Hj2d0iD9YxZPghF1t3nLCk",
+      "Mid-2": "https://utfs.io/f/mK0Z48FDIuXrLrnkBnwzo4fbU8Hj2d0iD9YxZPghF1t3nLCk",
       "Question Paper 3": "#",
       "Question Paper 4": "#",
     },
     "P&S": {
-      "Question Paper 1": "#",
-      "Question Paper 2": "#",
-      "Question Paper 3": "#",
-      "Question Paper 4": "#",
+      "Question Paper 1": "https://utfs.io/f/mK0Z48FDIuXrEEeIPVb6TQmve472sBDdJzYIhGjbOLapg9xA",
+      
+
+      "Question Paper 2": "https://utfs.io/f/mK0Z48FDIuXrjWUEOD1R1OCMsIfKUgAEzJpd6YuklLZSD859",
+
     },
   },
 
@@ -68,6 +71,16 @@ const subjects: SubjectsByBranch = {
         "https://utfs.io/f/P1G716yuMhtQiJUWiRD2LFaTG1ZmRsiXf0I6kNwtoHP3x8pz",
       "Chapter 5":
         "https://utfs.io/f/P1G716yuMhtQPaC012yuMhtQ45xieHKBZq0vpowrLT6I7YyS",
+    },
+    ADS: {
+      "ADS_unit_1": "https://utfs.io/f/mK0Z48FDIuXrLrnkBnwzo4fbU8Hj2d0iD9YxZPghF1t3nLCk",
+      "ADS_unit_2":"https://utfs.io/f/mK0Z48FDIuXr5S4eZ5AOQIc2HJKdRsZj6Dw84ft1xhpvW5en",
+      "ADS_unit_3":"https://utfs.io/f/mK0Z48FDIuXrPjyVqd4T5jvfuLpFUaABNWq48wtkTXGnIYhD",
+      "hashing": "https://utfs.io/f/mK0Z48FDIuXrVCsXcdy6QpIwEYKor7laBH0DTVJAUqhtFRZC",
+    },
+    "P&S": {
+      "Chapter 4":"https://utfs.io/f/mK0Z48FDIuXrj5R8In1R1OCMsIfKUgAEzJpd6YuklLZSD859",
+      "Chapter 5":"https://utfs.io/f/mK0Z48FDIuXriSZHO5o83eYnoCsZhqkyg94Rz1imVjf6dO0A",
     },
     Java: {
       "Chapter 1":
@@ -92,35 +105,11 @@ const subjects: SubjectsByBranch = {
         "#",
       "Chapter 4":
         "#",
-      "Chapter 5":
-        "#",
-      textbook:
-        "#",
+      "Chapter 5": "https://utfs.io/f/mK0Z48FDIuXrVCsXcdy6QpIwEYKor7laBH0DTVJAUqhtFRZC",
+
     },
-    ADS: {
-      "Chapter 1":
-        "#",
-      "Chapter 2":
-        "#",
-      "Chapter 3":
-        "#",
-      "Chapter 4":
-        "#",
-      "Chapter 5":
-        "#",
-    },
-    "P&S": {
-      "Chapter 1":
-      "#",
-    "Chapter 2":
-      "#",
-    "Chapter 3":
-      "#",
-    "Chapter 4":
-      "#",
-    "Chapter 5":
-      "#",
-    },
+
+
   },
  
 

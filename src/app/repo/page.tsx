@@ -41,7 +41,7 @@ const questionPapers: QuestionPapers = {
     ADSAA: {
       "Mid-1": "https://utfs.io/f/mK0Z48FDIuXrLrnkBnwzo4fbU8Hj2d0iD9YxZPghF1t3nLCk",
       "Mid-2": "https://utfs.io/f/mK0Z48FDIuXrLrnkBnwzo4fbU8Hj2d0iD9YxZPghF1t3nLCk",
-      "Model-Papper":"https://utfs.io/f/P1G716yuMhtQXCrJk7jV7aRSlAgJ5Ohx40iLuwbW1ZUnd6vq"
+      "Model-Papper":"https://utfs.io/f/P1G716yuMhtQIGo47uscxKGvwLp0SyegDzTXUhu7lbJQIM5f"
       
     },
     "P&S": {

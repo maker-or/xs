@@ -39,6 +39,7 @@ export default function Page() {
   // const handleGoogleSearch = (query: string, type: 'images' | 'videos') => {
   //   const searchType = type === 'images' ? 'isch' : 'vid';
   //   const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=${searchType}`;
+  
   //   window.open(url, '_blank');
   // };
 

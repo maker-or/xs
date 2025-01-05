@@ -41,8 +41,8 @@ const questionPapers: QuestionPapers = {
     ADS: {
       "Mid-1": "https://utfs.io/f/mK0Z48FDIuXrLrnkBnwzo4fbU8Hj2d0iD9YxZPghF1t3nLCk",
       "Mid-2": "https://utfs.io/f/mK0Z48FDIuXrLrnkBnwzo4fbU8Hj2d0iD9YxZPghF1t3nLCk",
-      "Question Paper 3": "#",
-      "Question Paper 4": "#",
+      "Model-Papper":"https://utfs.io/f/P1G716yuMhtQXCrJk7jV7aRSlAgJ5Ohx40iLuwbW1ZUnd6vq"
+      
     },
     "P&S": {
       "Question Paper 1": "https://utfs.io/f/mK0Z48FDIuXrEEeIPVb6TQmve472sBDdJzYIhGjbOLapg9xA",
@@ -77,6 +77,7 @@ const subjects: SubjectsByBranch = {
       "ADS_unit_2":"https://utfs.io/f/mK0Z48FDIuXr5S4eZ5AOQIc2HJKdRsZj6Dw84ft1xhpvW5en",
       "ADS_unit_3":"https://utfs.io/f/mK0Z48FDIuXrPjyVqd4T5jvfuLpFUaABNWq48wtkTXGnIYhD",
       "hashing": "https://utfs.io/f/mK0Z48FDIuXrVCsXcdy6QpIwEYKor7laBH0DTVJAUqhtFRZC",
+      "material": "https://utfs.io/f/P1G716yuMhtQqRWG7YQbTBdmyaMhzQlHNx3Un2F0CtW7gvEj"
     },
     "P&S": {
       "Chapter 4":"https://utfs.io/f/mK0Z48FDIuXrj5R8In1R1OCMsIfKUgAEzJpd6YuklLZSD859",

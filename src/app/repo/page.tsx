@@ -38,7 +38,7 @@ const questionPapers: QuestionPapers = {
       "Question Paper 3": "https://utfs.io/f/mK0Z48FDIuXrDdeW1eJLb7JIu6ZnPM9pcfrUFWCgGBAXatkq",
       
     },
-    ADS: {
+    ADSAA: {
       "Mid-1": "https://utfs.io/f/mK0Z48FDIuXrLrnkBnwzo4fbU8Hj2d0iD9YxZPghF1t3nLCk",
       "Mid-2": "https://utfs.io/f/mK0Z48FDIuXrLrnkBnwzo4fbU8Hj2d0iD9YxZPghF1t3nLCk",
       "Model-Papper":"https://utfs.io/f/P1G716yuMhtQXCrJk7jV7aRSlAgJ5Ohx40iLuwbW1ZUnd6vq"
@@ -72,7 +72,7 @@ const subjects: SubjectsByBranch = {
       "Chapter 5":
         "https://utfs.io/f/P1G716yuMhtQPaC012yuMhtQ45xieHKBZq0vpowrLT6I7YyS",
     },
-    ADS: {
+    ADSAA: {
       "ADS_unit_1": "https://utfs.io/f/mK0Z48FDIuXrLrnkBnwzo4fbU8Hj2d0iD9YxZPghF1t3nLCk",
       "ADS_unit_2":"https://utfs.io/f/mK0Z48FDIuXr5S4eZ5AOQIc2HJKdRsZj6Dw84ft1xhpvW5en",
       "ADS_unit_3":"https://utfs.io/f/mK0Z48FDIuXrPjyVqd4T5jvfuLpFUaABNWq48wtkTXGnIYhD",

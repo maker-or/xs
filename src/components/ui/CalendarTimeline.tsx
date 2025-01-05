@@ -17,30 +17,7 @@ type Event = {
 
 // Hardcoded special events that everyone will see
 const SPECIAL_EVENTS: Event[] = [
-  { 
-    id: -1, 
-    date: 27, 
-    text: "Life Skills-III ", 
-    month: new Date().getMonth(), 
-    year: new Date().getFullYear(), 
-    isSpecial: true 
-  },
-  { 
-    id: -2, 
-    date: 30, 
-    text: "MANAGERIAL ECONOMICS AND FINANCIAL ANALYSIS", 
-    month: new Date().getMonth(), 
-    year: new Date().getFullYear(), 
-    isSpecial: true 
-  },
-  { 
-    id: -3, 
-    date: 3, 
-    text: "PROBABILITY AND STATISTICS Product Release Day", 
-    month: 1, 
-    year: 2025, 
-    isSpecial: true 
-  },
+  
   { 
     id: -4, 
     date: 7, 

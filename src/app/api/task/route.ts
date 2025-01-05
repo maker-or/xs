@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       task: taskData.task,
       date: taskData.date,
       month: taskData.month,
-      year: '2024'
+      year: '2025'
     })
     .returning({ task: tasks.task, date: tasks.date });
 

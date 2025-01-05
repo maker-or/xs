@@ -204,7 +204,7 @@ export default function CalendarTimeline() {
   const filteredEvents = events.filter((event) => event.date === selectedDate);
 
   return (
-    <div className="mx-auto w-full rounded-lg border-2 border-[#f7eee323] bg-[#121212] p-6 text-[#f7eee3]">
+    <div className="mx-auto w-full rounded-lg border-2 border-[#f7eee323] bg-[#121212b0] p-6 text-[#f7eee3]">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="font-serif text-3xl">{monthNames[currentMonth]}</h1>
         <div className="flex items-center space-x-2">

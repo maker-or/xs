@@ -46,8 +46,6 @@ const questionPapers: QuestionPapers = {
     },
     "P&S": {
       "Question Paper 1": "https://utfs.io/f/mK0Z48FDIuXrEEeIPVb6TQmve472sBDdJzYIhGjbOLapg9xA",
-      
-
       "Question Paper 2": "https://utfs.io/f/mK0Z48FDIuXrjWUEOD1R1OCMsIfKUgAEzJpd6YuklLZSD859",
 
     },

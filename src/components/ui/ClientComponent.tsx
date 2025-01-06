@@ -9,8 +9,6 @@ import "@uploadthing/react/styles.css";
 import { useAuth } from "@clerk/nextjs";
 
 
-
-
 interface ClientComponentProps {
   images: { id: number; url: string; name: string }[];
   folderId: number;

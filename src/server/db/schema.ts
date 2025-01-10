@@ -48,7 +48,7 @@ export const posts = createTable(
   (example) => ({
     nameIndex: index("name_idx").on(example.name),                        // Index on post name for faster lookups
   }),
-);
+); 
 
 //planner
 export const tasks = createTable(

@@ -24,6 +24,7 @@ export async function GET() {
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth();
     const mon = currentMonth + 1;
+    console.log("mon",mon)
 
     console.log('uid:', { userId, currentYear, mon });
 

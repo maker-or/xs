@@ -52,20 +52,17 @@ const ChatComponent = ({ onClose }: { onClose: () => void }) => {
       <div className="absolute inset-0 bg-gradient-to-br from-[#0c0c0c]/10 to-[#0c0c0c]/5 opacity-50 -z-10 blur-3xl"></div>
 
       <div className="flex gap-3 items-center mb-6">
-        <button
-          onClick={onClose}
-          className="text-[#f7eee3]/70 hover:text-[#f7eee3] transition-colors bg-[#f7eee3]/10 rounded-full p-2"
-        >
-          <ChevronLeft size={24} />
-        </button>
-
+    
 
         <form onSubmit={onSubmit} className="mt-4 w-full flex gap-2">
           <div className="relative mb-6 flex gap-2 w-full text-[#0c0c0c]">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#f7eee3] p-2 bg-[#0c0c0c] z-10 rounded-sm"
-              size={38}
-            />
+          <button
+                            onClick={onClose}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#f7eee3] p-2 bg-[#0c0c0c] z-10 rounded-full"
+                        >
+                            <ChevronLeft size={24} />
+                        </button>
+
             <input
               ref={inputRef}
               type="text"

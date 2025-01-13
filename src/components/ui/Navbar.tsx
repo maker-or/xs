@@ -17,13 +17,13 @@ const Navbar = () => {
         <ul className="inline-flex flex-row items-center mx-auto bg-[#1f1f1f] py-2.5 px-1 rounded-full border text-[#646464] text-[1.2rem] font-medium">
           <li className="px-2">
             <Link href="/ai" target="_blank">
-              <Image src="https://utfs.io/f/orc4evzyNtrg2K2riNsBQGN8KriC9uPWHlnIoFkxOYgeDpE7" alt="logo" width={100} height={50} />
+              <Image src="https://utfs.io/f/orc4evzyNtrg2K2riNsBQGN8KriC9uPWHlnIoFkxOYgeDpE7" alt="logo" width={100} height={50} decoding="sync"  priority loading="eager"/>
             </Link>
           </li>
 
 
           <li className="px-2">
-            <Link href="/repo">
+            <Link href="/repo"  prefetch={true}>
               <button
                 className={`rounded-full px-4 py-3 ${isActive('/repo') ? 'bg-[#FF5E00] text-[#f7eee3]' : ''
                   }`}
@@ -34,7 +34,7 @@ const Navbar = () => {
           </li>
 
           <li className="px-2">
-            <Link href="/">
+            <Link href="/" prefetch={true}>
               <button
                 className={`rounded-full px-4 py-3 ${isActive('/') ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''
                   }`}

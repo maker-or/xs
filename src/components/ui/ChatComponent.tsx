@@ -1,7 +1,7 @@
 
 'use client'
 import React, { useEffect, useRef } from 'react';
-import { ChevronLeft, Search } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { useChat } from 'ai/react';
 
 

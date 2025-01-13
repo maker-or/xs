@@ -11,7 +11,7 @@ export async function GET(req: Request) {
       }
   
       const url = new URL(req.url);
-      const searchtext = url.searchParams.get("query") || "";
+      const searchtext = url.searchParams.get("query") ?? "";
   
       const search = await db
         .select({ 

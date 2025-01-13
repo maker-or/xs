@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
+import useSWR, { mutate } from "swr";
 
 type Event = {
   id: number;
@@ -15,34 +16,41 @@ type Event = {
   isSpecial?: boolean;
 };
 
-// Hardcoded special events that everyone will see
 const SPECIAL_EVENTS: Event[] = [
-  
-  { 
-    id: -4, 
-    date: 7, 
-    text: "ADVANCED DATA STRUCTURES AND ALGORITHM ANALYSIS ", 
-    month: 1, 
-    year: 2025, 
-    isSpecial: true 
+  {
+    id: -4,
+    date: 7,
+    text: "ADVANCED DATA STRUCTURES AND ALGORITHM ANALYSIS ",
+    month: 1,
+    year: 2025,
+    isSpecial: true
   },
-  { 
-    id: -5, 
-    date: 9, 
-    text: "DIGITAL LOGIC AND COMPUTER ORGANIZATION", 
-    month: 1, 
-    year: 2025, 
-    isSpecial: true 
+  {
+    id: -5,
+    date: 9,
+    text: "DIGITAL LOGIC AND COMPUTER ORGANIZATION",
+    month: 1,
+    year: 2025,
+    isSpecial: true
   },
-  { 
-    id: -6, 
-    date:11, 
-    text: "OBJECT ORIENTED PROGRAMMING THROUGH JAVA ", 
-    month: 1, 
-    year: 2025, 
-    isSpecial: true 
+  {
+    id: -6,
+    date: 11,
+    text: "OBJECT ORIENTED PROGRAMMING THROUGH JAVA ",
+    month: 1,
+    year: 2025,
+    isSpecial: true
   },
 ];
+
+// Fetcher function for SWR
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Failed to fetch tasks");
+  }
+  return response.json();
+};
 
 export default function CalendarTimeline() {
   const currentDate = useMemo(() => new Date(), []);
@@ -50,12 +58,36 @@ export default function CalendarTimeline() {
   const currentMonth = currentDate.getMonth();
 
   const [selectedDate, setSelectedDate] = useState(currentDate.getDate());
-  const [events, setEvents] = useState<Event[]>([]);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [editText, setEditText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const datePickerRef = useRef<HTMLDivElement>(null);
   const activeDateRef = useRef<HTMLButtonElement | null>(null);
+
+  // Use SWR for data fetching
+  const { data: tasksData, error } = useSWR<{
+    taskId: number;
+    month: string;
+    year: string;
+    task: string;
+    date: string;
+  }[]>("/api/task", fetcher);
+
+  // Transform and combine events
+  const events = useMemo(() => {
+    if (!tasksData) return SPECIAL_EVENTS;
+
+    const formattedEvents: Event[] = tasksData.map((task) => ({
+      id: task.taskId,
+      date: parseInt(task.date, 10),
+      text: task.task,
+      month: parseInt(task.month, 12),
+      year: parseInt(task.year, 2024),
+      isSpecial: false,
+    }));
+
+    return [...SPECIAL_EVENTS, ...formattedEvents];
+  }, [tasksData]);
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
@@ -72,38 +104,6 @@ export default function CalendarTimeline() {
     setSelectedDate(date);
   };
 
-  const fetchTasks = async () => {
-    try {
-      const response = await fetch("/api/task");
-      if (!response.ok) {
-        throw new Error("Failed to fetch tasks");
-      }
-      const data = (await response.json()) as {
-        taskId: number;
-        month: string;
-        year: string;
-        task: string;
-        date: string;
-      }[];
-
-      const formattedEvents: Event[] = data.map((task) => ({
-        id: task.taskId,
-        date: parseInt(task.date, 10),
-        text: task.task,
-        month: parseInt(task.month, 12),
-        year: parseInt(task.year, 2024),
-        isSpecial: false,
-      }));
-
-      // Combine user events with special events
-      setEvents([...SPECIAL_EVENTS, ...formattedEvents]);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-      // Still show special events even if fetch fails
-      setEvents(SPECIAL_EVENTS);
-    }
-  };
-
   const handleNewEvent = () => {
     const newEvent: Event = {
       date: selectedDate,
@@ -113,13 +113,12 @@ export default function CalendarTimeline() {
       year: currentYear,
       isSpecial: false,
     };
-    setEvents([...events, newEvent]);
     setEditingEvent(newEvent);
     setEditText("");
   };
 
   const handleEditStart = (event: Event) => {
-    if (event.isSpecial) return; // Prevent editing special events
+    if (event.isSpecial) return;
     setEditingEvent(event);
     setEditText(event.text);
   };
@@ -144,26 +143,25 @@ export default function CalendarTimeline() {
         ? `/api/task/${editingEvent.id}`
         : "/api/task";
 
-      const response = await fetch(url, {
-        method: method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        console.error("Failed to save task:", response.statusText);
-      } else {
-        await fetchTasks();
+      try {
+        const response = await fetch(url, {
+          method: method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to save task");
+        }
+
+        // Revalidate the data after successful save
+        await mutate("/api/task");
+        setEditingEvent(null);
+      } catch (error) {
+        console.error("Failed to save task:", error);
       }
-      setEditingEvent(null);
     }
   }, [editingEvent, editText, selectedDate, mon, currentYear]);
-
-  useEffect(() => {
-    fetchTasks().catch((error) =>
-      console.log("Failed to fetch tasks:", error)
-    );
-  }, []);
 
   useEffect(() => {
     if (activeDateRef.current && datePickerRef.current) {
@@ -203,6 +201,10 @@ export default function CalendarTimeline() {
 
   const filteredEvents = events.filter((event) => event.date === selectedDate);
 
+  if (error) {
+    console.error("Error loading tasks:", error);
+  }
+
   return (
     <div className="mx-auto w-full rounded-lg border-2 border-[#f7eee323] bg-[#121212b0] p-6 text-[#f7eee3]">
       <div className="mb-6 flex items-center justify-between">
@@ -225,11 +227,10 @@ export default function CalendarTimeline() {
           <button
             key={date}
             onClick={() => handleDateClick(date)}
-            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg font-serif font-bold ${
-              selectedDate === date
+            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg font-serif font-bold ${selectedDate === date
                 ? "border-2 border-[#f7eee323] bg-neutral-800 text-[#f7eee3]"
                 : "text-gray-400 hover:bg-neutral-800"
-            }`}
+              }`}
             ref={selectedDate === date ? activeDateRef : null}
           >
             {date}
@@ -241,9 +242,8 @@ export default function CalendarTimeline() {
         {filteredEvents.map((event, index) => (
           <div
             key={event.id || index}
-            className={`absolute flex h-8 items-center justify-center rounded-md p-2 text-[#f7eee3] ${
-              event.isSpecial ? 'border-[#FF5E00]/20 border-2 bg-neutral-800' : 'bg-neutral-800'
-            }`}
+            className={`absolute flex h-8 items-center justify-center rounded-md p-2 text-[#f7eee3] ${event.isSpecial ? 'border-[#FF5E00]/20 border-2 bg-neutral-800' : 'bg-neutral-800'
+              }`}
             style={{
               left: "0",
               right: "0",

@@ -26,6 +26,9 @@ const Folder: React.FC<FolderProps> = ({ folderName, folderId }) => {
               alt="folder-img"
               width={200}
               height={200}
+              decoding="sync"
+              priority 
+              loading="eager"
             />
           </div>
         </button>

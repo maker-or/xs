@@ -7,7 +7,8 @@ import TaskComponent from '~/components/ui/TaskComponent';
 import  PomodoroComponent  from '~/components/ui/PomodoroComponent'; 
 import ChatComponent from '~/components/ui/ChatComponent'; 
 import Filesearch from './Filesearch';
-
+import "~/styles/globals.css";
+import { text } from 'stream/consumers';
 
 
 const Logout = () => {
@@ -128,12 +129,12 @@ const CommandPlate = () => {
     }
 
     return (
-      <div className="bg-[#0c0c0c] backdrop-blur-3xl text-[#f7eee3] rounded-xl py-3 w-1/2 shadow-2xl border border-[#f7eee338] relative overflow-hidden">
-        <div className="relative mb-6 flex gap-2 border-b-2 border-[#f7eee338] w-full text-[#0c0c0c]">
-          <Search
+      <div className="bg-[#0c0c0ce0] backdrop-blur-3xl text-[#e1ddd6] rounded-xl py-3 w-1/2 shadow-2xl border border-[#f7eee338] inner  overflow-hidden ">
+        <div className="flex gap-2 border-[#f7eee338] w-full text-[#0c0c0c] ">
+          {/* <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-[#f7eee3] p-2 bg-[#0c0c0c] z-10 rounded-sm"
             size={38}
-          />
+          /> */}
           <input
             ref={searchInputRef}
             type="text"
@@ -144,8 +145,9 @@ const CommandPlate = () => {
               if (e.key === "ArrowUp") handleArrowNavigation("up");
               if (e.key === "Enter") handleCommandSelection();
             }}
+            
             placeholder="Search Anything..."
-            className="w-full pl-16 p-4 border-none bg-[#0c0c0c]/60 backdrop-blur-3xl text-[#f7eee3] rounded-xl border border-[#f7eee3]/20 focus:outline-none placeholder:text-[#f7eee3]"
+            className="w-full pl-2 p-4 border-none bg-[#F7EEE3] m-3 backdrop-blur-3xl text-[#3d3c3a] rounded-xl border border-[#f7eee3]/20 focus:outline-none placeholder:text-[#f7eee3] i1 i2"
           />
         </div>
 

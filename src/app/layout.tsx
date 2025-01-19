@@ -10,6 +10,8 @@ import { ourFileRouter } from "./api/uploadthing/core";
 import { CSPostHogProvider } from "~/app/_analytics/providers";
 import CommandPlate from "~/components/ui/CommandPlate";
 import { TimeProvider } from "~/providers/TimerProvider";
+import Link from "next/link";
+import Head from 'next/head';
 
 export const metadata: Metadata = {
   title: "Sphere",
@@ -25,6 +27,14 @@ export default function RootLayout({
       <CSPostHogProvider>
         {/* <Analytics /> */}
         <html lang="en" className={`font-sans`}>
+          {/* <Head>
+            <Link
+              rel="preload"
+              href="https://utfs.io/f/orc4evzyNtrgG0LJbanCWISJF71dBgAOkMqtNpGcUfix6uL2"
+              as="image"
+            />
+          </Head> */}
+
           <body>
             <SignedOut>
               <div className="scroll-behavior: auto; flex h-screen w-screen flex-col items-center justify-center bg-[#0c0c0c]">

@@ -1,10 +1,10 @@
 "use client";
-
+import useSWR, { mutate } from 'swr';
 import React, { useEffect, useState } from "react";
 import Folder from "~/components/ui/Folder";
 import { useFolder } from "~/components/ui/FolderContext";
 import Group from "~/components/ui/Group";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'; 
 
 interface FolderType {
   folderId: number;
@@ -13,37 +13,19 @@ interface FolderType {
   folderName: string;
 }
 
+const fetcher = async () => {
+  const response = await fetch("/api/folder");
+  if (!response.ok) throw new Error("Failed to fetch folders");
+  return (await response.json()) as FolderType[];
+};
+
 const Fold = () => {
   const { folderName } = useFolder();
-  const [folders, setFolders] = useState<FolderType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Fetch folders on component mount
-  const fetchFolders = async () => {
-    try {
-      const response = await fetch("/api/folder");
-      if (!response.ok) throw new Error("Failed to fetch folders");
-      const data = (await response.json()) as FolderType[];
-      setFolders(data);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error fetching folders:", error.message);
-      } else {
-        console.error("Unknown error occurred while fetching folders:", error);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFolders().catch((err) =>
-      console.error("Error initializing folder fetch:", err)
-    );
-  }, []);
+  const { data: folders, error } = useSWR<FolderType[]>('folder', fetcher);
+  const isLoading = !folders && !error;
 
   const generateId = () => {
-    const id:string = uuidv4();
+    const id: string = uuidv4();
     const sanitizedId = id.replace(/-/g, ""); // Remove dashes from the UUID
     let hash = 0;
 
@@ -59,7 +41,7 @@ const Fold = () => {
   const addFolder = async () => {
     try {
       const newFolderId = generateId();
-      const newFolderName = `${folderName} ${folders.length + 1}`;
+      const newFolderName = `${folderName} ${(folders?.length ?? 0) + 1}`;
 
       const response = await fetch("/api/folder", {
         method: "POST",
@@ -75,8 +57,8 @@ const Fold = () => {
       if (!response.ok) throw new Error("Failed to create folder");
       const newFolder = (await response.json()) as FolderType;
 
-      setFolders((prevFolders) => [...prevFolders, newFolder]);
-      window.location.reload()
+      // Replace setFolders with mutate
+      mutate('folder');
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error creating folder:", error.message);
@@ -88,6 +70,10 @@ const Fold = () => {
 
   if (isLoading) {
     return <div className="font-serif">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="font-serif">Error fetching folders: {error.message}</div>;
   }
 
   return (
@@ -102,15 +88,14 @@ const Fold = () => {
           +
         </button>
       </div>
-      <div className="-ml-12 flex w-full overflow-x-auto font-serif md:ml-0 md:pl-12  ">
-        {folders.map((folder) => (
+      <div className="-ml-12 flex w-full overflow-x-auto font-serif md:ml-0 md:pl-12">
+        {folders?.map((folder) => (
           <Folder
             key={folder.folderId}
             folderName={folder.folderName}
             folderId={folder.folderId}
           />
         ))}
-        
       </div>
     </div>
   );

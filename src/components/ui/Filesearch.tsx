@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, X } from 'lucide-react';
 import PdfViewer from "~/components/ui/PDFViewer";
+import useSWR from 'swr';
 
 interface SearchResult {
   name: string;
@@ -12,11 +13,14 @@ interface SearchResponse {
   results: SearchResult[];
 }
 
+const fetchSearchResults = async (query: string) => {
+  const response = await fetch(`/api/fsearch?query=${encodeURIComponent(query)}`);
+  if (!response.ok) throw new Error("Failed to fetch search results");
+  return (await response.json()) as SearchResponse;
+};
+
 const Filesearch = ({ onClose }: { onClose: () => void }) => {
   const [input, setInput] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -24,51 +28,13 @@ const Filesearch = ({ onClose }: { onClose: () => void }) => {
     inputRef.current?.focus();
   }, []);
 
-  useEffect(() => {
-    let isActive = true; // For handling race conditions
+  // Use SWR to fetch search results based on input
+  const { data: searchResults, error } = useSWR<SearchResponse | null>(
+    input.trim() ? `search-${input}` : null,
+    () => fetchSearchResults(input)
+  );
 
-    const fetchSearchResults = async () => {
-      if (!input.trim()) {
-        setSearchResults([]);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const response = await fetch(`/api/fsearch?query=${encodeURIComponent(input)}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch search results');
-        }
-
-        const data = await response.json() as SearchResponse;
-        
-        if (isActive) {
-          setSearchResults(data.results ?? []);
-        }
-      } catch (err) {
-        if (isActive) {
-          const errorMessage = err instanceof Error ? err.message : 'Unable to fetch search results. Please try again.';
-          console.error('Error fetching search results:', err);
-          setError(errorMessage);
-        }
-      } finally {
-        if (isActive) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    // Wrap the async call in a void operator to handle the floating promise
-    void fetchSearchResults();
-
-    // Cleanup function to prevent setting state after unmount
-    return () => {
-      isActive = false;
-    };
-  }, [input]);
+  const isLoading = !searchResults && !error;
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInput(event.target.value);
@@ -105,9 +71,9 @@ const Filesearch = ({ onClose }: { onClose: () => void }) => {
           {isLoading ? (
             <div className="text-[#f7eee3]/50 italic">Searching...</div>
           ) : error ? (
-            <div className="text-[#f7eee3]/50 italic">{error}</div>
-          ) : searchResults.length > 0 ? (
-            searchResults.map((result, index) => (
+            <div className="text-[#f7eee3]/50 italic">{error.message}</div>
+          ) : searchResults?.results?.length ?? 0 > 0 ? (
+            searchResults?.results.map((result, index) => (
               <div
                 key={index}
                 onClick={() => setSelectedPdfUrl(result.url)}

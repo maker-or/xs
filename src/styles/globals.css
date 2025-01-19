@@ -152,3 +152,11 @@ body {
 /* .custom {
   box-shadow : inset 7px 7px 16px 2px rgb(163, 72, 27)
 } */
+.inner {
+  box-shadow: inset 11px 13px 121.6px 7px rgba(255, 94, 0, 0.13);
+}
+
+input::placeholder {
+  color: #ff5e00; /* Change this to your desired color */
+   /* Optional: Set opacity to 1 to make it fully opaque */
+}

@@ -16,14 +16,14 @@ const Navbar = () => {
       <div className="items-center flex">
         <ul className="inline-flex flex-row items-center mx-auto bg-[#1f1f1f] py-2.5 px-1 rounded-full border border-[#f7eee332] text-[#646464] text-[1.2rem] font-medium">
           <li className="px-2">
-            <Link href="/ai" target="_blank" rel="preload">
+            <Link href="/ai" target="_blank"  prefetch={true}>
               <Image src="https://utfs.io/f/orc4evzyNtrg2K2riNsBQGN8KriC9uPWHlnIoFkxOYgeDpE7" alt="logo" width={100} height={50} decoding="sync"  priority loading="eager"/>
             </Link>
           </li>
 
 
           <li className="px-2">
-            <Link href="/repo"  prefetch={true} rel="preload" >
+            <Link href="/repo"  prefetch={true}   >
               <button
                 className={`rounded-full px-4 py-3 ${isActive('/repo') ? 'bg-[#FF5E00] text-[#f7eee3]' : ''
                   }`}

@@ -7,12 +7,7 @@ import { X } from "lucide-react";
 import { ChevronLeft } from "lucide-react";
 
 // Define the type for branches and structure for subjects, chapters, and notes.
-const branches = [
-  "CSE",
-
-
-] as const;
-type Branch = (typeof branches)[number];
+type Branch = "CSE";
 type Subject = Record<string, Record<string, string>>;
 type SubjectsByBranch = Record<Branch, Subject>;
 type QuestionPapers = Record<Branch, Record<string, Record<string, string>>>;
@@ -116,8 +111,8 @@ const subjects: SubjectsByBranch = {
 };
 
 const Page = () => {
-  const [selectedBranch, setSelectedBranch] = useState<Branch>("CSE");
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+const [selectedBranch] = useState<Branch>("CSE");
+const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<"notes" | "questionPapers">(
     "notes",
   );

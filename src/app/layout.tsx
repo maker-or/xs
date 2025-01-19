@@ -10,8 +10,6 @@ import { ourFileRouter } from "./api/uploadthing/core";
 import { CSPostHogProvider } from "~/app/_analytics/providers";
 import CommandPlate from "~/components/ui/CommandPlate";
 import { TimeProvider } from "~/providers/TimerProvider";
-import Link from "next/link";
-import Head from 'next/head';
 
 export const metadata: Metadata = {
   title: "Sphere",

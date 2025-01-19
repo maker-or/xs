@@ -1,5 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import useSWR, { mutate } from "swr";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 
 type Event = {
   id: number;
@@ -12,6 +17,7 @@ type Event = {
 
 // Hardcoded special events that everyone will see
 const SPECIAL_EVENTS: Event[] = [
+  
   { 
     id: -4, 
     date: 7, 
@@ -30,7 +36,7 @@ const SPECIAL_EVENTS: Event[] = [
   },
   { 
     id: -6, 
-    date: 11, 
+    date:11, 
     text: "OBJECT ORIENTED PROGRAMMING THROUGH JAVA ", 
     month: 1, 
     year: 2025, 
@@ -38,36 +44,13 @@ const SPECIAL_EVENTS: Event[] = [
   },
 ];
 
-const fetcher = async (url: string) => {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Failed to fetch tasks");
-  const data = await response.json() as {
-    taskId: number;
-    month: string;
-    year: string;
-    task: string;
-    date: string;
-  }[];
-
-  const formattedEvents: Event[] = data.map((task) => ({
-    id: task.taskId,
-    date: parseInt(task.date, 10),
-    text: task.task,
-    month: parseInt(task.month, 12),
-    year: parseInt(task.year, 2024),
-    isSpecial: false,
-  }));
-
-  return [...SPECIAL_EVENTS, ...formattedEvents];
-};
-
 export default function CalendarTimeline() {
   const currentDate = useMemo(() => new Date(), []);
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
-  const { data: events = SPECIAL_EVENTS, error } = useSWR<Event[]>("/api/task", fetcher);
   const [selectedDate, setSelectedDate] = useState(currentDate.getDate());
+  const [events, setEvents] = useState<Event[]>([]);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [editText, setEditText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -89,6 +72,38 @@ export default function CalendarTimeline() {
     setSelectedDate(date);
   };
 
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch("/api/task");
+      if (!response.ok) {
+        throw new Error("Failed to fetch tasks");
+      }
+      const data = (await response.json()) as {
+        taskId: number;
+        month: string;
+        year: string;
+        task: string;
+        date: string;
+      }[];
+
+      const formattedEvents: Event[] = data.map((task) => ({
+        id: task.taskId,
+        date: parseInt(task.date, 10),
+        text: task.task,
+        month: parseInt(task.month, 12),
+        year: parseInt(task.year, 2024),
+        isSpecial: false,
+      }));
+
+      // Combine user events with special events
+      setEvents([...SPECIAL_EVENTS, ...formattedEvents]);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      // Still show special events even if fetch fails
+      setEvents(SPECIAL_EVENTS);
+    }
+  };
+
   const handleNewEvent = () => {
     const newEvent: Event = {
       date: selectedDate,
@@ -98,9 +113,7 @@ export default function CalendarTimeline() {
       year: currentYear,
       isSpecial: false,
     };
-    
-    // Optimistically update the UI
-    void mutate("/api/task", [...(events || []), newEvent], false);
+    setEvents([...events, newEvent]);
     setEditingEvent(newEvent);
     setEditText("");
   };
@@ -131,28 +144,26 @@ export default function CalendarTimeline() {
         ? `/api/task/${editingEvent.id}`
         : "/api/task";
 
-      try {
-        const response = await fetch(url, {
-          method: method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        
-        if (!response.ok) {
-          throw new Error("Failed to save task");
-        }
-        
-        // Revalidate the data after successful save
-        await mutate("/api/task");
-      } catch (error) {
-        console.error("Failed to save task:", error);
-        // Revert optimistic update on error
-        await mutate("/api/task");
-      }
+      const response = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
       
+      if (!response.ok) {
+        console.error("Failed to save task:", response.statusText);
+      } else {
+        await fetchTasks();
+      }
       setEditingEvent(null);
     }
   }, [editingEvent, editText, selectedDate, mon, currentYear]);
+
+  useEffect(() => {
+    fetchTasks().catch((error) =>
+      console.log("Failed to fetch tasks:", error)
+    );
+  }, []);
 
   useEffect(() => {
     if (activeDateRef.current && datePickerRef.current) {
@@ -191,12 +202,6 @@ export default function CalendarTimeline() {
   }, [handleSaveEdit]);
 
   const filteredEvents = events.filter((event) => event.date === selectedDate);
-
-  if (error) {
-    console.error("Error loading events:", error);
-    // Still show special events on error
-    return null;
-  }
 
   return (
     <div className="mx-auto w-full rounded-lg border-2 border-[#f7eee323] bg-[#121212b0] p-6 text-[#f7eee3]">

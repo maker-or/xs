@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR, { mutate, SWRResponse } from "swr";
 import { Plus, Check, ChevronLeft } from "lucide-react";
 
 interface TaskTypes {
@@ -9,25 +9,27 @@ interface TaskTypes {
   completed: boolean | string;
 }
 
-const fetcher = async () => {
-  const response = await fetch("/api/userTasks/");
-  if (!response.ok) throw new Error("Failed to fetch tasks");
-  const data: TaskTypes[] = await response.json();
-  
-  // Transform the data
-  const updatedTasks = data.map((task) => ({
+const fetcher = async (): Promise<TaskTypes[]> => {
+const response = await fetch("/api/userTasks/");
+if (!response.ok) throw new Error("Failed to fetch tasks");
+const data = (await response.json()) as TaskTypes[];
+
+// Transform the data
+const updatedTasks = data.map((task: TaskTypes) => ({
     ...task,
     completed:
-      typeof task.completed === "string"
+    typeof task.completed === "string"
         ? task.completed.toLowerCase() === "true"
-        : task.completed,
-  }));
+        : Boolean(task.completed),
+}));
 
   return updatedTasks.filter((task) => task.completed === false);
 };
 
 const TaskComponent = ({ onClose }: { onClose: () => void }) => {
-  const { data: tasks = [], error } = useSWR<TaskTypes[]>("/api/userTasks", fetcher);
+const { data: tasks = [], error }: SWRResponse<TaskTypes[], Error> = useSWR("/api/userTasks", fetcher, {
+    fallbackData: [],
+});
   const [newTask, setNewTask] = useState<string>("");
   const [showInput, setShowInput] = useState<boolean>(false);
   const [removingTask, setRemovingTask] = useState<string | null>(null);
@@ -58,17 +60,21 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
-    setRemovingTask(taskId);
+const handleDeleteTask = async (taskId: string) => {
+setRemovingTask(taskId);
+await new Promise((resolve) => {
     setTimeout(async () => {
-      await mutate(
+    if (!tasks) return;
+    await mutate(
         "/api/userTasks",
         tasks.filter((task) => task.id !== taskId),
         false
-      );
-      setRemovingTask(null);
+    );
+    setRemovingTask(null);
+    resolve(undefined);
     }, 500);
-  };
+});
+};
 
   const taskComplete = async (taskId: string) => {
     await fetch("/api/userTasks", {
@@ -89,7 +95,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
       ),
       false
     );
-    handleDeleteTask(taskId);
+    void handleDeleteTask(taskId);
     await taskComplete(taskId);
   };
 
@@ -131,7 +137,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
           >
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => void handleToggleComplete(task.id)}
+                onClick={() => { void handleToggleComplete(task.id); }}
                 className={`flex h-6 w-6 items-center justify-center rounded-md border ${
                   task.completed
                     ? "border-green-500/70 bg-green-500/70 motion-preset-confetti motion-duration-1000"
@@ -143,7 +149,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
               <span>{task.text}</span>
             </div>
             <button
-              onClick={() => void handleDeleteTask(task.id)}
+            onClick={() => { void handleDeleteTask(task.id); }}
               className="rounded-full p-2 text-[#f7eee3] transition-colors hover:text-red-500"
             >
               {/* <Trash2 size={18} /> */}
@@ -164,7 +170,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
             className="flex-grow rounded-xl border border-[#f7eee3]/20 bg-[#f7eee3]/10 p-3 text-[#f7eee3] backdrop-blur-md focus:outline-none"
           />
           <button
-            onClick={() => void handleAddTask()}
+            onClick={() => { void handleAddTask(); }}
             className="rounded-md bg-orange-600/70 p-3 text-[#f7eee3] backdrop-blur-md transition-colors hover:bg-orange-600/90"
           >
             Add

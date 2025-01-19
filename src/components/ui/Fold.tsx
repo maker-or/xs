@@ -1,6 +1,6 @@
 "use client";
 import useSWR, { mutate } from 'swr';
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Folder from "~/components/ui/Folder";
 import { useFolder } from "~/components/ui/FolderContext";
 import Group from "~/components/ui/Group";
@@ -20,9 +20,9 @@ const fetcher = async () => {
 };
 
 const Fold = () => {
-  const { folderName } = useFolder();
-  const { data: folders, error } = useSWR<FolderType[]>('folder', fetcher);
-  const isLoading = !folders && !error;
+const { folderName } = useFolder();
+const { data: folders, error } = useSWR<FolderType[]>('folder', fetcher) as { data: FolderType[] | undefined; error: Error | null };
+const isLoading = !folders && !error;
 
   const generateId = () => {
     const id: string = uuidv4();
@@ -54,11 +54,11 @@ const Fold = () => {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to create folder");
-      const newFolder = (await response.json()) as FolderType;
+    if (!response.ok) throw new Error("Failed to create folder");
+    await response.json() as FolderType;
 
-      // Replace setFolders with mutate
-      mutate('folder');
+    // Replace setFolders with mutate
+    void mutate('folder');
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error creating folder:", error.message);
@@ -72,9 +72,9 @@ const Fold = () => {
     return <div className="font-serif">Loading...</div>;
   }
 
-  if (error) {
-    return <div className="font-serif">Error fetching folders: {error.message}</div>;
-  }
+if (error) {
+    return <div className="font-serif">Error fetching folders: {error instanceof Error ? error.message : 'An error occurred'}</div>;
+}
 
   return (
     <div className="items-left justify-left flex w-full flex-col gap-1">

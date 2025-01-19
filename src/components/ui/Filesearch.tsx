@@ -28,11 +28,11 @@ const Filesearch = ({ onClose }: { onClose: () => void }) => {
     inputRef.current?.focus();
   }, []);
 
-  // Use SWR to fetch search results based on input
-  const { data: searchResults, error } = useSWR<SearchResponse | null>(
-    input.trim() ? `search-${input}` : null,
-    () => fetchSearchResults(input)
-  );
+// Use SWR to fetch search results based on input
+const { data: searchResults = null, error } = useSWR<SearchResponse>(
+input.trim() ? `search-${input}` : null,
+() => fetchSearchResults(input)
+) as { data: SearchResponse | null; error: Error | null };
 
   const isLoading = !searchResults && !error;
 
@@ -70,9 +70,9 @@ const Filesearch = ({ onClose }: { onClose: () => void }) => {
         <div className="flex-grow overflow-y-auto space-y-4 mb-4 pr-2">
           {isLoading ? (
             <div className="text-[#f7eee3]/50 italic">Searching...</div>
-          ) : error ? (
-            <div className="text-[#f7eee3]/50 italic">{error.message}</div>
-          ) : searchResults?.results?.length ?? 0 > 0 ? (
+        ) : error ? (
+        <div className="text-[#f7eee3]/50 italic">{error instanceof Error ? error.message : 'An error occurred'}</div>
+        ) : searchResults?.results?.length ?? 0 > 0 ? (
             searchResults?.results.map((result, index) => (
               <div
                 key={index}

@@ -1,14 +1,11 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react';
-import { Search } from 'lucide-react';
-// import { useChat } from 'ai/react';
 import { SignOutButton } from '@clerk/nextjs';
 import TaskComponent from '~/components/ui/TaskComponent'; 
-import  PomodoroComponent  from '~/components/ui/PomodoroComponent'; 
+import PomodoroComponent from '~/components/ui/PomodoroComponent'; 
 import ChatComponent from '~/components/ui/ChatComponent'; 
 import Filesearch from './Filesearch';
 import "~/styles/globals.css";
-import { text } from 'stream/consumers';
 
 
 const Logout = () => {

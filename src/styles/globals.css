@@ -157,6 +157,8 @@ body {
 }
 
 input::placeholder {
-  color: #ff5e00; /* Change this to your desired color */
+  color: #ff5e00;
+  opacity: 1;
+   /* Change this to your desired color */
    /* Optional: Set opacity to 1 to make it fully opaque */
 }

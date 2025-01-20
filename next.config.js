@@ -7,27 +7,8 @@ await import("./src/env.js");
 /** @type {import("next").NextConfig} */
 const config = {
     images: {
-      remotePatterns: [
-        {
-          protocol: 'https',
-          hostname: 'utfs.io',
-          port: '',
-          pathname: '/**', // This allows all paths under utfs.io
-        },
-        {
-          protocol: 'https',
-          hostname: 'img.freepik.com',
-          port: '',
-          pathname: '/**', // This allows all paths under img.freepik.com
-        },
-        {
-          protocol: 'https',
-          hostname: 'veterinaire-tour-hassan.com',
-          port: '',
-          pathname: '/**', // This allows all paths under veterinaire-tour-hassan.com
-        },
-      ],
-  
+        remotePatterns: [{ hostname: "utfs.io" }],
+        domains: ["img.freepik.com", "veterinaire-tour-hassan.com"],
       },
       
       async rewrites() {

@@ -36,11 +36,11 @@ const Fold = () => {
     }
   };
 
-  // useEffect(() => {
-  //   fetchFolders().catch((err) =>
-  //     console.error("Error initializing folder fetch:", err)
-  //   );
-  // }, []);
+  useEffect(() => {
+    fetchFolders().catch((err) =>
+      console.error("Error initializing folder fetch:", err)
+    );
+  }, []);
 
   const generateId = () => {
     const id: string = uuidv4();

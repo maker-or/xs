@@ -1,7 +1,6 @@
 # Sphere
 
-[Sphere](https://www.sphereai.tech/) is an open source learning mangment system that aim to empower educatinal institution with their own custom LLMS
-
+[Sphere](https://www.sphereai.me/) Your Collage Your AI
 ## ✨ Features
 
 - Centralized Repository: Access study materials like notes, question papers, and assignments uploaded by lecturers.

@@ -139,7 +139,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
             }}
             className={`rounded-full px-8 py-2 ${
               selectedBranch === branch
-                ? "bg-[#0f7b7c] text-white"
+                ? "bg-[#0f7b7c] text-[#f7eee3]"
                 : "bg-[#454545] text-[#f7eee3]"
             }`}
           >
@@ -155,7 +155,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
             <div
               key={subject}
               onClick={() => setSelectedSubject(subject)}
-              className="relative flex w-full cursor-pointer flex-col border-b-2 border-[#f7eee334] p-3 text-3xl text-[#f7eee3] hover:text-orange-600"
+              className="relative flex w-full cursor-pointer flex-col border-b-2 border-[#f7eee334] p-3 text-3xl text-[#f7eee3] hover:text-[#FF5E00]-600"
             >
               {/* <div className="absolute bottom-0 right-0 w-full rounded-b-xl bg-[#f7eee3] px-3 py-1 text-center text-lg font-medium text-[#0c0c0c]">
                 {subject}
@@ -169,7 +169,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
           <div className="mt-16 flex items-center justify-between p-2">
             <button
               onClick={() => setSelectedSubject(null)}
-              className="mb-4 flex rounded-full py-2 text-sm text-[#f7eee3] hover:text-orange-600 lg:text-lg"
+              className="mb-4 flex rounded-full py-2 text-sm text-[#f7eee3] hover:text-[#FF5E00]-600 lg:text-lg"
             >
               <ChevronLeft />
             </button>
@@ -230,7 +230,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
             //     href={https://cloud.link/to/${selectedBranch}/${selectedSubject}/qp2}
             //     target="_blank"
             //   >
-            //     <div className="flex h-[100px] w-[200px] items-center justify-center rounded-lg bg-[#434080] p-2 text-center text-white">
+            //     <div className="flex h-[100px] w-[200px] items-center justify-center rounded-lg bg-[#434080] p-2 text-center text-[#f7eee3]">
             //       Question Paper 2
             //     </div>
             //   </Link>
@@ -257,7 +257,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
         </div>
       )}
       {selectedPdfUrl && (
-        <div className="fixed inset-0 flex w-[100svw] bg-orange-700 bg-opacity-50">
+        <div className="fixed inset-0 flex w-[100svw] bg-[#FF5E00]-700 bg-opacity-50">
           <div className="relative w-[100svw] items-start justify-center rounded-lg bg-[#0c0c0c]">
             <button
               onClick={() => setSelectedPdfUrl(null)}

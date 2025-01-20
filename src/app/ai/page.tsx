@@ -47,7 +47,7 @@ export default function Page() {
     <div className="absolute inset-0 -z-10 h-full w-full flex flex-col items-center px-5 py-12 bg-gradient-to-b from-[#180B03] to-[#000]">
       {!submitted && (
         <div className="flex flex-col items-center gap-4 mb-8">
-          <h1 className="text-5xl md:text-6xl font-serif text-white animate-fade-in">
+          <h1 className="text-5xl md:text-6xl font-serif text-[#f7eee3] animate-fade-in">
             Ask Anything
           </h1>
         </div>
@@ -75,13 +75,13 @@ export default function Page() {
                   {/* Buttons for Google Search */}
                   {/* <div className="flex gap-4">
                     <button
-                      className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                      className="px-4 py-2 text-[#f7eee3] bg-blue-600 rounded-lg hover:bg-blue-700"
                       onClick={() => handleGoogleSearch(m.content, 'images')}
                     >
                       Search Images
                     </button>
                     <button
-                      className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700"
+                      className="px-4 py-2 text-[#f7eee3] bg-red-600 rounded-lg hover:bg-red-700"
                       onClick={() => handleGoogleSearch(m.content, 'videos')}
                     >
                       Search Videos
@@ -101,14 +101,14 @@ export default function Page() {
               placeholder="Ask me anything..."
               value={input}
               onChange={handleInputChange}
-              className="w-full pl-8 pr-16 py-4 bg-[#2C2C2C] text-[#f7eee3] ring-orange-300/30 rounded-full font-serif placeholder-gray-400 outline-none focus:ring-2   transition-all"
+              className="w-full pl-8 pr-16 py-4 bg-[#2C2C2C] text-[#f7eee3] ring-[#FF5E00]-300/30 rounded-full font-serif placeholder-gray-400 outline-none focus:ring-2   transition-all"
             />
             <button
               type="submit"
               disabled={!input.trim()}
-              className="absolute right-1 p-3 rounded-full bg-[#0a0a0a] text-[#f7eee3] hover:bg-white/10 hover:text-orange-600 transition-colors disabled:opacity-50"
+              className="absolute right-1 p-3 rounded-full bg-[#0a0a0a] text-[#f7eee3] hover:bg-white/10 hover:text-[#FF5E00]-600 transition-colors disabled:opacity-50"
             >
-              <ArrowUpRight className="h-6 w-6 text-[#f7eee3] hover:text-orange-600" />
+              <ArrowUpRight className="h-6 w-6 text-[#f7eee3] hover:text-[#FF5E00]-600" />
             </button>
           </div>
         </form>

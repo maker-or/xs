@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+// import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 interface FolderProps {
@@ -14,8 +15,6 @@ const Folder: React.FC<FolderProps> = ({ folderName, folderId }) => {
   };
 
   return (
-
-    
     
       
       <div onClick={handleFolderClick} className="md:-ml-12 flex max-h-60 min-h-52 ml-12 min-w-16 max-w-52 flex-col motion-scale-in-[0.84] hover:motion-scale-in-[0.74]">
@@ -59,7 +58,7 @@ export default Folder;
 //       onClick={handleFolderClick}
 //       className="flex min-w-[150px] cursor-pointer flex-col items-center justify-center p-4"
 //     >
-//       <div className="h-20 w-20 rounded-lg bg-orange-600"></div>
+//       <div className="h-20 w-20 rounded-lg bg-[#FF5E00]-600"></div>
 //       <p className="mt-2 text-center">{folderName}</p>
 //     </div>
 //   );

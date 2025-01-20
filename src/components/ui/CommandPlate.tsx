@@ -158,7 +158,7 @@ const CommandPlate = () => {
                 className={`
                   p-3 cursor-pointer transition-all duration-200
                   ${index === selectedIndex
-                    ? 'text-orange-500 rounded-sm bg-[#f7eee3]/10'
+                    ? 'text-[#FF5E00]-500 rounded-sm bg-[#f7eee3]/10'
                     : 'hover:bg-[#f7eee3]/10'
                   }
                 `}

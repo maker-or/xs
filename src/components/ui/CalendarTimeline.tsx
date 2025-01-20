@@ -210,7 +210,7 @@ export default function CalendarTimeline() {
         <div className="flex items-center space-x-2">
           <button
             onClick={handleNewEvent}
-            className="border-2 flex px-4 py-1 rounded-md border-[#f7eee323] font-serif hover:border-none justify-center items-end hover:bg-orange-600"
+            className="border-2 flex px-4 py-1 rounded-md border-[#f7eee323] font-serif hover:border-none justify-center items-end hover:bg-[#FF5E00]-600"
           >
             Add
           </button>
@@ -255,7 +255,7 @@ export default function CalendarTimeline() {
               <input
                 ref={inputRef}
                 type="text"
-                className="w-full bg-neutral-800 p-1 tracking-tight text-white"
+                className="w-full bg-neutral-800 p-1 tracking-tight text-[#f7eee3]"
                 value={editText}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}

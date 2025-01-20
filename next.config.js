@@ -27,6 +27,7 @@ const config = {
           pathname: '/**', // This allows all paths under veterinaire-tour-hassan.com
         },
       ],
+  
       },
       
       async rewrites() {

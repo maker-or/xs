@@ -24,8 +24,6 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <CSPostHogProvider>
-        <Analytics />
-        <SpeedInsights/>
 
         <html lang="en" className={`font-sans`}>
           {/* <Head>
@@ -44,6 +42,9 @@ export default function RootLayout({
             </SignedOut>
 
             <SignedIn>
+            <Analytics />
+        <SpeedInsights/>
+
               <TimeProvider>
                 <div className="m-1 p-6">
                   {/* <Greeting/>

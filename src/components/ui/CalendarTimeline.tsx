@@ -210,7 +210,7 @@ export default function CalendarTimeline() {
         <div className="flex items-center space-x-2">
           <button
             onClick={handleNewEvent}
-            className="border-2 flex px-4 py-1 rounded-md border-[#f7eee323] font-serif hover:border-none justify-center items-end hover:bg-[#FF5E00]-600"
+            className="border-2 flex px-4 py-1 rounded-md border-[#f7eee323] font-serif hover:border-none justify-center items-end hover:bg-[#FF5E00]"
           >
             Add
           </button>

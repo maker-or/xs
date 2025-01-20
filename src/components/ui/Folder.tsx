@@ -58,7 +58,7 @@ export default Folder;
 //       onClick={handleFolderClick}
 //       className="flex min-w-[150px] cursor-pointer flex-col items-center justify-center p-4"
 //     >
-//       <div className="h-20 w-20 rounded-lg bg-[#FF5E00]-600"></div>
+//       <div className="h-20 w-20 rounded-lg bg-[#FF5E00]"></div>
 //       <p className="mt-2 text-center">{folderName}</p>
 //     </div>
 //   );

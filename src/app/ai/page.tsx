@@ -106,9 +106,9 @@ export default function Page() {
             <button
               type="submit"
               disabled={!input.trim()}
-              className="absolute right-1 p-3 rounded-full bg-[#0a0a0a] text-[#f7eee3] hover:bg-white/10 hover:text-[#FF5E00]-600 transition-colors disabled:opacity-50"
+              className="absolute right-1 p-3 rounded-full bg-[#0a0a0a] text-[#f7eee3] hover:bg-white/10 hover:text-[#FF5E00] transition-colors disabled:opacity-50"
             >
-              <ArrowUpRight className="h-6 w-6 text-[#f7eee3] hover:text-[#FF5E00]-600" />
+              <ArrowUpRight className="h-6 w-6 text-[#f7eee3] hover:text-[#FF5E00]" />
             </button>
           </div>
         </form>

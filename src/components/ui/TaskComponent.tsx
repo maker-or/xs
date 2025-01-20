@@ -171,7 +171,7 @@ await new Promise((resolve) => {
           />
           <button
             onClick={() => { void handleAddTask(); }}
-            className="rounded-md bg-[#FF5E00]-600/70 p-3 text-[#f7eee3] backdrop-blur-md transition-colors hover:bg-[#FF5E00]-600/90"
+            className="rounded-md bg-[#FF5E00]/70 p-3 text-[#f7eee3] backdrop-blur-md transition-colors hover:bg-[#FF5E00]/90"
           >
             Add
           </button>
@@ -180,7 +180,7 @@ await new Promise((resolve) => {
         <div className="mt-4">
           <button
             onClick={() => setShowInput(true)}
-            className="w-3/2 flex items-center justify-end rounded-md border-2 border-[#f7eee323] bg-[#343333] p-2 text-[#f7eee3] transition-colors hover:bg-[#FF5E00]-600/90"
+            className="w-3/2 flex items-center justify-end rounded-md border-2 border-[#f7eee323] bg-[#343333] p-2 text-[#f7eee3] transition-colors hover:bg-[#FF5E00]/90"
           >
             <Plus size={20} />
           </button>

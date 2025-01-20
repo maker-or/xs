@@ -6,10 +6,11 @@ import { FolderProvider } from "../components/ui/FolderContext";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./api/uploadthing/core";
-// import { Analytics } from "@vercel/analytics/react";
+ import { Analytics } from "@vercel/analytics/react";
 import { CSPostHogProvider } from "~/app/_analytics/providers";
 import CommandPlate from "~/components/ui/CommandPlate";
 import { TimeProvider } from "~/providers/TimerProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
   title: "Sphere",
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <CSPostHogProvider>
-        {/* <Analytics /> */}
+        <Analytics />
+        <SpeedInsights/>
+
         <html lang="en" className={`font-sans`}>
           {/* <Head>
             <Link

@@ -101,7 +101,7 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               autoFocus
-              className="border-none bg-transparent text-3xl text-[#FF5E00]-600 outline-none"
+              className="border-none bg-transparent text-3xl text-[#FF5E00] outline-none"
             />
           ) : (
             <h1
@@ -114,7 +114,7 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="text-md rounded-lg bg-[#FF5E00]-600 px-3 py-1 text-[#f7eee3] "
+          className="text-md rounded-lg bg-[#FF5E00] px-3 py-1 text-[#f7eee3] "
         >
           +
         </button>
@@ -131,7 +131,7 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
               <h2 className="text-lg">Upload Your File</h2>
               <button
                 onClick={() => setModalOpen(false)}
-                className="rounded-lg bg-[#FF5E00]-600 px-3 py-1 text-[#f7eee3]"
+                className="rounded-lg bg-[#FF5E00] px-3 py-1 text-[#f7eee3]"
                 aria-label="Close Modal"
               >
                 Close

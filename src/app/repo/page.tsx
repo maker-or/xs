@@ -155,7 +155,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
             <div
               key={subject}
               onClick={() => setSelectedSubject(subject)}
-              className="relative flex w-full cursor-pointer flex-col border-b-2 border-[#f7eee334] p-3 text-3xl text-[#f7eee3] hover:text-[#FF5E00]-600"
+              className="relative flex w-full cursor-pointer flex-col border-b-2 border-[#f7eee334] p-3 text-3xl text-[#f7eee3] hover:text-[#FF5E00]"
             >
               {/* <div className="absolute bottom-0 right-0 w-full rounded-b-xl bg-[#f7eee3] px-3 py-1 text-center text-lg font-medium text-[#0c0c0c]">
                 {subject}
@@ -169,7 +169,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
           <div className="mt-16 flex items-center justify-between p-2">
             <button
               onClick={() => setSelectedSubject(null)}
-              className="mb-4 flex rounded-full py-2 text-sm text-[#f7eee3] hover:text-[#FF5E00]-600 lg:text-lg"
+              className="mb-4 flex rounded-full py-2 text-sm text-[#f7eee3] hover:text-[#FF5E00] lg:text-lg"
             >
               <ChevronLeft />
             </button>

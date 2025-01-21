@@ -10,26 +10,24 @@ interface TaskTypes {
 }
 
 const fetcher = async (): Promise<TaskTypes[]> => {
-const response = await fetch("/api/userTasks/");
-if (!response.ok) throw new Error("Failed to fetch tasks");
-const data = (await response.json()) as TaskTypes[];
+  const response = await fetch("/api/userTasks");
+  if (!response.ok) throw new Error("Failed to fetch tasks");
+  const data = (await response.json()) as TaskTypes[];
 
-// Transform the data
-const updatedTasks = data.map((task: TaskTypes) => ({
+  return data.map((task) => ({
     ...task,
-    completed:
-    typeof task.completed === "string"
-        ? task.completed.toLowerCase() === "true"
-        : Boolean(task.completed),
-}));
-
-  return updatedTasks.filter((task) => task.completed === false);
+    completed: typeof task.completed === "string"
+      ? task.completed.toLowerCase() === "true"
+      : Boolean(task.completed),
+  })).filter((task) => !task.completed);
 };
 
 const TaskComponent = ({ onClose }: { onClose: () => void }) => {
-const { data: tasks = [], error }: SWRResponse<TaskTypes[], Error> = useSWR("/api/userTasks", fetcher, {
-    fallbackData: [],
-});
+  const { data: tasks = [], error }: SWRResponse<TaskTypes[], Error> = useSWR(
+    "/api/userTasks",
+    fetcher,
+    { fallbackData: [] }
+  );
   const [newTask, setNewTask] = useState<string>("");
   const [showInput, setShowInput] = useState<boolean>(false);
   const [removingTask, setRemovingTask] = useState<string | null>(null);
@@ -39,11 +37,9 @@ const { data: tasks = [], error }: SWRResponse<TaskTypes[], Error> = useSWR("/ap
     await fetch("api/userTasks", {
       method: "POST",
       body: JSON.stringify({ task: taskText.trim() }),
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     });
-    await mutate("/api/userTasks"); // Revalidate the tasks list
+    await mutate("/api/userTasks");
   };
 
   React.useEffect(() => {
@@ -60,29 +56,27 @@ const { data: tasks = [], error }: SWRResponse<TaskTypes[], Error> = useSWR("/ap
     }
   };
 
-const handleDeleteTask = async (taskId: string) => {
-setRemovingTask(taskId);
-await new Promise((resolve) => {
-    setTimeout(async () => {
-    if (!tasks) return;
-    await mutate(
-        "/api/userTasks",
-        tasks.filter((task) => task.id !== taskId),
-        false
-    );
-    setRemovingTask(null);
-    resolve(undefined);
-    }, 500);
-});
-};
+  const handleDeleteTask = async (taskId: string) => {
+    setRemovingTask(taskId);
+    await new Promise((resolve) => {
+      setTimeout(async () => {
+        if (!tasks) return;
+        await mutate(
+          "/api/userTasks",
+          tasks.filter((task) => task.id !== taskId),
+          false
+        );
+        setRemovingTask(null);
+        resolve(undefined);
+      }, 500);
+    });
+  };
 
   const taskComplete = async (taskId: string) => {
     await fetch("/api/userTasks", {
       method: "PATCH",
       body: JSON.stringify({ taskId }),
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     });
     await mutate("/api/userTasks");
   };
@@ -117,10 +111,11 @@ await new Promise((resolve) => {
         <button
           onClick={onClose}
           className="rounded-full bg-[#f7eee3]/10 p-2 text-[#f7eee3]/70 transition-colors hover:text-[#f7eee3]"
+          aria-label="Close"
         >
           <ChevronLeft size={24} />
         </button>
-        <h2 className="text-2xl text-[#f7eee3]">Tasks</h2>
+        <h2 className="text-2xl text-[#f7eee3] font-serif">Tasks</h2>
       </div>
 
       <div className="flex-grow space-y-2 overflow-y-auto">
@@ -140,17 +135,19 @@ await new Promise((resolve) => {
                 onClick={() => { void handleToggleComplete(task.id); }}
                 className={`flex h-6 w-6 items-center justify-center rounded-md border ${
                   task.completed
-                    ? "border-green-500/70 bg-green-500/70 motion-preset-confetti motion-duration-1000"
+                    ? "border-green-500/70 bg-green-500/70"
                     : "border-[#f7eee3]/30 hover:border-[#FF5E00]-400/50"
                 }`}
+                aria-label={`Mark task ${task.text} as complete`}
               >
                 {task.completed && <Check size={16} />}
               </button>
               <span>{task.text}</span>
             </div>
             <button
-            onClick={() => { void handleDeleteTask(task.id); }}
+              onClick={() => { void handleDeleteTask(task.id); }}
               className="rounded-full p-2 text-[#f7eee3] transition-colors hover:text-red-500"
+              aria-label={`Delete task ${task.text}`}
             >
               {/* <Trash2 size={18} /> */}
             </button>
@@ -171,7 +168,8 @@ await new Promise((resolve) => {
           />
           <button
             onClick={() => { void handleAddTask(); }}
-            className="rounded-md bg-[#FF5E00]/70 p-3 text-[#f7eee3] backdrop-blur-md transition-colors hover:bg-[#FF5E00]/90"
+            className={`rounded-md bg-[#FF5E00]/70 p-3 text-[#f7eee3] backdrop-blur-md transition-colors ${!newTask.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#FF5E00]/90'}`}
+            disabled={!newTask.trim()}
           >
             Add
           </button>
@@ -181,6 +179,7 @@ await new Promise((resolve) => {
           <button
             onClick={() => setShowInput(true)}
             className="w-3/2 flex items-center justify-end rounded-md border-2 border-[#f7eee323] bg-[#343333] p-2 text-[#f7eee3] transition-colors hover:bg-[#FF5E00]/90"
+            aria-label="Add new task"
           >
             <Plus size={20} />
           </button>

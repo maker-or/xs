@@ -1,6 +1,12 @@
 # Sphere
 
 [Sphere](https://www.sphereai.me/) Your Collage Your AI
+
+## 🌟 Vision
+
+Sphere aims to empower every collagee with their own AI
+
+
 ## ✨ Features
 
 - Centralized Repository: Access study materials like notes, question papers, and assignments uploaded by lecturers.
@@ -12,9 +18,7 @@
 - Custom LLMs for Institutions: Transform your institution’s repository into a knowledge powerhouse with AI tailored to your needs.
 
 
-## 🌟 Vision
 
-Sphere aims to redefine academic productivity by blending resource management, collaboration, and AI capabilities into a single platform.
 
 ##📩 Contact
 
@@ -22,7 +26,6 @@ Sphere aims to redefine academic productivity by blending resource management, c
 For support,suggestion reach out to us at:
 
 - Email: harshith10295032@gmail.com
-- Instagram: (https://www.instagram.com/_imchinnu_?igsh=OHc5cDMzYm5qYnZm)
 - Twitter: https://x.com/pasupuleti73628?t=VSASy8epZqcQQfSGVb4tLw&s=09
 
 ## 📝 License

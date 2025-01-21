@@ -4,7 +4,7 @@ import { db } from "~/server/db";
 export default async function getMyImages(folderId: number) {
   try {
     const { userId } = (await auth()) as { userId: string | null };
-    console.log("userId form qurie.ts", userId);
+    //console.log("userId form qurie.ts", userId);
     // const id =100;
     if (!userId) return null;
 

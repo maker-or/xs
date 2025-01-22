@@ -55,12 +55,12 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
     url: string;
     size: number;
     type: string;
-     //userId: string;
+    //userId: string;
     // folderId: number;
   }>) => {
     try {
       // Send the file data to our new API route
-      const uploadPromises = response.map(fileData => 
+      const uploadPromises = response.map(fileData =>
         fetch('/api/uploadfile', {
           method: 'POST',
           headers: {
@@ -70,15 +70,15 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
             ...fileData,
             folderId: folderId,
             userId: userId,
-             
+
           }),
         })
       );
-      
+
       await Promise.all(uploadPromises);
       setModalOpen(false);
-       window.location.reload()
-      
+      window.location.reload()
+
       // You might want to refresh your images list here
       // Either through a server action or by refetching the data
     } catch (error) {
@@ -144,9 +144,9 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
               onClientUploadComplete={(res) => {
                 if (res) {
 
-                  
+
                   void handleUploadComplete(res);
-                 
+
                 }
               }}
               className="h-2/3 w-full rounded border-2 border-dashed border-[#f7eee3]/30 py-2 text-[#f7eee3] hover:border-[#f7eee3]"
@@ -171,23 +171,23 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
 
         </div>
       ) : (
-      <div className="item-center flex h-[250px] w-full flex-wrap gap-4 ">
-        {images?.map((image, index) => (
-          <div
-            key={`${image.id}-${index}`}
-            className="flex flex-col items-center justify-center gap-6 motion-scale-in-[0.83]  "
-          >
+        <div className="item-center flex h-[250px] w-full flex-wrap gap-4 ">
+          {images?.map((image, index) => (
             <div
-              onClick={() => openPdfViewer(image.url)}
-              className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
+              key={`${image.id}-${index}`}
+              className="flex flex-col items-center justify-center gap-6 motion-scale-in-[0.83]  "
             >
-              <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
-                {image.name}
+              <div
+                onClick={() => openPdfViewer(image.url)}
+                className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
+              >
+                <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+                  {image.name}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       )}
 
       {/* PDF Viewer Modal */}
@@ -201,7 +201,7 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
             >
               <X />
             </button>
-            <PdfViewer fileUrl={selectedPdfUrl}/>
+            <PdfViewer fileUrl={selectedPdfUrl} />
           </div>
         </div>
       )}

@@ -21,12 +21,12 @@ const fetcher = async () => {
 
 const Fold = () => {
   const { folderName } = useFolder();
-  const { data: folders = [], error, mutate }: SWRResponse<FolderType[], Error> = useSWR<FolderType[], Error>('/api/folder', fetcher, {
+  const { data: folders = [], isLoading,error, mutate }: SWRResponse<FolderType[], Error> = useSWR<FolderType[], Error>('/api/folder', fetcher, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
   });
 
-  const isLoading = !folders && !error;
+  // const isLoading = !folders && !error;
 
   const generateId = () => {
     const id: string = uuidv4();
@@ -86,7 +86,7 @@ const Fold = () => {
   };
 
   if (isLoading) {
-    return <div className="font-serif">Preparing your notes...</div>;
+    return <div className="font-serif text-red-600">Preparing your notes...</div>;
   }
 
   if (error) {

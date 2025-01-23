@@ -5,6 +5,7 @@ import Navbar from "~/components/ui/Navbar";
 import PdfViewer from "~/components/ui/PDFViewer";
 import { X } from "lucide-react";
 import { ChevronLeft } from "lucide-react";
+import Navyear from "~/components/ui/Navyear";
 
 // Define the type for branches and structure for subjects, chapters, and notes.
 type Branch = "CSE";
@@ -127,6 +128,9 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
     <div className="p-6">
       <Greeting />
       <Navbar />
+      <Navyear />
+      
+      
 
       {/* Branch Selection */}
       {/* <div className="mb-6 mt-4 flex items-center gap-8 overflow-x-auto  lg:justify-center">

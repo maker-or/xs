@@ -104,7 +104,9 @@ export const repo = createTable(
     fileurl:varchar("fileurl",{ length: 255 }).notNull(),   
     tags:varchar("tags",{ length: 255 }).notNull(),   
     year:varchar("year",{ length: 255 }).notNull(),   
-    branch:varchar("branch",{ length: 255 }).notNull(),              // Task description or title                                       // Date when the task is created or due
+    branch:varchar("branch",{ length: 255 }).notNull(),
+    subject:varchar("subject",{ length: 255 }).notNull(),
+    type:varchar("type",{ length: 255 }).notNull(),              // Task description or title                                       // Date when the task is created or due
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),                                                           // Timestamp for task creation

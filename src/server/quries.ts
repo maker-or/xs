@@ -20,3 +20,5 @@ export default async function getMyImages(folderId: number) {
     return null;
   }
 }
+
+

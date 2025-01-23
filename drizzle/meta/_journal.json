@@ -15,6 +15,20 @@
       "when": 1737475615645,
       "tag": "0001_first_ken_ellis",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1737623198208,
+      "tag": "0002_cold_echo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1737623247110,
+      "tag": "0003_lowly_dust",
+      "breakpoints": true
     }
   ]
 }

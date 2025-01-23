@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React,{useState} from 'react';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -7,28 +7,44 @@ import { usePathname } from 'next/navigation';
 
 const Navyear = () => {
   const pathName = usePathname();
+  const [year, setYear] = useState<number>(1);
+
+  const YEARS = [
+    {
+      year: 1
+    },
+    {
+      year: 2
+    },
+    {
+      year: 3
+    },
+    {
+      year: 4
+    },
+  ]
 
   // Function to check if the current path matches the link's path
   const isActive = (path: string) => pathName === path;
     return (
-      <nav className="py-5">
-        <div   className="items-center flex">
-          <ul className="inline-flex flex-row items-center mx-auto  py-3 px-4 rounded-full border text-[#646464] text-[1.2rem] font-medium">  
+      <nav className="mt-4">
+        <div   className="items-center flex ">
+          <ul className="inline-flex flex-row items-center mx-auto bg-[#1f1f1f] border-[#f7eee332] py-3 px-4 rounded-full border text-[#646464] text-[1.2rem] font-medium">  
 
-             <li className="px-2">
-              <Link href="/1 year">
-                <button
-                  className={`rounded-full px-4 py-3 ${
-                    isActive('/Forum') ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''
-                  }`}
-                >
-                  1 year
-                </button>
-              </Link>
-            </li> 
+             {
+              YEARS.map((el,index) => <li className="px-2">
+              <button key={index}
+              onClick={() => setYear(index+1)}
+                className={`rounded-full px-4 py-3 transition-all duration-300 ${
+                  year === el.year ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''
+                }`}
+              >
+                {el.year} year
+              </button>
+          </li> )
+             }
   
-            <li className="px-2">
-              <Link href="/2 year">
+            {/* <li className="px-2">
                 <button
                   className={`rounded-full px-4 py-3 ${
                     isActive('/Repos') ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''
@@ -36,11 +52,9 @@ const Navyear = () => {
                 >
                   2 year
                 </button>
-              </Link>
             </li>
   
             <li className="px-2">
-              <Link href="/3 year">
                 <button
                   className={`rounded-full px-4 py-3 ${
                     isActive('/') ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''
@@ -48,11 +62,9 @@ const Navyear = () => {
                 >
                   3 year
                 </button>
-              </Link>
             </li>
               
             <li className="px-2">
-              <Link href="/4 year">
                 <button
                   className={`rounded-full px-4 py-3 ${
                     isActive('/') ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''
@@ -60,8 +72,7 @@ const Navyear = () => {
                 >
                   4 year
                 </button>
-              </Link>
-            </li>
+            </li> */}
           </ul>
         </div>
       </nav>

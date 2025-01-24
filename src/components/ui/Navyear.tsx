@@ -3,11 +3,11 @@ import React,{useState} from 'react';
 
 // import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
-
-const Navyear = () => {
+const Navyear = ({yearprop}:{yearprop ?: string}) => {
   const pathName = usePathname();
-  const [year, setYear] = useState<number>(1);
+  const [year, setYear] = useState<number>(yearprop ? Number(yearprop) : 1);
 
   const YEARS = [
     {
@@ -33,14 +33,16 @@ const Navyear = () => {
 
              {
               YEARS.map((el,index) => <li key={index} className="px-2">
-              <button 
-              onClick={() => setYear(index+1)}
-                className={`rounded-full px-4 py-3 transition-all duration-300 ${
-                  year === el.year ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''
-                }`}
-              >
-                {el.year} year
-              </button>
+                <Link href={`/repo/year/${index+1}`}>
+                  <button 
+                    onClick={() => setYear(index+1)}
+                      className={`rounded-full px-4 py-3 transition-all duration-300 ${
+                        year === el.year ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''
+                      }`}
+                    >
+                    {el.year} year
+                  </button>
+                </Link>
           </li> )
              }
   

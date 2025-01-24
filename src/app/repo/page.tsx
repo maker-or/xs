@@ -125,12 +125,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   };
 
   return (
-    <div className="p-6">
-      <Greeting />
-      <Navbar />
-      <Navyear />
-      
-      
+    <>
 
       {/* Branch Selection */}
       {/* <div className="mb-6 mt-4 flex items-center gap-8 overflow-x-auto  lg:justify-center">
@@ -274,7 +269,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

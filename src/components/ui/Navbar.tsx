@@ -9,7 +9,7 @@ const Navbar = () => {
   const pathName = usePathname();
 
   // Function to check if the current path matches the link's path
-  const isActive = (path: string) => pathName === path;
+  const isActive = (path: string) => pathName.split('/').includes('repo');
 
   return (
     <nav className=" font-serif">
@@ -23,9 +23,9 @@ const Navbar = () => {
 
 
           <li className="px-2">
-            <Link href="/repo"  prefetch={true}   >
+            <Link href="/repo/year/1"  prefetch={true}   >
               <button
-                className={`rounded-full px-4 py-3 ${isActive('/repo') ? 'bg-[#FF5E00] text-[#f7eee3]' : ''
+                className={`rounded-full px-4 py-3 ${isActive('repo') ? 'bg-[#FF5E00] text-[#f7eee3]' : ''
                   }`}
               >
                 Repos
@@ -36,7 +36,7 @@ const Navbar = () => {
           <li className="px-2">
             <Link href="/" prefetch={true} rel="preload">
               <button
-                className={`rounded-full px-4 py-3 ${isActive('/') ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''
+                className={`rounded-full px-4 py-3 ${!isActive('/') ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''
                   }`}
               >
                 Space

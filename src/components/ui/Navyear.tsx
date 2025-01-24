@@ -1,7 +1,7 @@
 'use client';
 import React,{useState} from 'react';
 
-import Link from 'next/link';
+// import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 
@@ -32,8 +32,8 @@ const Navyear = () => {
           <ul className="inline-flex flex-row items-center mx-auto bg-[#1f1f1f] border-[#f7eee332] py-3 px-4 rounded-full border text-[#646464] text-[1.2rem] font-medium">  
 
              {
-              YEARS.map((el,index) => <li className="px-2">
-              <button key={index}
+              YEARS.map((el,index) => <li key={index} className="px-2">
+              <button 
               onClick={() => setYear(index+1)}
                 className={`rounded-full px-4 py-3 transition-all duration-300 ${
                   year === el.year ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''

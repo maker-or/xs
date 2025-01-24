@@ -17,7 +17,9 @@ export async function GET(req:NextRequest, { params }: { params: Promise<{ year:
         .select({ 
             filename: repo.filename,
             year: repo.year,  // Include the URL in the selection
-            subject: repo.subject
+            subject: repo.subject,
+            fileurl: repo.fileurl,
+            tags: repo.tags
         })
         .from(repo)
         .where(and(eq(repo.year,year),eq(repo.subject,subject)));

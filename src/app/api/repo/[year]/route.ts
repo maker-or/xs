@@ -5,7 +5,7 @@ import { db } from '~/server/db';
 import { repo } from "~/server/db/schema";
 
 
-const years = ['1','2','3','4'];
+export const years = ['1','2','3','4'];
 
 export async function GET(req:NextRequest, { params }: { params: Promise<{ year: string }> }) {
     try {

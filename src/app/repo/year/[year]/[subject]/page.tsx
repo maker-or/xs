@@ -6,6 +6,18 @@ import { ChevronLeft } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { repo } from "~/server/db/schema";
+import useSWR, { type SWRResponse } from 'swr';
+
+interface FileTypes {
+    filename: string,
+    year: string,  // Include the URL in the selection
+    subject: string,
+    fileurl: string,
+    tags: string
+}
+
+
 
 const subject = () => {
     const path = usePathname();
@@ -24,22 +36,38 @@ const subject = () => {
 
     const paramsUpdate = (category: 'notes' | 'questionPaper') => {
         const url = new URL(window.location.href)
-        url.searchParams.set('category',category);
+        url.searchParams.set('category', category);
         router.push(url.href);
     }
+
+
+    const fetcher = async () => {
+
+        const response = await fetch(`/api/repo/${year}`);
+        if (!response.ok) throw new Error("Failed to fetch folders");
+        return response.json() as Promise<FileTypes[]>;
+    };
+
+
+    const { data: files = [], isLoading, error, mutate }: SWRResponse<FileTypes[], Error> = useSWR<FileTypes[], Error>(`/api/repo/year/${year}`, fetcher, {
+        revalidateOnFocus: false,
+        revalidateIfStale: false,
+    });
+
+    console.log('check:', files)
 
 
     return (
         <>
             <div>
                 <div className="mt-16 flex items-center justify-between p-2">
-                   <Link href={`/repo/year/${path.split('/')[3]}`}>
-                   <button
-                        onClick={() => setSelectedSubject(null)}
-                        className="mb-4 flex rounded-full py-2 text-sm text-[#f7eee3] hover:text-[#FF5E00] lg:text-lg"
-                    >
-                        <ChevronLeft />
-                    </button></Link>
+                    <Link href={`/repo/year/${path.split('/')[3]}`}>
+                        <button
+                            onClick={() => setSelectedSubject(null)}
+                            className="mb-4 flex rounded-full py-2 text-sm text-[#f7eee3] hover:text-[#FF5E00] lg:text-lg"
+                        >
+                            <ChevronLeft />
+                        </button></Link>
                     {/* Type Selection */}
                     <div className="mb-4 flex gap-4">
                         {/* <Link href={}> */}
@@ -48,14 +76,14 @@ const subject = () => {
                                 setSelectedType("notes");
                                 paramsUpdate('notes')
                             }
-                        }
+                            }
                             className={`rounded-xl px-3 py-2 text-sm lg:px-4 ${selectedType === "notes" ? "bg-[#f7eee3] text-[#0c0c0c]" : "bg-[#454545] text-[#f7eee3]"}`}
-                            >
+                        >
                             Notes
                         </button>
-                            {/* </Link> */}
+                        {/* </Link> */}
                         <button
-                            onClick={() =>{ 
+                            onClick={() => {
                                 setSelectedType("questionPapers")
                                 paramsUpdate('questionPaper')
                             }
@@ -69,9 +97,7 @@ const subject = () => {
 
                 {selectedType === "notes" ? (
                     <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
-                        {/* {selectedSubject &&
-                subjects[selectedBranch][selectedSubject] &&
-                Object.entries(subjects[selectedBranch][selectedSubject]).map(
+                        {files &&  files.map(
                   ([chapter, link]) => (
                     <div
                       key={chapter}
@@ -83,7 +109,7 @@ const subject = () => {
                       </div>
                     </div>
                   ),
-                )} */}
+                )}
                     </div>
                 ) : (
                     <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">

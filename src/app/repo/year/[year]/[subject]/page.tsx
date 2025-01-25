@@ -22,6 +22,7 @@ interface FileTypes {
 const subject = () => {
     const path = usePathname();
     const router = useRouter();
+    const year = path.split('/')[3];
     const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
     const [selectedType, setSelectedType] = useState<"notes" | "questionPapers">(
         "notes",
@@ -42,7 +43,6 @@ const subject = () => {
 
 
     const fetcher = async () => {
-
         const response = await fetch(`/api/repo/${year}`);
         if (!response.ok) throw new Error("Failed to fetch folders");
         return response.json() as Promise<FileTypes[]>;
@@ -75,8 +75,7 @@ const subject = () => {
                             onClick={() => {
                                 setSelectedType("notes");
                                 paramsUpdate('notes')
-                            }
-                            }
+                            }}
                             className={`rounded-xl px-3 py-2 text-sm lg:px-4 ${selectedType === "notes" ? "bg-[#f7eee3] text-[#0c0c0c]" : "bg-[#454545] text-[#f7eee3]"}`}
                         >
                             Notes
@@ -86,8 +85,7 @@ const subject = () => {
                             onClick={() => {
                                 setSelectedType("questionPapers")
                                 paramsUpdate('questionPaper')
-                            }
-                            }
+                            }}
                             className={`rounded-xl px-4 py-2 ${selectedType === "questionPapers" ? "bg-[#f7eee3] text-[#0c0c0c]" : "bg-[#454545] text-[#f7eee3]"}`}
                         >
                             Question Papers
@@ -97,37 +95,39 @@ const subject = () => {
 
                 {selectedType === "notes" ? (
                     <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
-                        {files &&  files.map(
-                  ([chapter, link]) => (
-                    <div
-                      key={chapter}
-                      className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
-                      onClick={() => openPdfViewer(link)}
-                    >
-                      <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
-                        {chapter}
-                      </div>
-                    </div>
-                  ),
-                )}
+                        {/* {files &&  files.map(
+                            ([chapter, link]) => (
+                                <div
+                                key={chapter}
+                                className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
+                                onClick={() => openPdfViewer(link)}
+                                >
+                                <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+                                    {chapter}
+                                </div>
+                                </div>
+                            ),
+                            )} 
+                         */}
                     </div>
                 ) : (
                     <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
                         {/* {selectedSubject &&
-                questionPapers[selectedBranch][selectedSubject] &&
-                Object.entries(
-                  questionPapers[selectedBranch][selectedSubject],
-                ).map(([paper, link]) => (
-                  <div
-                    key={paper}
-                    className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
-                    onClick={() => openPdfViewer(link)}
-                  >
-                    <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
-                      {paper}
-                    </div>
-                  </div>
-                ))} */}
+                            questionPapers[selectedBranch][selectedSubject] &&
+                            Object.entries(
+                            questionPapers[selectedBranch][selectedSubject],
+                            ).map(([paper, link]) => (
+                            <div
+                                key={paper}
+                                className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
+                                onClick={() => openPdfViewer(link)}
+                            >
+                                <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+                                {paper}
+                                </div>
+                            </div>
+                            ))}
+                        */}
                     </div>
                 )
                 }

@@ -1,11 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import Greeting from "~/components/ui/Greeting";
-import Navbar from "~/components/ui/Navbar";
 import PdfViewer from "~/components/ui/PDFViewer";
 import { X } from "lucide-react";
 import { ChevronLeft } from "lucide-react";
-import Navyear from "~/components/ui/Navyear";
+
 
 // Define the type for branches and structure for subjects, chapters, and notes.
 type Branch = "CSE";

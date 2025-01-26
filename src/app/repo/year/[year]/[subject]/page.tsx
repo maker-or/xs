@@ -20,8 +20,8 @@ const SubjectPage = () => {
   const path = usePathname();
   const router = useRouter();
   const params = useParams();
-  const year = params?.year as string; // Extract `year` from route parameters
-
+  const year = params?.year?.toString(); // Using optional chaining
+  
   // const year = path.split('/')[3];
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<"notes" | "questionPapers">(
@@ -103,10 +103,9 @@ const SubjectPage = () => {
 
         {selectedType === "notes" ? (
           <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
-            {files &&
-              files.map((file) => (
+            {files?.map((file) => (
                 <div
-                  key={file.filename} // Add a unique key prop
+                  key={`${file.year}-${file.subject}-${file.filename}`}
                   className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
                   onClick={() => openPdfViewer(file.fileurl)}
                 >

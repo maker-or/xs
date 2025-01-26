@@ -27,7 +27,7 @@ const Navyear = ({yearprop}:{yearprop ?: string}) => {
   // Function to check if the current path matches the link's path
   const isActive = (path: string) => pathName === path;
     return (
-      <nav className="mt-4">
+      <nav className="mt-4 font-serif">
         <div   className="items-center flex ">
           <ul className="inline-flex flex-row items-center mx-auto bg-[#1f1f1f] border-[#f7eee332] py-3 px-4 rounded-full border text-[#646464] text-[1.2rem] font-medium">  
 

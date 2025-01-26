@@ -86,7 +86,7 @@ const Fold = () => {
   };
 
   if (isLoading) {
-    return <div className="font-serif text-red-600">Preparing your notes...</div>;
+    return <div className="font-serif text-[#f7eee38c]">Preparing your notes...</div>;
   }
 
   if (error) {

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { eq, ilike, and } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "~/server/db";
 import { repo } from "~/server/db/schema";
 
-export const years = ["1", "2", "3", "4"];
+const years = ["1", "2", "3", "4"];
 
 export async function GET(
   req: NextRequest,

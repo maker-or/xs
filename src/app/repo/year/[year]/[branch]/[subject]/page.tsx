@@ -10,20 +10,20 @@ import useSWR, { type SWRResponse } from "swr";
 
 interface FileTypes {
   filename: string;
-  year: string; // Include the URL in the selection
-  subject: string;
   fileurl: string;
-  tags: string;
+  type: string;
 }
 
 const SubjectPage = () => {
   const path = usePathname();
   const router = useRouter();
   const params = useParams();
-  const year = params?.year?.toString(); // Using optional chaining
+  const year = params?.year?.toString();
+  const branch = params?.branch?.toString(); 
+  const subject = params?.subject?.toString()// Using optional chaining
   
   // const year = path.split('/')[3];
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  //const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<"notes" | "questionPapers">(
     "notes",
   );
@@ -38,10 +38,10 @@ const SubjectPage = () => {
     const url = new URL(window.location.href);
     url.searchParams.set("category", category);
     router.push(url.href);
-  };
+  }; 
 
   const fetcher = async () => {
-    const response = await fetch(`/api/repo/${year}`);
+    const response = await fetch(`/api/repo/year/${year}/${branch}/${subject}`);
     if (!response.ok) throw new Error("Failed to fetch folders");
     return response.json() as Promise<FileTypes[]>;
   };
@@ -52,7 +52,7 @@ const SubjectPage = () => {
     error,
     mutate,
   }: SWRResponse<FileTypes[], Error> = useSWR<FileTypes[], Error>(
-    year ? `/api/repo/year/${year}` : null, // Only fetch if `year` is defined
+    `/api/repo/year/${year}/${branch}/${subject}`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -60,6 +60,7 @@ const SubjectPage = () => {
     },
   );
 
+  
   console.log("check:", files);
 
   if (!year) {
@@ -72,7 +73,7 @@ const SubjectPage = () => {
         <div className="mt-16 flex items-center justify-between p-2">
           <Link href={`/repo/year/${year}`}>
             <button
-              onClick={() => setSelectedSubject(null)}
+              //onClick={() => setSelectedSubject(null)}
               className="mb-4 flex rounded-full py-2 text-sm text-[#f7eee3] hover:text-[#FF5E00] lg:text-lg"
             >
               <ChevronLeft />
@@ -105,7 +106,7 @@ const SubjectPage = () => {
           <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
             {files?.map((file) => (
                 <div
-                  key={`${file.year}-${file.subject}-${file.filename}`}
+                  key={`${file.filename}`}
                   className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
                   onClick={() => openPdfViewer(file.fileurl)}
                 >

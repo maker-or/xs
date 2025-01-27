@@ -1,25 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import {eq } from "drizzle-orm";
+import {and, eq } from "drizzle-orm";
 import { db } from '~/server/db';
 import { repo } from "~/server/db/schema";
 
 
 const years = ['1','2','3','4'];
 
-export async function GET(req:NextRequest, { params }: { params: Promise<{ year: string }> }) {
+export async function GET(req:NextRequest, { params }: { params: Promise<{ year: string; branch: string  }> }) {
     try {
         const year = (await params).year;
+        const branch = (await params).branch;
         if(!years.includes(year)) throw new Error('Year not defined');
 
 
         const files = await db
         .select({ 
-            branch: repo.branch
+            subject: repo.subject
             
         })
         .from(repo)
-        .where(eq(repo.year,year))
-        .groupBy(repo.branch);
+        .where(and(eq(repo.year,year), eq(repo.branch,branch)))
+        .groupBy(repo.subject);
         console.log(files)
         // const url = new URL(req.url);
         // console.log(url.searchParams);

@@ -29,6 +29,7 @@ const config = {
       ],
   
       },
+    
       
       async rewrites() {
         return [

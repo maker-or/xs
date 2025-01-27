@@ -6,11 +6,13 @@ import { FolderProvider } from "../components/ui/FolderContext";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./api/uploadthing/core";
- import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/react";
 import { CSPostHogProvider } from "~/app/_analytics/providers";
 import CommandPlate from "~/components/ui/CommandPlate";
 import { TimeProvider } from "~/providers/TimerProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import Script from "next/script";
+import { Monitoring } from "react-scan/monitoring/next";
 
 export const metadata: Metadata = {
   title: "Sphere",
@@ -26,13 +28,14 @@ export default function RootLayout({
       <CSPostHogProvider>
 
         <html lang="en" className={`font-sans`}>
-          {/* <Head>
-            <Link
-              rel="preload"
-              href="https://utfs.io/f/orc4evzyNtrgG0LJbanCWISJF71dBgAOkMqtNpGcUfix6uL2"
-              as="image"
+          <head>
+            {/* other head tags */}
+            <Script
+              src="https://unpkg.com/react-scan/dist/install-hook.global.js"
+              strategy="beforeInteractive"
             />
-          </Head> */}
+          </head>
+
 
           <body>
             <SignedOut>
@@ -42,8 +45,14 @@ export default function RootLayout({
             </SignedOut>
 
             <SignedIn>
-            <Analytics />
-        <SpeedInsights/>
+              <Monitoring
+                apiKey="6P6upcBmNTmn9O2OSBdG_UrxIJiW87dI" // Safe to expose publically
+                url="https://monitoring.react-scan.com/api/v1/ingest"
+                commit={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA} // optional but recommended
+                branch={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF} // optional but recommended
+              />
+              <Analytics />
+              <SpeedInsights />
 
               <TimeProvider>
                 <div className="m-1 p-6">

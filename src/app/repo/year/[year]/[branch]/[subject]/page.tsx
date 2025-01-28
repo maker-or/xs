@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PdfViewer from "~/components/ui/PDFViewer";
 import { X } from "lucide-react";
 import { ChevronLeft } from "lucide-react";
@@ -19,13 +19,18 @@ const SubjectPage = () => {
   const router = useRouter();
   const params = useParams();
   const year = params?.year?.toString();
-  const branch = params?.branch?.toString(); 
-  const subject = params?.subject?.toString()// Using optional chaining
-  
+  const branch = params?.branch?.toString();
+  const subject = params?.subject?.toString(); // Using optional chaining
+  const url = new URL(window.location.href);
+  const category = url.searchParams.get("category") as
+    | "notes"
+    | "questionPapers";
+  // console.log(category);
   // const year = path.split('/')[3];
   //const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+
   const [selectedType, setSelectedType] = useState<"notes" | "questionPapers">(
-    "notes",
+    category,
   );
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
 
@@ -34,14 +39,17 @@ const SubjectPage = () => {
     console.log("the url", url);
   };
 
-  const paramsUpdate = (category: "notes" | "questionPaper") => {
+  const paramsUpdate = (category: "notes" | "questionPapers") => {
     const url = new URL(window.location.href);
     url.searchParams.set("category", category);
     router.push(url.href);
-  }; 
+    setTimeout(() => window.location.reload(), 1000);
+  };
 
   const fetcher = async () => {
-    const response = await fetch(`/api/repo/year/${year}/${branch}/${subject}`);
+    const response = await fetch(
+      `/api/repo/year/${year}/${branch}/${subject}?category=${selectedType}`,
+    );
     if (!response.ok) throw new Error("Failed to fetch folders");
     return response.json() as Promise<FileTypes[]>;
   };
@@ -60,8 +68,9 @@ const SubjectPage = () => {
     },
   );
 
-  
   console.log("check:", files);
+
+  useEffect(() => console.log(files), [files]);
 
   if (!year) {
     return <div>Year not found</div>;
@@ -93,7 +102,7 @@ const SubjectPage = () => {
             <button
               onClick={() => {
                 setSelectedType("questionPapers");
-                paramsUpdate("questionPaper");
+                paramsUpdate("questionPapers");
               }}
               className={`rounded-xl px-4 py-2 ${selectedType === "questionPapers" ? "bg-[#f7eee3] text-[#0c0c0c]" : "bg-[#454545] text-[#f7eee3]"}`}
             >
@@ -102,25 +111,25 @@ const SubjectPage = () => {
           </div>
         </div>
 
-        {selectedType === "notes" ? (
-          <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
-            {files?.map((file) => (
-                <div
-                  key={`${file.filename}`}
-                  className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
-                  onClick={() => openPdfViewer(file.fileurl)}
-                >
-                  <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
-                    {file.filename}
-                  </div>
-                </div>
-              ))}
-          </div>
-        ) : (
-          <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
-            {/* Render question papers here if needed */}
-          </div>
-        )}
+        {/* {selectedType === "notes" ? ( */}
+        <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
+          {files?.map((file) => (
+            <div
+              key={`${file.filename}`}
+              className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
+              onClick={() => openPdfViewer(file.fileurl)}
+            >
+              <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+                {file.filename}
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* ) : ( */}
+        {/* <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start"> */}
+        {/* Render question papers here if needed */}
+        {/* </div> */}
+        {/* )} */}
       </div>
 
       {selectedPdfUrl && (

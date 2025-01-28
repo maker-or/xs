@@ -10,6 +10,7 @@ export async function GET(
   { params }: { params: Promise<{ year: string; subject: string }> },
 ) {
   try {
+    console.log("got to kk route");
     const { year, subject } = await params;
     if (!years.includes(year)) throw new Error("Year not defined");
 

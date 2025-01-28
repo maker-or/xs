@@ -15,106 +15,105 @@ export const folders = createTable(
   "folders",
   {
     folderId: integer("folderId").primaryKey(),
-    folderName: varchar("folderName", { length: 256 }).notNull(),           // Name of the folder
-    userId: varchar("userId", { length: 1024 }).notNull(),                 // ID of the user who created the folder
+    folderName: varchar("folderName", { length: 256 }).notNull(), // Name of the folder
+    userId: varchar("userId", { length: 1024 }).notNull(), // ID of the user who created the folder
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),                                                           // Timestamp for folder creation
+      .notNull(), // Timestamp for folder creation
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),                                                     // Timestamp for folder updates
+      () => new Date(), // Timestamp for folder updates
     ),
   },
   (folders) => ({
-    userIndex: index("user_idx").on(folders.userId),                      // Index on userId for faster lookups
-  })
+    userIndex: index("user_idx").on(folders.userId), // Index on userId for faster lookups
+  }),
 );
 
 // files
 export const posts = createTable(
   "post",
   {
-    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),            // Auto-incrementing post ID
-    name: varchar("name", { length: 256 }).notNull(),                     // Name of the post
-    userId: varchar("userId", { length: 1024 }).notNull(),               // ID of the user who created the post
-    folderId: integer("folderId").notNull().references(() => folders.folderId), // Foreign key reference
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(), // Auto-incrementing post ID
+    name: varchar("name", { length: 256 }).notNull(), // Name of the post
+    userId: varchar("userId", { length: 1024 }).notNull(), // ID of the user who created the post
+    folderId: integer("folderId")
+      .notNull()
+      .references(() => folders.folderId), // Foreign key reference
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),                                                           // Timestamp for post creation
+      .notNull(), // Timestamp for post creation
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),                                                     // Timestamp for post updates
+      () => new Date(), // Timestamp for post updates
     ),
-    url: varchar("url", { length: 1024 }).notNull(),                      // URL of the post
+    url: varchar("url", { length: 1024 }).notNull(), // URL of the post
   },
   (example) => ({
-    nameIndex: index("name_idx").on(example.name),                        // Index on post name for faster lookups
+    nameIndex: index("name_idx").on(example.name), // Index on post name for faster lookups
   }),
-); 
+);
 
 //planner
 export const tasks = createTable(
   "tasks",
   {
-    tasksId: integer("taskId").primaryKey().generatedAlwaysAsIdentity(),   // Auto-incrementing task ID
-    userId: varchar("userId", { length: 1024 }).notNull(),                // ID of the user who created the task
-    task: varchar("task", { length: 255 }).notNull(),                     // Task description or title
+    tasksId: integer("taskId").primaryKey().generatedAlwaysAsIdentity(), // Auto-incrementing task ID
+    userId: varchar("userId", { length: 1024 }).notNull(), // ID of the user who created the task
+    task: varchar("task", { length: 255 }).notNull(), // Task description or title
     date: varchar("date").notNull(),
-    month:varchar("month").notNull(),
-    year:varchar("year").notNull(),                                   // Date when the task is created or due
+    month: varchar("month").notNull(),
+    year: varchar("year").notNull(), // Date when the task is created or due
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),                                                           // Timestamp for task creation
+      .notNull(), // Timestamp for task creation
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),                                                    // Timestamp for task updates
+      () => new Date(), // Timestamp for task updates
     ),
   },
   (tasks) => ({
-    userIndex: index("use_idx").on(tasks.userId),                       // Index on userId for faster lookups
-  })
+    userIndex: index("use_idx").on(tasks.userId), // Index on userId for faster lookups
+  }),
 );
-
 
 //todo or task
 export const dod = createTable(
   "dod",
   {
-    doId: integer("doId").primaryKey().generatedAlwaysAsIdentity(),  // Auto-incrementing task ID
-    userId: varchar("userId", { length: 1024 }).notNull(),                // ID of the user who created the task
+    doId: integer("doId").primaryKey().generatedAlwaysAsIdentity(), // Auto-incrementing task ID
+    userId: varchar("userId", { length: 1024 }).notNull(), // ID of the user who created the task
     task: varchar("task", { length: 255 }).notNull(),
-    completed:varchar("completed",{ length: 255 }).notNull(),              // Task description or title                                       // Date when the task is created or due
+    completed: varchar("completed", { length: 255 }).notNull(), // Task description or title                                       // Date when the task is created or due
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),                                                           // Timestamp for task creation
+      .notNull(), // Timestamp for task creation
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),                                                    // Timestamp for task updates
+      () => new Date(), // Timestamp for task updates
     ),
   },
   (dod) => ({
-    userIndex: index("dod_idx").on(dod.userId),                       // Index on userId for faster lookups
-  })
-)
-
-
+    userIndex: index("dod_idx").on(dod.userId), // Index on userId for faster lookups
+  }),
+);
 
 export const repo = createTable(
   "repo",
   {
-    doId: integer("rId").primaryKey().generatedAlwaysAsIdentity(),  // Auto-incrementing task ID
-    userId: varchar("userId", { length: 1024 }).notNull(),                // ID of the user who created the task
+    doId: integer("rId").primaryKey().generatedAlwaysAsIdentity(), // Auto-incrementing task ID
+    userId: varchar("userId", { length: 1024 }).notNull(), // ID of the user who created the task
     filename: varchar("filename", { length: 255 }).notNull(),
-    fileurl:varchar("fileurl",{ length: 255 }).notNull(),   
-    tags:varchar("tags",{ length: 255 }).notNull(),   
-    year:varchar("year",{ length: 255 }).notNull(),   
-    branch:varchar("branch",{ length: 255 }).notNull(),
-    subject:varchar("subject",{ length: 255 }).notNull(),
-    type:varchar("subject",{ length: 255 }).notNull(),              // Task description or title                                       // Date when the task is created or due
+    fileurl: varchar("fileurl", { length: 255 }).notNull(),
+    tags: varchar("tags", { length: 255 }).notNull(),
+    year: varchar("year", { length: 255 }).notNull(),
+    branch: varchar("branch", { length: 255 }).notNull(),
+    subject: varchar("subject", { length: 255 }).notNull(),
+    type: varchar("type", { length: 255 }).notNull(), // Task description or title                                       // Date when the task is created or due
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),                                                           // Timestamp for task creation
+      .notNull(), // Timestamp for task creation
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),                                                    // Timestamp for task updates
+      () => new Date(), // Timestamp for task updates
     ),
   },
   (repo) => ({
-    userIndex: index("repo_idx").on(repo.userId),                       // Index on userId for faster lookups
-  })
+    userIndex: index("repo_idx").on(repo.userId), // Index on userId for faster lookups
+  }),
 );

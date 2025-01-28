@@ -14,6 +14,11 @@ interface FileTypes {
   type: string;
 }
 
+interface responseType {
+  files: FileTypes[];
+  tags: string[];
+}
+
 const SubjectPage = () => {
   const path = usePathname();
   const router = useRouter();
@@ -32,6 +37,7 @@ const SubjectPage = () => {
   const [selectedType, setSelectedType] = useState<"notes" | "questionPapers">(
     category,
   );
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
 
   const openPdfViewer = (url: string) => {
@@ -51,26 +57,25 @@ const SubjectPage = () => {
       `/api/repo/year/${year}/${branch}/${subject}?category=${selectedType}`,
     );
     if (!response.ok) throw new Error("Failed to fetch folders");
-    return response.json() as Promise<FileTypes[]>;
+    return response.json() as Promise<responseType>;
   };
 
-  const {
-    data: files = [],
-    isLoading,
-    error,
-    mutate,
-  }: SWRResponse<FileTypes[], Error> = useSWR<FileTypes[], Error>(
-    `/api/repo/year/${year}/${branch}/${subject}`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    },
-  );
+  const { data, isLoading, error, mutate }: SWRResponse<responseType, Error> =
+    useSWR<responseType, Error>(
+      `/api/repo/year/${year}/${branch}/${subject}`,
+      fetcher,
+      {
+        revalidateOnFocus: false,
+        revalidateIfStale: false,
+      },
+    );
 
-  console.log("check:", files);
+  const files = data?.files;
+  const tags = data?.tags;
 
-  useEffect(() => console.log(files), [files]);
+  console.log("check:", tags);
+
+  // useEffect(() => console.log(files), [files]);
 
   if (!year) {
     return <div>Year not found</div>;
@@ -79,7 +84,24 @@ const SubjectPage = () => {
   return (
     <>
       <div>
-        <div className="mt-16 flex items-center justify-between p-2">
+        <div className="text-normal mb-4 mt-16 flex gap-4 overflow-x-auto">
+          {tags &&
+            tags.map((el, index) => (
+              <button
+                key={`tag-${el}`}
+                className={`whitespace-nowrap rounded-xl bg-[#454545] px-4 py-2 text-[#f7eee3] transition-colors hover:bg-[#a3a1a0] hover:text-[#0c0c0c]`}
+                onClick={() =>
+                  setSelectedTags((prev) => {
+                    if (prev.length > 0) return [...prev, el];
+                    return [el];
+                  })
+                }
+              >
+                {el}
+              </button>
+            ))}
+        </div>
+        <div className="flex items-center justify-between p-2">
           <Link href={`/repo/year/${year}`}>
             <button
               //onClick={() => setSelectedSubject(null)}

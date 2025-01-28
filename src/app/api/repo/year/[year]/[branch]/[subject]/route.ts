@@ -34,10 +34,14 @@ export async function GET(
           eq(repo.type, category || "notes"),
         ),
       );
-    console.log(files);
+
+    console.log("all files:", files);
+
+    let data: any = files.map((el: any) => JSON.parse(el?.tags));
+    console.log("tags:");
     // const url = new URL(req.url);
     // console.log(url.searchParams);
-    return NextResponse.json(files);
+    return NextResponse.json({ files, tags: data.flat() });
   } catch (error) {
     console.log(error);
     return NextResponse.json({ error });

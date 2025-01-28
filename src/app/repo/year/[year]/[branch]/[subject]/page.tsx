@@ -35,7 +35,7 @@ const SubjectPage = () => {
   //const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
 
   const [selectedType, setSelectedType] = useState<"notes" | "questionPapers">(
-    category,
+    category || "notes",
   );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);

@@ -20,7 +20,7 @@ interface responseType {
 }
 
 const SubjectPage = () => {
-  const path = usePathname();
+const _path = usePathname();
   const router = useRouter();
   const params = useParams();
   const year = params?.year?.toString();
@@ -60,7 +60,7 @@ const SubjectPage = () => {
     return response.json() as Promise<responseType>;
   };
 
-  const { data, isLoading, error, mutate }: SWRResponse<responseType, Error> =
+const { data, isLoading, error, mutate }: SWRResponse<responseType, Error> =
     useSWR<responseType, Error>(
       `/api/repo/year/${year}/${branch}/${subject}`,
       fetcher,
@@ -86,7 +86,7 @@ const SubjectPage = () => {
       <div>
         <div className="text-normal mb-4 mt-16 flex gap-4 overflow-x-auto">
           {tags &&
-            tags.map((el, index) => (
+            tags.map((el, _index) => (
               <button
                 key={`tag-${el}`}
                 className={`whitespace-nowrap rounded-xl bg-[#454545] px-4 py-2 text-[#f7eee3] transition-colors hover:bg-[#a3a1a0] hover:text-[#0c0c0c]`}

@@ -1,1 +1,0 @@
-ALTER TABLE "gallery_repo" ADD COLUMN "type" varchar(255) NOT NULL;

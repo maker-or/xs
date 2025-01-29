@@ -6,6 +6,8 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 interface PdfViewerProps {
   fileUrl: string;
 }
+import PropTypes from 'prop-types';
+
 const PdfViewer: React.FC<PdfViewerProps> = ({ fileUrl }) => {
   // const defaultLayoutPluginInstance = defaultLayoutPlugin();
   return (
@@ -17,4 +19,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ fileUrl }) => {
     </div>
   );
 };
+PdfViewer.propTypes = {
+fileUrl: PropTypes.string.isRequired,
+};
+
 export default PdfViewer;

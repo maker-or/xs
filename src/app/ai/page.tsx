@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import styles from './page.module.css';
 import { type Message, useChat } from 'ai/react';
 import { ArrowUpRight } from 'lucide-react';
 import '~/styles/globals.css';
@@ -47,7 +48,7 @@ export default function Page() {
     <div className="absolute inset-0 -z-10 h-full w-full flex flex-col items-center px-5 py-12 bg-gradient-to-b from-[#180B03] to-[#000]">
       {!submitted && (
         <div className="flex flex-col items-center gap-4 mb-8">
-          <h1 className="text-5xl md:text-6xl font-serif text-[#f7eee3] animate-fade-in">
+        <h1 className={`text-5xl md:text-6xl font-serif text-[#f7eee3] ${styles.animate_fade_in}`}>
             Ask Anything
           </h1>
         </div>
@@ -58,7 +59,7 @@ export default function Page() {
           {messages.map((m, index) => (
             <div
               key={m.id}
-              className={`flex flex-col gap-4 mb-4 animate-slide-in ${m.role === 'user' ? 'items-start' : 'items-start'}`}
+            className={`flex flex-col gap-4 mb-4 ${styles.animate_slide_in} ${m.role === 'user' ? 'items-start' : 'items-start'}`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               {m.role === 'user' ? (
@@ -113,22 +114,6 @@ export default function Page() {
           </div>
         </form>
       </div>
-      <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slide-in {
-          from { opacity: 0; transform: translateX(-10px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.5s ease-out forwards;
-        }
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 }

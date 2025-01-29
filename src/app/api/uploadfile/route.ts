@@ -15,6 +15,18 @@ interface UploadRequest {
 }
 
 
+function isValidUploadRequest(data: unknown): data is UploadRequest {
+const upload = data as UploadRequest;
+return (
+    typeof upload?.name === "string" &&
+    typeof upload?.url === "string" &&
+    typeof upload?.type === "string" &&
+    typeof upload?.size === "number" &&
+    typeof upload?.userId === "object" &&
+    typeof upload?.folderId === "number"
+);
+}
+
 export async function POST(req: Request) {
   
   try {
@@ -26,24 +38,10 @@ export async function POST(req: Request) {
     console.log("authUserId", authUserId);
 
     if (!authUserId) throw new Error("Unauthorized");
-    const body = await req.json() as UploadRequest;
+    const body = await req.json();
     console.log("body", body);
     console.log("type", typeof body.userId);
     console.log("userId", body.userId);
-    
-    // Type guard function to validate the request body
-    //const { userId: { userId }, name, url, type, size, folderId } = body;
-    function isValidUploadRequest(data: unknown): data is UploadRequest {
-      const upload = data as UploadRequest;
-      return (
-        typeof upload?.name === "string" &&
-        typeof upload?.url === "string" &&
-        typeof upload?.type === "string" &&
-        typeof upload?.size === "number" &&
-        typeof upload?.userId === "object" &&
-        typeof upload?.folderId === "number"
-      );
-    }
 
     // Validate the request body
     if (!isValidUploadRequest(body)) {
@@ -62,11 +60,8 @@ export async function POST(req: Request) {
      const ud = JSON.stringify(userId);
      console.log("ud", ud);
     
-     
-    //  const io = ud.userId;
-    //console.log("userId--++__", userId);
-    console.log("type", type);
-    console.log("size", size);
+        console.log("type", type);
+        console.log("size", size);
 
     const post = await db.insert(posts).values({
       name: name,
@@ -76,17 +71,16 @@ export async function POST(req: Request) {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-    
 
     return NextResponse.json({ success: true, post });
-  } catch (error) {
+} catch (error) {
     console.error("Error updating database:", error);
     return NextResponse.json(
-      {
+    {
         success: false,
         error: error instanceof Error ? error.message : "Failed to update database"
-      },
-      { status: 500 }
+    },
+    { status: 500 }
     );
-  }
+}
 }

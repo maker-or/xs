@@ -1,34 +1,5 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1737369711936,
-      "tag": "0000_shiny_vin_gonzales",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1737475615645,
-      "tag": "0001_first_ken_ellis",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1737623198208,
-      "tag": "0002_cold_echo",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1737623247110,
-      "tag": "0003_lowly_dust",
-      "breakpoints": true
-    }
-  ]
+    "version": "5",
+    "entries": []
 }
+

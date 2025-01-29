@@ -31,13 +31,13 @@ export async function GET(
           eq(repo.year, year),
           eq(repo.branch, branch),
           eq(repo.subject, subject),
-          eq(repo.type, category || "notes"),
+        eq(repo.type, [category || "notes"]),
         ),
       );
 
     console.log("all files:", files);
 
-    let data: any = files.map((el: any) => JSON.parse(el?.tags));
+    const data: string[] = files.flatMap((el) => JSON.parse(el.tags as string) as string[]);
     console.log("tags:");
     // const url = new URL(req.url);
     // console.log(url.searchParams);

@@ -18,8 +18,8 @@ const Page = ({
   params: Promise<{ year: string; branch: string; subject: string }>;
 }) => {
   const { year } = React.use(params);
-  const { branch: paramBranch } = React.use(params);
-  const { subject } = React.use(params);
+const { branch: _paramBranch } = React.use(params);
+const { subject: _subject } = React.use(params);
 
   const [selectedBranch, setSelectedBranch] = React.useState<string | null>(
     null,
@@ -72,7 +72,7 @@ const Page = ({
     ) {
       setSelectedBranch(branch[0].branch);
     }
-  }, [branch]);
+}, [branch, selectedBranch]);
 
   return (
     <>

@@ -1,1 +1,0 @@
-ALTER TABLE "gallery_repo" ADD COLUMN "subject" varchar(255) NOT NULL;

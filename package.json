@@ -25,6 +25,7 @@
     "@google/generative-ai": "^0.21.0",
     "@langchain/google-genai": "^0.1.6",
     "@neondatabase/serverless": "^0.10.4",
+    "@next/font": "^14.2.15",
     "@pinecone-database/pinecone": "^4.0.0",
     "@react-pdf-viewer/core": "^3.12.0",
     "@react-pdf-viewer/default-layout": "^3.12.0",

@@ -31,11 +31,9 @@ export default function RootLayout({
             <link rel="preconnect" href="https://fonts.googleapis.com" />
             <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           </Head>
-          <Script
-            src="https://unpkg.com/react-scan/dist/install-hook.global.js"
-            strategy="beforeInteractive"
-          />
           <body>
+            {/* Move the Script component here */}
+
             <SignedOut>
               <div className="scroll-behavior: auto; flex h-screen w-screen flex-col items-center justify-center bg-[#0c0c0c]">
                 <SignIn routing="hash" />

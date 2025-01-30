@@ -1,119 +1,312 @@
 'use client';
+import ReactMarkdown from 'react-markdown';
 
-import React, { useState, useRef, useEffect } from 'react';
-import styles from './page.module.css';
-import { type Message, useChat } from 'ai/react';
-import { ArrowUpRight } from 'lucide-react';
-import '~/styles/globals.css';
+import { useChat } from 'ai/react';
+import { Copy, Check, MoveUpRight, Square, Globe, Play } from 'lucide-react';
+import { useEffect, useState, useRef } from "react";
+import { marked } from "marked"; // Importing the marked library
 
-interface ChatHelpers {
-  messages: Message[];
-  input: string;
-  handleSubmit: (event: React.FormEvent) => void;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  isLoading: boolean;
-}
 
 export default function Page() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
-    initialMessages: []
-  }) as ChatHelpers;
+  const [isLoading, setIsLoading] = useState(false);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [lastQuery, setLastQuery] = useState<string>(''); // Store the last query
+interface SearchResponse {
+results: string;
+}
+const [searchResults, setSearchResults] = useState<string | null>(null); // Store search results
 
-  const [submitted, setSubmitted] = useState(false);
+const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
+    api: '/api/chat',
+    onResponse: (_response) => {
+      setIsLoading(false);
+      resetInputField(); // Reset the input field after the response is received
+    },
+    onError: (error) => {
+      console.error('Error:', error);
+      setIsLoading(false);
+    },
+  });
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const onSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!input.trim()) return;
-    setSubmitted(true);
-    handleSubmit(event);
+  const adjustTextareaHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(
+        textareaRef.current.scrollHeight,
+        200 // Max height in pixels
+      )}px`;
+    }
   };
 
-  // const handleGoogleSearch = (query: string, type: 'images' | 'videos') => {
-  //   const searchType = type === 'images' ? 'isch' : 'vid';
-  //   const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=${searchType}`;
-  
-  //   window.open(url, '_blank');
+  const resetInputField = () => {
+    // Clear the input field
+    setInput('');
+
+    // Reset the height of the textarea
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+  };
+
+  const copyMessage = async (content: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageId(id);
+      setTimeout(() => setCopiedMessageId(null), 2000); // Reset copied state after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+
+
+
+  // Configure marked with custom renderer and options
+  marked.setOptions({
+    gfm: true, // Use GitHub Flavored Markdown
+    breaks: true, // Convert single newlines to <br>
+
+  });
+
+  // const renderMarkdown = (content: string) => {
+  //   // Add extra newlines for better paragraph spacing
+  //   const modifiedContent = content
+  //     .replace(/\n\n/g, '\n\n\n') // Add extra spacing for paragraphs
+  //     .replace(/\n/g, '  \n'); // Ensure single newlines create line breaks
+
+  //   // Render the modified content using marked
+  //   return { __html: marked.parse(modifiedContent) };
   // };
 
+  // Extract links from the content
+  const extractLinks = (content: string): string[] => {
+    const linkRegex = /https?:\/\/[^\s]+/g;
+    return content.match(linkRegex) ?? [];
+  };
+
+  const onSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!input.trim()) return;
+
+    setIsLoading(true);
+
+    // Clear search results
+    setSearchResults(null);
+
+    // Store the last query
+    setLastQuery(input);
+
+    try {
+    handleSubmit(event);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setIsLoading(false);
+    }
+  };
+
+  // Handle textarea keydown events
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault(); // Prevent default behavior (new line)
+    void onSubmit(event); // Submit the form
+    } else if (event.key === 'Enter' && event.shiftKey) {
+      // Allow new line when Shift + Enter is pressed
+      adjustTextareaHeight(); // Adjust textarea height dynamically
+    }
+  };
+
+  // Handle "Search Web" button click
+  const handleSearchWeb = async () => {
+    if (!lastQuery.trim()) {
+      console.error('No query to search');
+      return;
+    }
+  
+    setIsLoading(true);
+  
+    try {
+      const response = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: lastQuery,
+            },
+          ],
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Search failed: HTTP status ${response.status}`);
+      }
+  
+      const data = await response.json();
+      setSearchResults(data.results);
+    } catch (error) {
+      console.error('Error during web search:', error);
+      setSearchResults('Failed to fetch search results. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearchYouTube = (query: string) => {
+    window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
+  };
+
   return (
-    <div className="absolute inset-0 -z-10 h-full w-full flex flex-col items-center px-5 py-12 bg-gradient-to-b from-[#180B03] to-[#000]">
-      {!submitted && (
-        <div className="flex flex-col items-center gap-4 mb-8">
-        <h1 className={`text-5xl md:text-6xl font-serif text-[#f7eee3] ${styles.animate_fade_in}`}>
-            Ask Anything
-          </h1>
-        </div>
-      )}
+    <main className="flex h-[100svh] w-[100svw] flex-col bg-[#0c0c0c] items-center justify-center text-[#0c0c0c]">
 
-      <div className="flex flex-col w-full max-w-2xl mx-auto h-full">
-        <div className={`flex-1 overflow-y-auto px-4 ${submitted ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
-          {messages.map((m, index) => (
-            <div
-              key={m.id}
-            className={`flex flex-col gap-4 mb-4 ${styles.animate_slide_in} ${m.role === 'user' ? 'items-start' : 'items-start'}`}
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {m.role === 'user' ? (
-                <div className="flex items-start gap-4 font-serif">
-                  <div className="max-w-xl text-[3rem] text-[#ff5e00b3] tracking-tight  rounded-xl p-4">
-                    <h1 className="whitespace-pre-wrap">{m.content}</h1>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-start gap-2">
-                  <div className="max-w-screen-lg tracking-tight text-[#f7eee3a7] text-[1.4rem] rounded-xl p-4">
-                    <p className="whitespace-pre-wrap">{m.content}</p>
-                  </div>
-                  {/* Buttons for Google Search */}
-                  {/* <div className="flex gap-4">
-                    <button
-                      className="px-4 py-2 text-[#f7eee3] bg-blue-600 rounded-lg hover:bg-blue-700"
-                      onClick={() => handleGoogleSearch(m.content, 'images')}
-                    >
-                      Search Images
-                    </button>
-                    <button
-                      className="px-4 py-2 text-[#f7eee3] bg-red-600 rounded-lg hover:bg-red-700"
-                      onClick={() => handleGoogleSearch(m.content, 'videos')}
-                    >
-                      Search Videos
-                    </button>
-                  </div> */}
-                </div>
-              )}
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
+      <div className="flex h-full w-2/3  overflow-hidden gap-4 ">
+        <div className="flex flex-col h-full w-full "> 
+          {/* Messages Container */}
+          <div className="flex-1 overflow-y-auto px-4 py-6">
+            {messages.map((m, index) => {
+              const links = extractLinks(m.content); // Extract links from the message content
 
-        <form onSubmit={onSubmit} className="mt-4">
-          <div className={`relative flex items-center border-2 border-[#f7eee3]/10 rounded-full transition-all duration-500 ${submitted ? 'mb-6' : 'mt-4'}`}>
-            <input
-              type="text"
-              placeholder="Ask me anything..."
-              value={input}
-              onChange={handleInputChange}
-              className="w-full pl-8 pr-16 py-4 bg-[#2C2C2C] text-[#f7eee3] ring-[#FF5E00]-300/30 rounded-full font-serif placeholder-gray-400 outline-none focus:ring-2   transition-all"
-            />
-            <button
-              type="submit"
-              disabled={!input.trim()}
-              className="absolute right-1 p-3 rounded-full bg-[#0a0a0a] text-[#f7eee3] hover:bg-white/10 hover:text-[#FF5E00] transition-colors disabled:opacity-50"
-            >
-              <ArrowUpRight className="h-6 w-6 text-[#f7eee3] hover:text-[#FF5E00]" />
-            </button>
+              return (
+                <div
+                  key={m.id}
+                  className={`flex flex-col gap-4 mb-6 animate-slide-in group relative`}
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  {m.role === 'user' ? (
+                    <div className="max-w-xl text-[2.2em] text-[#E8E8E6] tracking-tight p-4">
+                      <article className="whitespace-pre-wrap">
+                        <ReactMarkdown>
+                          {m.content}
+                        </ReactMarkdown>
+                      </article>
+                    </div>
+                  ) : (
+                    <div className="max-w-2xl text-[1.2rem] tracking-tight text-[#E8E8E6] rounded-xl p-4 relative">
+                      
+                      <ReactMarkdown>
+                        {m.content}
+                      </ReactMarkdown>
+
+                      <div /> 
+                      <button
+                        onClick={() => copyMessage(m.content, m.id)}
+                        className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[#f7eee3] hover:text-[#FF5E00]"
+                      >
+                        {copiedMessageId === m.id ? (
+                          <Check className="h-5 w-5 text-green-400" />
+                        ) : (
+                          <Copy className="h-5 w-5" />
+                        )}
+                      </button>
+                      <div className="flex gap-2 mt-2">
+                        <div className='flex items-center justify-center bg-[#4544449d] text-white px-2 rounded-full  hover:bg-blue-500'>
+                          <button
+                            onClick={handleSearchWeb} // Use the stored lastQuery
+                            className=" flex-col px-4 py-2   text-white rounded-lg">
+                            Web
+                          </button>
+                          <Globe />
+                        </div>
+
+                        <div className='flex items-center justify-center bg-[#4544449d] text-white px-2 rounded-full hover:bg-blue-500'>
+                          <button
+                            onClick={() => handleSearchYouTube(lastQuery)}
+                            className="px-1 py-1  text-white rounded-lg "
+                          >
+                            YouTube
+                          </button>
+                          <Play />
+                        </div>
+                      </div>
+
+                      {/* Links Section */}
+                      {links.length > 0 && (
+                        <div className="mt-4 group">
+                          <div className="text-sm text-[#0c0c0c87] hover:text-[#0c0c0c] cursor-pointer">
+                            🔗 {links.length} link(s)
+                          </div>
+                          <div className="hidden group-hover:block bg-[#f7eee3] p-2 rounded-lg border border-[#e0d5c8] mt-2">
+                            {links.map((link, index) => (
+                              <div key={index} className="text-sm text-[#0c0c0c87] hover:text-[#0c0c0c]">
+                                <a href={link} target="_blank" rel="noopener noreferrer">
+                                  {link}
+                                </a>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Search Results Section */}
+            {searchResults && (
+              <div className="mt-6 p-4 bg-[#e0d5c8] rounded-lg">
+                <h3 className="text-lg font-semibold mb-2">Search Results</h3>
+                <div>
+                <ReactMarkdown>
+                        {searchResults}
+                </ReactMarkdown>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
-        </form>
+
+          {/* Input Bar */}
+          <div className="flex sticky bottom-0 z-10 items-center p-3 justify-center ">
+            <form onSubmit={onSubmit} className="flex w-full items-center justify-center">
+              <div
+                className={`relative flex items-center justify-center bg-[#252525] p-1 border-[1px] border-[#f7eee332] w-3/4 ${textareaRef.current && textareaRef.current.value.split('\n').length > 1
+                  ? 'rounded-lg' // Medium radius for multi-line input
+                  : 'rounded-full' // Full radius for single-line input
+                  }`}
+              >
+                <textarea
+                  ref={textareaRef}
+                  placeholder="Type your message..."
+                  value={input}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    adjustTextareaHeight();
+                  }}
+                  onKeyDown={handleKeyDown} // Handle keydown events
+                  onInput={adjustTextareaHeight}
+                  className={`flex-grow w-3/4 h-full outline-none items-center justify-center bg-[#454444] py-4 px-4 text-[#f7eee3] resize-none overflow-y-auto placeholder-[#f7eee3bb] ${textareaRef.current && textareaRef.current.value.split('\n').length > 1
+                    ? 'rounded-lg' // Medium radius for multi-line input
+                    : 'rounded-full' // Full radius for single-line input
+                    }`}
+                  style={{ maxHeight: '200px' }} // Set a max height for the textarea
+                  rows={1}
+                />
+                <button
+                  type="submit"
+
+                  className="ml-4 p-3 rounded-full bg-[#FF5E00] text-[#f7eee3] font-semibold transition-colors duration-200 hover:bg-[#e05500] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? <Square fill='#f7eee3'/> : <MoveUpRight />}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
-    </div>
+
+    </main>
   );
 }

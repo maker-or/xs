@@ -1,13 +1,10 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createOpenAI } from '@ai-sdk/openai';
+//import Groq from "groq-sdk"; // Ensure this package is installed
+import { streamText, smoothStream } from 'ai';
+import { Pinecone } from '@pinecone-database/pinecone';
 import { getEmbedding } from '~/utils/embeddings';
 import { type ConvertibleMessage } from '~/utils/types';
-import { streamText } from "ai";
-import { Pinecone } from '@pinecone-database/pinecone';
 
-
-// import { Ollama } from "@langchain/ollama";
-// import {fetchYouTubeVideos} from'~/app/api/chat/youtube'
-// import { runGeneratedSQLQuery, generateQuery, explainQuery } from '~/app/api/chat/action';
 
 // Define a type for the expected request body structure
 interface RequestBody {
@@ -16,11 +13,15 @@ interface RequestBody {
 
 export async function POST(req: Request): Promise<Response> {
   try {
-    console.log("welcome to ai");
+    // Validate GROQ API key
+
+
+    console.log('Welcome to AI');
 
     // Parse the request JSON with explicit typing
     const body = await req.json() as RequestBody;
 
+    // Validate the request body
     if (!body.messages || body.messages.length === 0) {
       throw new Error('No messages provided');
     }
@@ -31,98 +32,116 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     const query = lastMessage.content;
-    console.log(query);
+    console.log('Query:', query);
 
-    //  const video:unknown = await fetchYouTubeVideos(query);
-    //   console.log(video)
-
-
-
-
+    // Initialize Pinecone
     const pinecone = new Pinecone({
-      apiKey: process.env.PINECONE_API_KEY ?? "",
-
-
+      apiKey: process.env.PINECONE_API_KEY ?? '',
     });
 
     // Get embeddings for the query
     const queryEmbedding = await getEmbedding(query);
-    console.log("in route ", queryEmbedding);
+    console.log('Query Embedding:', queryEmbedding);
 
-    // Query Pinecone
+    // Query Pinecone for relevant context
     const index = pinecone.index('dwm');
     const queryResponse = await index.namespace('').query({
       vector: queryEmbedding,
       topK: 5,
       includeMetadata: true,
-      //  includeValues:true
     });
 
+    console.log('Pinecone Query Response:', JSON.stringify(queryResponse, null, 2));
 
-    console.log("Pinecone Query Response:", JSON.stringify(queryResponse, null, 2));
-    console.log("*******************")
+    // Validate Pinecone response
+    if (!queryResponse.matches || queryResponse.matches.length === 0) {
+      throw new Error('No relevant context found in Pinecone');
+    }
 
-
+    // Construct context from Pinecone results
     const context = queryResponse.matches
       .map((match) => `Book: ${String(match.metadata?.book ?? 'Unknown')}\nPage: ${String(match.metadata?.page_number ?? 'Unknown')}\nText: ${String(match.metadata?.text ?? '')}`)
       .join('\n\n');
 
+    console.log('Context:', context);
 
+    // Construct the final prompt for Groq
+    const finalPrompt = `
+Context: ${context}
+Question: ${query}
+Please provide a comprehensive and detailed answer to the user's query and cite the book name at the end of the response.
+`;
 
+    console.log('Final Prompt:', finalPrompt);
 
+    //const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    // const groq = createGroq({
+    //   baseURL: 'https://api.groq.com/openai/v1',
+    //   GROQ_API_KEY: process.env.GROQ_API_KEY
 
-    console.log("Tgiz is contexr", context);
-    console.log("****************");
-
-    const google = createGoogleGenerativeAI({
-      baseURL: 'https://generativelanguage.googleapis.com/v1beta',
-      apiKey: process.env.GEMINI_API_KEY
-    });
-
-    const model = google('models/gemini-1.5-flash', {
-      safetySettings: [
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
-      ],
-    });
-
-
-    // const llm = new Ollama({
-    //   model: "llama3.2", // Default value
-    //   temperature: 0,
-    //   maxRetries: 2,
-    //   // other params...
     // });
 
 
-    const final_prompt = `
-     Context: ${context} and the question is ${query} Please provide a comprehensive and detailed answer to the user's query and Cite the book name at the end of quries.
-    `;
+const groq = createOpenAI({
+  // custom settings, e.g.
+  baseURL:'https://api.groq.com/openai/v1',
+  apiKey: process.env.GROQ_API_KEY ?? '', // strict mode, enable when using the OpenAI API
+});
+    // Generate the response using Groq
+    try {
+      const result = streamText({
+          model: groq("llama3-70b-8192"),
+      // Use 'key' instead of 'apiKey' for Groq API
+        system: `
+          You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams. Your task is to answer questions based on the provided context.answer answer genral questions from your own knowledge base . Follow these guidelines:
+      
+          1. **Role**: Act as a knowledgeable and helpful assistant.
+          2. **Task**: Answer user questions clearly and concisely.
+          3. **Output Format**:
+             - Start with a brief summary of the answer.
+             - Use headings and bullet points for clarity.
+             - Provide step-by-step explanations where applicable.
+             - Keep paragraphs short and easy to read.
+             -After each paragraph you write, leave an empty line (a blank line) to improve readability and ensure the text is visually organized.
 
-    console.log("+++++++++++++++++++++++++++++++++++++++++++++");
-    console.log("This is final prompt", final_prompt)
-    console.log("+++++++++++++++++++++++++++++++++++++++++++++");
-    console.log("thisa is qurey", query)
-    console.log("+++++++++++++++++++++++++++++++++++++++++++++");
-    console.log("thisa is contttttt", context)
-
-    const result =  streamText({
-      model: model,
-      system: 'Your job is to genrate the answers to the given question make the answer is clean clear in a strucured format if no context is given the return s0s if no question is provided then return s1s',
-      prompt: final_prompt,
-
-
-    });
-
-    // console.log("This is resukt",result)
-    return result.toDataStreamResponse();
-
+          4. **Context Handling**:
+             - Use the provided context to generate answers.
+             - If the context is insufficient, state that you don't have enough information.
+          5. **Tone and Style**:
+             - Use a professional and friendly tone.
+             - Avoid overly technical jargon unless requested.
+          6. **Error Handling**:
+             - If the query is unclear, ask for clarification before answering.
+          7. **Citations**:
+             - Always cite the source of your information at the end of your response, if applicable.
+          8. **Question Generation**:
+             - if the user requests you to generate a question, create only a thought-provoking and contextually appropriate question without providing any answers.
+      
+          Your goal is to ensure the user receives accurate, well-structured, and helpful answers.
+        `,
+        prompt: finalPrompt,
+        experimental_transform: smoothStream(),
+      });
+      return result.toDataStreamResponse({
+// Removed 'sendReasoning' as it is not a valid property for the response object
+      });
+    } catch (error) {
+      console.error('Error during streamText:', error);
+      return new Response(
+        JSON.stringify({ error: 'An error occurred while generating the response', details: error instanceof Error ? error.message : 'Unknown error' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
   } catch (error: unknown) {
     console.error('Error in chat route:', error instanceof Error ? error.message : 'Unknown error');
     return new Response(
-      JSON.stringify({ error: 'An error occurred while processing your request' }),
+      JSON.stringify({ error: 'An error occurred while processing your request', details: error instanceof Error ? error.message : 'Unknown error' }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

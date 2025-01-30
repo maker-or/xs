@@ -34,6 +34,10 @@ export default function RootLayout({
               src="https://unpkg.com/react-scan/dist/install-hook.global.js"
               strategy="beforeInteractive"
             />
+            <head>
+              <link rel="preconnect" href="https://fonts.googleapis.com" />
+              <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            </head>
           </head>
 
 

@@ -1,6 +1,6 @@
 {
-  "id": "7c602acc-14cb-4d7d-a113-4eb050f7de09",
-  "prevId": "6bd911a3-de49-4416-99fa-e970c96d58af",
+  "id": "3ce66abd-949d-4f7e-9822-a656de31ca73",
+  "prevId": "7c602acc-14cb-4d7d-a113-4eb050f7de09",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -270,9 +270,10 @@
         },
         "tags": {
           "name": "tags",
-          "type": "text[]",
+          "type": "json",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "'[]'::json"
         },
         "year": {
           "name": "year",
@@ -294,9 +295,9 @@
         },
         "type": {
           "name": "type",
-          "type": "varchar(255)[]",
+          "type": "varchar(255)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",

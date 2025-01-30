@@ -4,6 +4,7 @@ import {
   pgTableCreator,
   timestamp,
   text,
+  json,
   varchar,
   integer,
 } from "drizzle-orm/pg-core";
@@ -103,10 +104,11 @@ export const repo = createTable(
     filename: varchar("filename", { length: 255 }).notNull(),
     fileurl: varchar("fileurl", { length: 255 }).notNull(),
     tags: text("tags").notNull(),
+    //tags: json("tags").$type<string[]>().notNull().default([]),
     year: varchar("year", { length: 255 }).notNull(),
     branch: varchar("branch", { length: 255 }).notNull(),
     subject: varchar("subject", { length: 255 }).notNull(),
-    type: varchar("type", { length: 255 }).notNull().array() , // Task description or title                                       // Date when the task is created or due
+    type: varchar("type", { length: 255 }).notNull(), // Task description or title                                       // Date when the task is created or due
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(), // Timestamp for task creation

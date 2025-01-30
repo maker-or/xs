@@ -15,8 +15,7 @@ export async function GET(req:NextRequest, { params }: { params: Promise<{ year:
 
         const files = await db
         .select({ 
-            subject: repo.subject
-            
+            subject: repo.subject  
         })
         .from(repo)
         .where(and(eq(repo.year,year), eq(repo.branch,branch)))

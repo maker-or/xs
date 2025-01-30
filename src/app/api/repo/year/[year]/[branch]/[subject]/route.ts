@@ -13,7 +13,9 @@ export async function GET(
 ) {
   try {
     const { searchParams } = new URL(req.url);
-    const category = searchParams.get("category");
+    const category = searchParams.get("category") as
+    | "notes"
+    | "questionPapers";
     console.log("helloo  searchParams:", category);
 
     const year = (await params).year;
@@ -31,13 +33,14 @@ export async function GET(
           eq(repo.year, year),
           eq(repo.branch, branch),
           eq(repo.subject, subject),
-        eq(repo.type, [category || "notes"]),
+          eq(repo.type, category || "notes"),
+
         ),
       );
 
     console.log("all files:", files);
 
-    const data: string[] = files.flatMap((el) => JSON.parse(el.tags as string) as string[]);
+    const data = files.map((el) => JSON.parse(el?.tags));
     console.log("tags:");
     // const url = new URL(req.url);
     // console.log(url.searchParams);

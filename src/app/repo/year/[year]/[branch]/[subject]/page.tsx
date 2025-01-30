@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import PdfViewer from "~/components/ui/PDFViewer";
 import { X } from "lucide-react";
 import { ChevronLeft } from "lucide-react";
@@ -8,14 +8,18 @@ import { usePathname, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import useSWR, { type SWRResponse } from "swr";
 
-interface FileTypes {
+interface FileResponse {
+  doId: number;
   filename: string;
+  subject: string;
+  tags: string[];
   fileurl: string;
-  type: string;
+  year: string;
+  branch: string;
 }
 
-interface responseType {
-  files: FileTypes[];
+interface ResponseType {
+  files: FileResponse[];
   tags: string[];
 }
 
@@ -57,45 +61,62 @@ const _path = usePathname();
       `/api/repo/year/${year}/${branch}/${subject}?category=${selectedType}`,
     );
     if (!response.ok) throw new Error("Failed to fetch folders");
-    return response.json() as Promise<responseType>;
+    return response.json() as Promise<ResponseType>;
+    
   };
 
-const { data, isLoading, error, mutate }: SWRResponse<responseType, Error> =
-    useSWR<responseType, Error>(
+const { data, isLoading, error, mutate }: SWRResponse<ResponseType, Error> =
+    useSWR<ResponseType, Error>(
       `/api/repo/year/${year}/${branch}/${subject}`,
       fetcher,
       {
         revalidateOnFocus: false,
         revalidateIfStale: false,
-      },
+        refreshInterval: 5000, // Poll every 5 seconds
+      }
     );
 
-  const files = data?.files;
-  const tags = data?.tags;
+// Remove this line as it causes infinite re-renders
+// mutate();
+
+const files = data?.files;
+const tags = data?.tags;
 
   console.log("check:", tags);
 
+  
   // useEffect(() => console.log(files), [files]);
 
   if (!year) {
     return <div>Year not found</div>;
   }
 
+  // Filter files based on selected tags
+  const filteredFiles = files?.filter((file) => {
+    if (selectedTags.length === 0) return true;
+    return selectedTags.some(selectedTag => file.tags.includes(selectedTag));
+  });
+
+  const handleTagClick = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
   return (
     <>
       <div>
         <div className="text-normal mb-4 mt-16 flex gap-4 overflow-x-auto">
           {tags &&
-            tags.map((el, _index) => (
+            tags.map((el) => (
               <button
                 key={`tag-${el}`}
-                className={`whitespace-nowrap rounded-xl bg-[#454545] px-4 py-2 text-[#f7eee3] transition-colors hover:bg-[#a3a1a0] hover:text-[#0c0c0c]`}
-                onClick={() =>
-                  setSelectedTags((prev) => {
-                    if (prev.length > 0) return [...prev, el];
-                    return [el];
-                  })
-                }
+                className={`whitespace-nowrap rounded-xl px-4 py-2 transition-colors ${
+                  selectedTags.includes(el)
+                    ? "bg-[#f7eee3] text-[#0c0c0c]"
+                    : "bg-[#454545] text-[#f7eee3] hover:bg-[#a3a1a0] hover:text-[#0c0c0c]"
+                }`}
+                onClick={() => handleTagClick(el)}
               >
                 {el}
               </button>
@@ -133,9 +154,13 @@ const { data, isLoading, error, mutate }: SWRResponse<responseType, Error> =
           </div>
         </div>
 
+        <div>
+        
+        </div>
+
         {/* {selectedType === "notes" ? ( */}
         <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
-          {files?.map((file) => (
+          {filteredFiles?.map((file) => (
             <div
               key={`${file.filename}`}
               className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"

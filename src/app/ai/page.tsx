@@ -169,30 +169,25 @@ const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
 
   return (
     <main className="flex h-[100svh] w-[100svw] flex-col bg-[#0c0c0c] items-center justify-center text-[#0c0c0c]">
-
-      <div className="flex h-full w-2/3  overflow-hidden gap-4 ">
-        <div className="flex flex-col h-full w-full "> 
-          {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="flex h-full w-full md:w-2/3 overflow-hidden gap-4 px-4 md:px-0">
+        <div className="flex flex-col h-full w-full"> 
+          <div className="flex-1 overflow-y-auto px-2 md:px-4 py-4 md:py-6">
             {messages.map((m, index) => {
-              const links = extractLinks(m.content); // Extract links from the message content
-
+              const links = extractLinks(m.content);
               return (
                 <div
                   key={m.id}
-                  className={`flex flex-col gap-4 mb-6 animate-slide-in group relative`}
+                  className={`flex flex-col gap-2 md:gap-4 mb-4 md:mb-6 animate-slide-in group relative`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   {m.role === 'user' ? (
-                    <div className="max-w-xl text-[2.2em] text-[#E8E8E6] tracking-tight p-4">
+                    <div className="max-w-full md:max-w-xl text-[1.5em] md:text-[2.2em] text-[#E8E8E6] tracking-tight p-2 md:p-4">
                       <article className="whitespace-pre-wrap">
-                        <ReactMarkdown>
-                          {m.content}
-                        </ReactMarkdown>
+                        <ReactMarkdown>{m.content}</ReactMarkdown>
                       </article>
                     </div>
                   ) : (
-                    <div className="max-w-2xl text-[1.2rem] tracking-tight text-[#E8E8E6] rounded-xl p-4 relative">
+                    <div className="max-w-full md:max-w-2xl text-[1rem] md:text-[1.2rem] tracking-tight text-[#E8E8E6] rounded-xl p-2 md:p-4 relative">
                       
                       <ReactMarkdown>
                         {m.content}
@@ -255,12 +250,10 @@ const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
 
             {/* Search Results Section */}
             {searchResults && (
-              <div className="mt-6 p-4 bg-[#e0d5c8] rounded-lg">
-                <h3 className="text-lg font-semibold mb-2">Search Results</h3>
+              <div className="mt-4 md:mt-6 p-3 md:p-4 bg-[#e0d5c8] rounded-lg mx-2 md:mx-0">
+                <h3 className="text-base md:text-lg font-semibold mb-2">Search Results</h3>
                 <div>
-                <ReactMarkdown>
-                        {searchResults}
-                </ReactMarkdown>
+                  <ReactMarkdown>{searchResults}</ReactMarkdown>
                 </div>
               </div>
             )}
@@ -269,14 +262,13 @@ const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
           </div>
 
           {/* Input Bar */}
-          <div className="flex sticky bottom-0 z-10 items-center p-3 justify-center ">
+          <div className="flex sticky bottom-0 z-10 items-center p-2 md:p-3 justify-center">
             <form onSubmit={onSubmit} className="flex w-full items-center justify-center">
-              <div
-                className={`relative flex items-center justify-center bg-[#252525] p-1 border-[1px] border-[#f7eee332] w-3/4 ${textareaRef.current && textareaRef.current.value.split('\n').length > 1
-                  ? 'rounded-lg' // Medium radius for multi-line input
-                  : 'rounded-full' // Full radius for single-line input
-                  }`}
-              >
+              <div className={`relative flex items-center justify-center bg-[#252525] p-1 border-[1px] border-[#f7eee332] w-full md:w-3/4 ${
+                textareaRef.current && textareaRef.current.value.split('\n').length > 1
+                  ? 'rounded-lg'
+                  : 'rounded-full'
+              }`}>
                 <textarea
                   ref={textareaRef}
                   placeholder="Type your message..."
@@ -285,19 +277,19 @@ const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
                     handleInputChange(e);
                     adjustTextareaHeight();
                   }}
-                  onKeyDown={handleKeyDown} // Handle keydown events
+                  onKeyDown={handleKeyDown}
                   onInput={adjustTextareaHeight}
-                  className={`flex-grow w-3/4 h-full outline-none items-center justify-center bg-[#454444] py-4 px-4 text-[#f7eee3] resize-none overflow-y-auto placeholder-[#f7eee3bb] ${textareaRef.current && textareaRef.current.value.split('\n').length > 1
-                    ? 'rounded-lg' // Medium radius for multi-line input
-                    : 'rounded-full' // Full radius for single-line input
-                    }`}
-                  style={{ maxHeight: '200px' }} // Set a max height for the textarea
+                  className={`flex-grow w-full md:w-3/4 h-full outline-none items-center justify-center bg-[#454444] py-3 md:py-4 px-3 md:px-4 text-[#f7eee3] text-sm md:text-base resize-none overflow-y-auto placeholder-[#f7eee3bb] ${
+                    textareaRef.current && textareaRef.current.value.split('\n').length > 1
+                      ? 'rounded-lg'
+                      : 'rounded-full'
+                  }`}
+                  style={{ maxHeight: '200px' }}
                   rows={1}
                 />
                 <button
                   type="submit"
-
-                  className="ml-4 p-3 rounded-full bg-[#FF5E00] text-[#f7eee3] font-semibold transition-colors duration-200 hover:bg-[#e05500] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="ml-2 md:ml-4 p-2 md:p-3 rounded-full bg-[#FF5E00] text-[#f7eee3] font-semibold transition-colors duration-200 hover:bg-[#e05500] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? <Square fill='#f7eee3'/> : <MoveUpRight />}
                 </button>
@@ -306,7 +298,6 @@ const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
           </div>
         </div>
       </div>
-
     </main>
-  );
+);
 }

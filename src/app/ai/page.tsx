@@ -1,26 +1,21 @@
 'use client';
 import ReactMarkdown from 'react-markdown';
-
 import { useChat } from 'ai/react';
-import { Copy, Check, MoveUpRight, Square, Globe, Play } from 'lucide-react';
+import { Copy, Check, MoveUpRight, Globe, Play,Square } from 'lucide-react';
 import { useEffect, useState, useRef } from "react";
-import { marked } from "marked"; // Importing the marked library
-
+import { marked } from "marked";
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const [lastQuery, setLastQuery] = useState<string>(''); // Store the last query
-interface SearchResponse {
-results: string;
-}
-const [searchResults, setSearchResults] = useState<string | null>(null); // Store search results
+  const [lastQuery, setLastQuery] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<string | null>(null);
 
-const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
     api: '/api/chat',
     onResponse: (_response) => {
       setIsLoading(false);
-      resetInputField(); // Reset the input field after the response is received
+      resetInputField();
     },
     onError: (error) => {
       console.error('Error:', error);
@@ -44,16 +39,13 @@ const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(
         textareaRef.current.scrollHeight,
-        200 // Max height in pixels
+        200
       )}px`;
     }
   };
 
   const resetInputField = () => {
-    // Clear the input field
     setInput('');
-
-    // Reset the height of the textarea
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
@@ -63,33 +55,17 @@ const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
     try {
       await navigator.clipboard.writeText(content);
       setCopiedMessageId(id);
-      setTimeout(() => setCopiedMessageId(null), 2000); // Reset copied state after 2 seconds
+      setTimeout(() => setCopiedMessageId(null), 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
   };
 
-
-
-
-  // Configure marked with custom renderer and options
   marked.setOptions({
-    gfm: true, // Use GitHub Flavored Markdown
-    breaks: true, // Convert single newlines to <br>
-
+    gfm: true,
+    breaks: true,
   });
 
-  // const renderMarkdown = (content: string) => {
-  //   // Add extra newlines for better paragraph spacing
-  //   const modifiedContent = content
-  //     .replace(/\n\n/g, '\n\n\n') // Add extra spacing for paragraphs
-  //     .replace(/\n/g, '  \n'); // Ensure single newlines create line breaks
-
-  //   // Render the modified content using marked
-  //   return { __html: marked.parse(modifiedContent) };
-  // };
-
-  // Extract links from the content
   const extractLinks = (content: string): string[] => {
     const linkRegex = /https?:\/\/[^\s]+/g;
     return content.match(linkRegex) ?? [];
@@ -100,41 +76,34 @@ const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
     if (!input.trim()) return;
 
     setIsLoading(true);
-
-    // Clear search results
     setSearchResults(null);
-
-    // Store the last query
     setLastQuery(input);
 
     try {
-    handleSubmit(event);
+      handleSubmit(event);
     } catch (error) {
       console.error('Error submitting form:', error);
       setIsLoading(false);
     }
   };
 
-  // Handle textarea keydown events
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault(); // Prevent default behavior (new line)
-    void onSubmit(event); // Submit the form
+      event.preventDefault();
+      void onSubmit(event);
     } else if (event.key === 'Enter' && event.shiftKey) {
-      // Allow new line when Shift + Enter is pressed
-      adjustTextareaHeight(); // Adjust textarea height dynamically
+      adjustTextareaHeight();
     }
   };
 
-  // Handle "Search Web" button click
   const handleSearchWeb = async () => {
     if (!lastQuery.trim()) {
       console.error('No query to search');
       return;
     }
-  
+
     setIsLoading(true);
-  
+
     try {
       const response = await fetch('/api/search', {
         method: 'POST',
@@ -148,11 +117,11 @@ const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
           ],
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error(`Search failed: HTTP status ${response.status}`);
       }
-  
+
       const data = await response.json();
       setSearchResults(data.results);
     } catch (error) {
@@ -168,136 +137,148 @@ const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
   };
 
   return (
-    <main className="flex h-[100svh] w-[100svw] flex-col bg-[#0c0c0c] items-center justify-center text-[#0c0c0c]">
-      <div className="flex h-full w-full md:w-2/3 overflow-hidden gap-4 px-4 md:px-0">
-        <div className="flex flex-col h-full w-full"> 
-          <div className="flex-1 overflow-y-auto px-2 md:px-4 py-4 md:py-6">
-            {messages.map((m, index) => {
-              const links = extractLinks(m.content);
-              return (
-                <div
-                  key={m.id}
-                  className={`flex flex-col gap-2 md:gap-4 mb-4 md:mb-6 animate-slide-in group relative`}
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  {m.role === 'user' ? (
-                    <div className="max-w-full md:max-w-xl text-[1.5em] md:text-[2.2em] text-[#E8E8E6] tracking-tight p-2 md:p-4">
-                      <article className="whitespace-pre-wrap">
-                        <ReactMarkdown>{m.content}</ReactMarkdown>
-                      </article>
-                    </div>
-                  ) : (
-                    <div className="max-w-full md:max-w-2xl text-[1rem] md:text-[1.2rem] tracking-tight text-[#E8E8E6] rounded-xl p-2 md:p-4 relative">
-                      
-                      <ReactMarkdown>
-                        {m.content}
-                      </ReactMarkdown>
-
-                      <div /> 
-                      <button
-                        onClick={() => copyMessage(m.content, m.id)}
-                        className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[#f7eee3] hover:text-[#FF5E00]"
-                      >
-                        {copiedMessageId === m.id ? (
-                          <Check className="h-5 w-5 text-green-400" />
-                        ) : (
-                          <Copy className="h-5 w-5" />
-                        )}
+    <main className="flex h-[100svh] w-screen flex-col bg-[#0c0c0c] overflow-hidden">
+      <div className="flex flex-col h-full w-full md:w-2/3 mx-auto relative">
+        {/* Messages Container */}
+        <div className="flex-1 overflow-y-auto space-y-4 md:space-y-6 py-4 md:py-6 px-3 md:px-0 pb-24">
+          {messages.map((m, index) => (
+            <div
+              key={m.id}
+              className={`flex flex-col animate-slide-in group relative mx-2 md:mx-0`}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              {m.role === 'user' ? (
+                <div className="max-w-[85vw] md:max-w-xl text-[1.3em] md:text-[2.2em] text-[#E8E8E6] tracking-tight p-2 md:p-4">
+                  <article className="whitespace-pre-wrap break-words">
+                    <ReactMarkdown>{m.content}</ReactMarkdown>
+                  </article>
+                </div>
+              ) : (
+                <div className="max-w-[90vw] md:max-w-2xl text-[0.95rem] md:text-[1.2rem] tracking-tight text-[#E8E8E6] rounded-xl p-3 md:p-4 relative overflow-x-hidden">
+                  <ReactMarkdown className="prose prose-invert max-w-none">
+                    {m.content}
+                  </ReactMarkdown>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <div className='flex items-center justify-center bg-[#4544449d] text-white px-3 py-1.5 rounded-full hover:bg-blue-500'>
+                      <button onClick={handleSearchWeb} className="text-sm md:text-base">
+                        Web
                       </button>
-                      <div className="flex gap-2 mt-2">
-                        <div className='flex items-center justify-center bg-[#4544449d] text-white px-2 rounded-full  hover:bg-blue-500'>
-                          <button
-                            onClick={handleSearchWeb} // Use the stored lastQuery
-                            className=" flex-col px-4 py-2   text-white rounded-lg">
-                            Web
-                          </button>
-                          <Globe />
-                        </div>
-
-                        <div className='flex items-center justify-center bg-[#4544449d] text-white px-2 rounded-full hover:bg-blue-500'>
-                          <button
-                            onClick={() => handleSearchYouTube(lastQuery)}
-                            className="px-1 py-1  text-white rounded-lg "
-                          >
-                            YouTube
-                          </button>
-                          <Play />
-                        </div>
-                      </div>
-
-                      {/* Links Section */}
-                      {links.length > 0 && (
-                        <div className="mt-4 group">
-                          <div className="text-sm text-[#0c0c0c87] hover:text-[#0c0c0c] cursor-pointer">
-                            🔗 {links.length} link(s)
-                          </div>
-                          <div className="hidden group-hover:block bg-[#f7eee3] p-2 rounded-lg border border-[#e0d5c8] mt-2">
-                            {links.map((link, index) => (
-                              <div key={index} className="text-sm text-[#0c0c0c87] hover:text-[#0c0c0c]">
-                                <a href={link} target="_blank" rel="noopener noreferrer">
-                                  {link}
-                                </a>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      <Globe className="w-4 h-4 ml-1.5" />
                     </div>
-                  )}
-                </div>
-              );
-            })}
 
-            {/* Search Results Section */}
-            {searchResults && (
-              <div className="mt-4 md:mt-6 p-3 md:p-4 bg-[#e0d5c8] rounded-lg mx-2 md:mx-0">
-                <h3 className="text-base md:text-lg font-semibold mb-2">Search Results</h3>
-                <div>
-                  <ReactMarkdown>{searchResults}</ReactMarkdown>
+                    <div className='flex items-center justify-center bg-[#4544449d] text-white px-3 py-1.5 rounded-full hover:bg-blue-500'>
+                      <button onClick={() => handleSearchYouTube(lastQuery)} className="text-sm md:text-base">
+                        YouTube
+                      </button>
+                      <Play className="w-4 h-4 ml-1.5" />
+                    </div>
+                  </div>
+
+                  {/* Copy Button */}
+                  <button
+                    onClick={() => copyMessage(m.content, m.id)}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-2"
+                  >
+                    {copiedMessageId === m.id ? (
+                      <Check className="h-4 w-4 text-green-400" />
+                    ) : (
+                      <Copy className="h-4 w-4 text-[#f7eee3] hover:text-[#FF5E00]" />
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Search Results Section */}
+          {searchResults && (
+            <div className="mx-3 md:mx-0 p-4 bg-gradient-to-r from-[#1a1a1a] to-[#252525] rounded-xl border border-[#f7eee332] shadow-lg overflow-x-hidden">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-[#FF5E00] flex-shrink-0" />
+                  <h3 className="text-base md:text-lg font-medium text-[#E8E8E6] truncate">Web Search Results</h3>
+                </div>
+                <div className="relative group">
+                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#4544449d] text-white hover:bg-[#FF5E00] transition-colors duration-200">
+                    <span className="text-sm">Sources</span>
+                    <Copy className="w-4 h-4" />
+                  </button>
+                  <div className="absolute right-0 mt-2 w-max max-w-[300px] p-2 hidden group-hover:block bg-[#1a1a1a] rounded-lg border border-[#f7eee332] shadow-xl z-10">
+                    {extractLinks(searchResults).map((link, index) => (
+                      <a
+                        key={index}
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block px-3 py-2 text-sm text-[#E8E8E6] hover:bg-[#252525] rounded-lg truncate"
+                      >
+                        {link}
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input Bar */}
-          <div className="flex sticky bottom-0 z-10 items-center p-2 md:p-3 justify-center">
-            <form onSubmit={onSubmit} className="flex w-full items-center justify-center">
-              <div className={`relative flex items-center justify-center bg-[#252525] p-1 border-[1px] border-[#f7eee332] w-full md:w-3/4 ${
-                textareaRef.current && textareaRef.current.value.split('\n').length > 1
-                  ? 'rounded-lg'
-                  : 'rounded-full'
-              }`}>
-                <textarea
-                  ref={textareaRef}
-                  placeholder="Type your message..."
-                  value={input}
-                  onChange={(e) => {
-                    handleInputChange(e);
-                    adjustTextareaHeight();
+              <div className="prose prose-sm md:prose-base prose-invert max-w-none">
+                <ReactMarkdown
+                  className="text-[#E8E8E6] opacity-90 leading-relaxed"
+                  components={{
+                    a: ({ node, ...props }) => (
+                      <a {...props} className="text-[#FF5E00] hover:text-[#ff7e33] no-underline inline-block max-w-full overflow-hidden text-ellipsis" target="_blank" rel="noopener noreferrer" />
+                    ),
+                    p: ({ node, ...props }) => (
+                      <p {...props} className="mb-3 break-words" />
+                    ),
+                    ul: ({ node, ...props }) => (
+                      <ul {...props} className="space-y-2 list-inside" />
+                    ),
+                    li: ({ node, ...props }) => (
+                      <li {...props} className="text-[#E8E8E6] opacity-80 break-words" />
+                    ),
+                    code: ({ node, ...props }) => (
+                      <code {...props} className="inline-block max-w-full overflow-hidden text-ellipsis bg-[#1a1a1a] px-1 py-0.5 rounded" />
+                    ),
                   }}
-                  onKeyDown={handleKeyDown}
-                  onInput={adjustTextareaHeight}
-                  className={`flex-grow w-full md:w-3/4 h-full outline-none items-center justify-center bg-[#454444] py-3 md:py-4 px-3 md:px-4 text-[#f7eee3] text-sm md:text-base resize-none overflow-y-auto placeholder-[#f7eee3bb] ${
-                    textareaRef.current && textareaRef.current.value.split('\n').length > 1
-                      ? 'rounded-lg'
-                      : 'rounded-full'
-                  }`}
-                  style={{ maxHeight: '200px' }}
-                  rows={1}
-                />
-                <button
-                  type="submit"
-                  className="ml-2 md:ml-4 p-2 md:p-3 rounded-full bg-[#FF5E00] text-[#f7eee3] font-semibold transition-colors duration-200 hover:bg-[#e05500] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? <Square fill='#f7eee3'/> : <MoveUpRight />}
-                </button>
+                  {searchResults}
+                </ReactMarkdown>
               </div>
-            </form>
-          </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Bar - Fixed at bottom center */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent">
+          <form onSubmit={onSubmit} className="max-w-2xl mx-auto w-full px-3 md:px-0">
+            <div className="flex items-center w-full bg-[#1a1a1a] p-1.5 rounded-2xl border border-[#f7eee332] shadow-lg backdrop-blur-sm hover:border-[#f7eee380] transition-all duration-200">
+              <textarea
+                ref={textareaRef}
+                placeholder="Type your message..."
+                value={input}
+                onChange={(e) => {
+                  handleInputChange(e);
+                  adjustTextareaHeight();
+                }}
+                onKeyDown={handleKeyDown}
+                className="flex-1 min-h-[48px] max-h-[120px] bg-[#2a2a2a] rounded-xl px-5 py-3 text-[#f7eee3] text-sm md:text-base placeholder:text-[#f7eee380] outline-none resize-none transition-colors duration-200 hover:bg-[#303030] focus:bg-[#353535]"
+              />
+              <button
+                type="submit"
+                className="ml-2 p-3 rounded-xl bg-gradient-to-r from-[#FF5E00] to-[#ff7e33] text-[#f7eee3] shadow-md hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:hover:opacity-50"
+              >
+                {isLoading ? (
+                  <Square className="w-5 h-5" fill="#f7eee3" />
+                ) : (
+                  <MoveUpRight className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </main>
-);
+  );
 }

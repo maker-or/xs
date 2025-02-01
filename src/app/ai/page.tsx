@@ -12,7 +12,8 @@ function ChatGPTLoadingAnimation() {
       <span className="dot bg-[#f7eee3] w-1 h-1 rounded-full animate-dot" />
       <span className="dot bg-[#f7eee3] w-1 h-1 rounded-full animate-dot delay-200" />
       <span className="dot bg-[#f7eee3] w-1 h-1 rounded-full animate-dot delay-400" />
-      <style jsx global>{`
+      <style>
+        {`
         @keyframes dotFlashing {
           0% { opacity: 0.2; }
           50% { opacity: 1; }
@@ -28,7 +29,8 @@ function ChatGPTLoadingAnimation() {
         .delay-400 {
           animation-delay: 0.4s;
         }
-      `}</style>
+      `}
+      </style>
     </div>
   );
 }

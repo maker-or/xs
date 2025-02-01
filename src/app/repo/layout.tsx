@@ -7,7 +7,7 @@ export default function layout({
   }: Readonly<{ children: React.ReactNode }>) {
     return (
         <div className="p-6">
-            <Greeting />
+           
             <Navbar />
             {children}
         </div>

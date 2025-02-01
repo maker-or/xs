@@ -9,17 +9,16 @@ import { type ConvertibleMessage } from '~/utils/types';
 // Define a type for the expected request body structure
 interface RequestBody {
   messages: ConvertibleMessage[];
+  model: string;
 }
 
 export async function POST(req: Request): Promise<Response> {
   try {
-    // Validate GROQ API key
-
-
     console.log('Welcome to AI');
-
-    // Parse the request JSON with explicit typing
+    
+    // Parse the request JSON once
     const body = await req.json() as RequestBody;
+    const selectedModel = body.model || "llama3-70b-8192";
 
     // Validate the request body
     if (!body.messages || body.messages.length === 0) {
@@ -83,15 +82,13 @@ Please provide a comprehensive and detailed answer to the user's query and cite 
 
 
 const groq = createOpenAI({
-  // custom settings, e.g.
-  baseURL:'https://api.groq.com/openai/v1',
-  apiKey: process.env.GROQ_API_KEY ?? '', // strict mode, enable when using the OpenAI API
+  baseURL: 'https://api.groq.com/openai/v1',
+  apiKey: process.env.GROQ_API_KEY ?? '',
 });
     // Generate the response using Groq
     try {
       const result = streamText({
-          model: groq("llama3-70b-8192"),
-      // Use 'key' instead of 'apiKey' for Groq API
+        model: groq(selectedModel), // Use the selectedModel variable
         system: `
           You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams. Your task is to answer questions based on the provided context.answer answer genral questions from your own knowledge base . Follow these guidelines:
       
@@ -122,9 +119,8 @@ const groq = createOpenAI({
         prompt: finalPrompt,
         experimental_transform: smoothStream(),
       });
-      return result.toDataStreamResponse({
-// Removed 'sendReasoning' as it is not a valid property for the response object
-      });
+      
+      return result.toDataStreamResponse({});
     } catch (error) {
       console.error('Error during streamText:', error);
       return new Response(

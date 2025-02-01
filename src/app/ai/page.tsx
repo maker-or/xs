@@ -1,7 +1,7 @@
 'use client';
 import ReactMarkdown from 'react-markdown';
 import { useChat } from 'ai/react';
-import { Copy, Check, MoveUpRight, Globe, Play,Square } from 'lucide-react';
+import { Copy, Check, MoveUpRight, Globe, Play, Square, Loader2 } from 'lucide-react';
 import { useEffect, useState, useRef } from "react";
 import { marked } from "marked";
 
@@ -10,16 +10,23 @@ export default function Page() {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [lastQuery, setLastQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string>('llama3-70b-8192');
+  const [error, setError] = useState<string | null>(null);
 
   const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
     api: '/api/chat',
+    body: {
+      model: selectedModel,
+    },
     onResponse: (_response) => {
       setIsLoading(false);
       resetInputField();
+      setError(null);
     },
     onError: (error) => {
       console.error('Error:', error);
       setIsLoading(false);
+      setError('An error occurred. Please try again.');
     },
   });
 
@@ -78,12 +85,14 @@ export default function Page() {
     setIsLoading(true);
     setSearchResults(null);
     setLastQuery(input);
+    setError(null);
 
     try {
       handleSubmit(event);
     } catch (error) {
       console.error('Error submitting form:', error);
       setIsLoading(false);
+      setError('An error occurred. Please try again.');
     }
   };
 
@@ -137,18 +146,27 @@ export default function Page() {
   };
 
   return (
-    <main className="flex h-[100svh] w-screen flex-col bg-[#0c0c0c] overflow-hidden">
+    <main className="flex h-screen w-screen flex-col bg-[#0c0c0c] overflow-hidden pb-16">
       <div className="flex flex-col h-full w-full md:w-2/3 mx-auto relative">
         {/* Messages Container */}
         <div className="flex-1 overflow-y-auto space-y-4 md:space-y-6 py-4 md:py-6 px-3 md:px-0 pb-24">
+
           {messages.map((m, index) => (
             <div
               key={m.id}
               className={`flex flex-col animate-slide-in group relative mx-2 md:mx-0`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
+              
               {m.role === 'user' ? (
                 <div className="max-w-[85vw] md:max-w-xl text-[1.3em] md:text-[2.2em] text-[#E8E8E6] tracking-tight p-2 md:p-4">
+                  <div>
+                  {isLoading && (
+            <div className="text-center text-[#E8E8E6] text-lg md:text-xl">
+              Creating the answer...
+            </div>
+          )}
+                  </div>
                   <article className="whitespace-pre-wrap break-words">
                     <ReactMarkdown>{m.content}</ReactMarkdown>
                   </article>
@@ -161,14 +179,14 @@ export default function Page() {
                   
                   {/* Action Buttons */}
                   <div className="flex flex-wrap gap-2 mt-3">
-                    <div className='flex items-center justify-center bg-[#4544449d] text-white px-3 py-1.5 rounded-full hover:bg-blue-500'>
+                    <div className='flex items-center justify-center bg-[#4544449d] text-white px-3 py-1.5 rounded-full hover:bg-blue-500 transition-colors'>
                       <button onClick={handleSearchWeb} className="text-sm md:text-base">
                         Web
                       </button>
                       <Globe className="w-4 h-4 ml-1.5" />
                     </div>
 
-                    <div className='flex items-center justify-center bg-[#4544449d] text-white px-3 py-1.5 rounded-full hover:bg-blue-500'>
+                    <div className='flex items-center justify-center bg-[#4544449d] text-white px-3 py-1.5 rounded-full hover:bg-blue-500 transition-colors'>
                       <button onClick={() => handleSearchYouTube(lastQuery)} className="text-sm md:text-base">
                         YouTube
                       </button>
@@ -253,29 +271,55 @@ export default function Page() {
         {/* Input Bar - Fixed at bottom center */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent">
           <form onSubmit={onSubmit} className="max-w-2xl mx-auto w-full px-3 md:px-0">
-            <div className="flex items-center w-full bg-[#1a1a1a] p-1.5 rounded-2xl border border-[#f7eee332] shadow-lg backdrop-blur-sm hover:border-[#f7eee380] transition-all duration-200">
-              <textarea
-                ref={textareaRef}
-                placeholder="Type your message..."
-                value={input}
-                onChange={(e) => {
-                  handleInputChange(e);
-                  adjustTextareaHeight();
-                }}
-                onKeyDown={handleKeyDown}
-                className="flex-1 min-h-[48px] max-h-[120px] bg-[#2a2a2a] rounded-xl px-5 py-3 text-[#f7eee3] text-sm md:text-base placeholder:text-[#f7eee380] outline-none resize-none transition-colors duration-200 hover:bg-[#303030] focus:bg-[#353535]"
-              />
-              <button
-                type="submit"
-                className="ml-2 p-3 rounded-xl bg-gradient-to-r from-[#FF5E00] to-[#ff7e33] text-[#f7eee3] shadow-md hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:hover:opacity-50"
-              >
-                {isLoading ? (
-                  <Square className="w-5 h-5" fill="#f7eee3" />
-                ) : (
-                  <MoveUpRight className="w-5 h-5" />
-                )}
-              </button>
+            <div className="group flex items-center w-full bg-gradient-to-r from-[#1a1a1a] to-[#1f1f1f] p-2.5 rounded-2xl border border-[#f7eee332] shadow-lg backdrop-blur-sm transition-all duration-300">
+              <div className="flex-1 flex items-center bg-[#2a2a2a] p-2 rounded-xl overflow-hidden border border-transparent group-hover:border-[#f7eee332] transition-all duration-300">
+                <textarea
+                  ref={textareaRef}
+                  placeholder="Ask me anything..."
+                  value={input}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    adjustTextareaHeight();
+                  }}
+                  onKeyDown={handleKeyDown}
+                  className="flex-1 min-h-[48px] max-h-[120px] bg-transparent px-4 py-3 text-[#f7eee3] text-sm md:text-base placeholder:text-[#f7eee380] outline-none resize-none transition-all duration-200"
+                />
+                <div className="px-3 py-2 border-l border-[#f7eee332] bg-[#2a2a2a]">
+                  <select
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    className="bg-transparent text-[#f7eee3] text-sm focus:outline-none cursor-pointer min-w-[120px]"
+                  >
+                    <option value="llama3-70b-8192">Llama 3 70B</option>
+                    <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                    <option value="lama-3.2-3b-preview">Llama 3.2 3B</option>
+                    <option value="llama-3.3-70b-specdec">Llama 3.3 70B</option>
+                  </select>
+                </div>
+                {/* <button
+                  type="submit"
+                  disabled={isLoading || !input.trim()}
+                  className="ml-2 p-3.5 rounded-xl bg-gradient-to-r from-[#FF5E00] to-[#ff7e33] text-[#f7eee3] shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <MoveUpRight className="w-5 h-5" />
+                  )}
+                </button> */}
+              </div>
             </div>
+            {input.length > 0 && (
+              <div className="flex justify-between items-center mt-1.5 px-1 text-xs text-[#f7eee380]">
+                <span>{input.length > 0 ? 'Press Enter to send, Shift + Enter for new line' : ''}</span>
+                <span>{input.length}/2000</span>
+              </div>
+            )}
+            {error && (
+              <div className="mt-2 text-sm text-red-500 text-center">
+                {error}
+              </div>
+            )}
           </form>
         </div>
       </div>

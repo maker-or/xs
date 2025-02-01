@@ -40,11 +40,14 @@ export async function GET(
 
     console.log("all files:", files);
 
-    const data = files.map((el) => JSON.parse(el?.tags));
+    let data = files.map((el) => JSON.parse(el?.tags));
+    data = data.flat();
+    data = [...new Set(data)];
+    
     console.log("tags:");
     // const url = new URL(req.url);
     // console.log(url.searchParams);
-    return NextResponse.json({ files, tags: data.flat() });
+    return NextResponse.json({ files, tags:  data});
   } catch (error) {
     console.log(error);
     return NextResponse.json({ error });

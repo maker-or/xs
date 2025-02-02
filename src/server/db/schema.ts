@@ -120,3 +120,23 @@ export const repo = createTable(
     userIndex: index("repo_idx").on(repo.userId), // Index on userId for faster lookups
   }),
 );
+
+
+
+export const chats = createTable(
+  "chats",
+  {
+    chId: integer("chId").primaryKey().generatedAlwaysAsIdentity(),
+    userId: varchar("userId", { length: 1024 }).notNull(),
+    messages: text("messages").notNull(), // Using text for longer messages storage
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .$onUpdate(() => new Date()),
+  },
+  (chats) => ({
+    userIndex: index("chats_user_idx").on(chats.userId),
+  }),
+);
+

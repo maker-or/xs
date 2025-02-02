@@ -14,6 +14,13 @@
       "when": 1738196361292,
       "tag": "0001_cloudy_scorpion",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1738507412914,
+      "tag": "0002_narrow_morlocks",
+      "breakpoints": true
     }
   ]
 }

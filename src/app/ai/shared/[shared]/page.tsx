@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { useChat } from "ai/react";
 import { Copy, Check, Globe, Play, Share2 } from "lucide-react";
+import { useParams } from "next/navigation";
 
 function ChatGPTLoadingAnimation() {
   return (
@@ -36,13 +37,20 @@ function ChatGPTLoadingAnimation() {
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
 export default function Page() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isWebSearchLoading, setIsWebSearchLoading] = useState(false);
+  // Using useParams to get the dynamic shareId from the route: /ai/shared/[shared]
+  const { shared } = useParams();
+  console.log("Share ID from URL:", shared);
+  
+
+  // Shared conversation state – these will be fetched from your API,
+  // but also allow you to re‑share or clear (if desired)
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [lastQuery, setLastQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<string | null>(null);
@@ -50,66 +58,67 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [searchLinks, setSearchLinks] = useState<string[]>([]);
 
-  // State to store chat ID and initial messages loaded from storage
-  const [chatId, setChatId] = useState<string | undefined>(undefined);
-  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
-
-  // Load stored chat ID and messages on component mount
-  useEffect(() => {
-    const storedChatId = localStorage.getItem("chatId");
-    if (storedChatId) {
-      setChatId(storedChatId);
-    }
-    const storedMessages = localStorage.getItem("chatMessages");
-    if (storedMessages) {
-      try {
-        setInitialMessages(JSON.parse(storedMessages));
-      } catch (err) {
-        console.error("Failed to parse stored messages", err);
-      }
-    }
-  }, []);
-
-  // Use the useChat hook with initialMessages and chatId
-  const { messages, input, handleInputChange, handleSubmit, setInput } =
+  // Also include local chat state from useChat (for UI consistency)
+  // For a shared conversation, you might populate the UI with fetched messages.
+  // We use the same hook in order to keep the UI consistent.
+  // Update the useChat hook configuration
+  const { messages: liveMessages, input, handleInputChange, handleSubmit, setInput } =
     useChat({
       api: "/api/chat",
-      body: {
-        model: selectedModel,
-      },
-      id: chatId,
-      initialMessages: initialMessages,
-      onResponse: (_response) => {
-        setIsLoading(false);
+      body: { model: selectedModel },
+      initialMessages: messages,
+      onFinish: (message) => {
+        // Update both live messages and shared messages state
+        setMessages(prevMessages => [...prevMessages, { ...message, role: message.role === 'system' ? 'assistant' : message.role } as Message]);
+        setLoading(false);
         resetInputField();
         setError(null);
       },
       onError: (error) => {
         console.error("Error:", error);
-        setIsLoading(false);
+        setLoading(false);
         setError("An error occurred. Please try again.");
       },
     });
 
-  // Save messages to localStorage anytime they change
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("chatMessages", JSON.stringify(messages));
+  // Update the onSubmit handler
+  const handleFormSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!input.trim()) return;
+
+    setLoading(true);
+    setSearchResults(null);
+    setLastQuery(input);
+    setError(null);
+
+    // Add user message immediately to the UI
+    const userMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input.trim()
+    };
+    setMessages(prevMessages => [...prevMessages, userMessage as Message]);
+
+    try {
+      handleSubmit(event);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setLoading(false);
+      setError("An error occurred. Please try again.");
     }
-  }, [messages]);
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Scroll to bottom when messages change
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    if (!isLoading) {
-      scrollToBottom();
-    }
-  }, [isLoading, messages.length]);
+    if (!loading) scrollToBottom();
+  }, [loading, messages.length, liveMessages.length]);
 
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
@@ -147,7 +156,7 @@ export default function Page() {
     event.preventDefault();
     if (!input.trim()) return;
 
-    setIsLoading(true);
+    setLoading(true);
     setSearchResults(null);
     setLastQuery(input);
     setError(null);
@@ -156,7 +165,7 @@ export default function Page() {
       handleSubmit(event);
     } catch (error) {
       console.error("Error submitting form:", error);
-      setIsLoading(false);
+      setLoading(false);
       setError("An error occurred. Please try again.");
     }
   };
@@ -171,30 +180,19 @@ export default function Page() {
   };
 
   const handleSearchWeb = async () => {
-    if (!lastQuery.trim()) {
-      console.error("No query to search");
-      return;
-    }
-
-    setIsWebSearchLoading(true);
+    if (!lastQuery.trim()) return;
+    setLoading(true); // Set loading to true only when a search is initiated
     try {
       const response = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [
-            {
-              role: "user",
-              content: lastQuery,
-            },
-          ],
+          messages: [{ role: "user", content: lastQuery }],
         }),
       });
-
       if (!response.ok) {
         throw new Error(`Search failed: HTTP status ${response.status}`);
       }
-
       const data = await response.json();
       const links = extractLinks(data.results);
       setSearchLinks(links);
@@ -204,53 +202,111 @@ export default function Page() {
       console.error("Error during web search:", error);
       setSearchResults("Failed to fetch search results. Please try again.");
     } finally {
-      setIsWebSearchLoading(false);
+      setLoading(false); // Ensure loading is set to false after search completes
     }
   };
 
+  //Update the loading animation condition
+//   {  searchResults ===   lastQuery && (
+//     <div className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
+//       <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
+//         <div className="flex items-center justify-start gap-2">
+//           <ChatGPTLoadingAnimation />
+//           <span className="text-sm tracking-tight text-[#e8e8e67d]">
+//             Searching
+//           </span>
+//         </div>
+//       </div>
+//     </div>
+//   )}
+
   const handleSearchYouTube = (query: string) => {
     window.open(
-      `https://www.youtube.com/results?search_query=${encodeURIComponent(
-        query
-      )}`,
+      `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
       "_blank"
     );
   };
 
-  // Handler to clear chat history and chat ID both in state and localStorage.
   const handleClearHistory = () => {
     localStorage.removeItem("chatMessages");
     localStorage.removeItem("chatId");
     window.location.reload();
   };
- 
-  // Add the shareChat function
-  const shareChat = async () => {
-    try {
-      const response = await fetch('/api/shared', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ messages }),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to share chat.");
-      }
-      const data = await response.json();
-      const shareURL = `${window.location.origin}/ai/shared/${data.shareId}`;
-      await navigator.clipboard.writeText(shareURL);
-      alert(`Chat link copied to clipboard: ${shareURL}`);
-    } catch (error) {
-      console.error("Error sharing chat:", error);
-      alert("Error sharing chat. Please try again later.");
+
+  // shareChat sends the full conversation to your API endpoint (POST /api/shared)
+//   // and then generates a shareable URL that is copied to the clipboard.
+//   const shareChat = async () => {
+//     try {
+//       const response = await fetch("/api/shared", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         credentials: "include",
+//         body: JSON.stringify({ messages: liveMessages }), // using liveMessages from useChat
+//       });
+//       if (!response.ok) {
+//         throw new Error("Failed to share chat.");
+//       }
+//       const data = await response.json();
+//       const shareURL = `${window.location.origin}/ai/shared/${data.shareId}`;
+//       await navigator.clipboard.writeText(shareURL);
+//       alert(`Chat link copied to clipboard: ${shareURL}`);
+//     } catch (error) {
+//       console.error("Error sharing chat:", error);
+//       alert("Error sharing chat. Please try again later.");
+//     }
+//   };
+
+  // Fetch the shared conversation if shareId exists.
+  // Since this page is for sharing, we fetch from our API using the route parameter.
+  useEffect(() => {
+    if (!shared) {
+      setLoading(false);
+      return;
     }
-  };
+
+    // Validate shareId format
+    if (typeof shared !== 'string') {
+      setError('Invalid share ID format');
+      setLoading(false);
+      return;
+    }
+
+    const fetchSharedChat = async () => {
+      try {
+        // Changed to use query parameter instead of path parameter
+        const res = await fetch(`/api/shared/${encodeURIComponent(shared)}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        if (data.messages && Array.isArray(data.messages)) {
+          setMessages(data.messages);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (err) {
+        console.error("Error fetching shared chat:", err);
+        setError('Failed to load shared conversation');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSharedChat();
+  }, [shared]);
 
   return (
     <main className="flex h-screen w-screen flex-col overflow-hidden bg-[#0c0c0c] pb-16">
       <div className="relative mx-auto flex h-full w-full flex-col md:w-2/3">
         {/* Clear History and Share Buttons */}
-        <div className="absolute right-4 top-4 z-10 flex gap-2">
+        {/* <div className="absolute right-4 top-4 z-10 flex gap-2">
           <button
             onClick={shareChat}
             className="rounded-full bg-[#4544449d] px-4 py-2 text-sm text-white hover:bg-[#FF5E00] flex items-center gap-2"
@@ -264,7 +320,7 @@ export default function Page() {
           >
             Clear History
           </button>
-        </div>
+        </div> */}
 
         {/* Messages Container */}
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
@@ -324,7 +380,10 @@ export default function Page() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <div className="flex items-center justify-center rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors hover:bg-blue-500">
                       <button
-                        onClick={handleSearchWeb}
+                        onClick={() => {
+                          setLastQuery(m.content);
+                          handleSearchWeb();
+                        }}
                         className="text-sm md:text-base"
                       >
                         Web
@@ -334,7 +393,7 @@ export default function Page() {
 
                     <div className="flex items-center justify-center rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors hover:bg-blue-500">
                       <button
-                        onClick={() => handleSearchYouTube(lastQuery)}
+                        onClick={() => handleSearchYouTube(m.content)}
                         className="text-sm md:text-base"
                       >
                         YouTube
@@ -360,7 +419,7 @@ export default function Page() {
           ))}
 
           {/* Loading Animation for Assistant Response */}
-          {isLoading &&
+          {loading &&
             (messages.length === 0 ||
               messages[messages.length - 1]?.role === "user") && (
               <div className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
@@ -376,7 +435,7 @@ export default function Page() {
             )}
 
           {/* Loading Animation for Web Search */}
-          {isWebSearchLoading && (
+          { searchResults === null && lastQuery && (
             <div className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
               <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
                 <div className="flex items-center justify-start gap-2">
@@ -485,7 +544,6 @@ export default function Page() {
                     llama-3.1-8b-instant
                   </option>
                   <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
-                  {/* Add more options as needed */}
                 </select>
               </div>
             </div>

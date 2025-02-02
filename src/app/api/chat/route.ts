@@ -43,7 +43,7 @@ export async function POST(req: Request): Promise<Response> {
     console.log('Query Embedding:', queryEmbedding);
 
     // Query Pinecone for relevant context
-    const index = pinecone.index('dwm');
+    const index = pinecone.index('ol');
     const queryResponse = await index.namespace('').query({
       vector: queryEmbedding,
       topK: 5,
@@ -90,12 +90,18 @@ const groq = createOpenAI({
       const result = streamText({
         model: groq(selectedModel), // Use the selectedModel variable
         system: `
-          You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams. Your task is to answer questions based on the provided context.answer answer genral questions from your own knowledge base . Follow these guidelines:
+          You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams. Your task is to answer questions based on the provided context.answer answer genral questions from your own intelligence like {hi,hello,i love you} . Follow these guidelines:
       
           1. **Role**: Act as a knowledgeable and helpful assistant.
-          2. **Task**: Answer user questions clearly and concisely.
+          2. **Task**: Answer user questions indetail and explain it clearly answer each question for 15 marks .
           3. **Output Format**:
-             - Start with a brief summary of the answer.
+             - Start with a indetailed explation of the answer.
+             - Use markdown formatting for headings and bullet points.
+             - Use bullet points for sub-points.
+             - Use headings for sections and sub-headings for sub-points.
+             - Use sub-headings for even more detailed explanations.
+             - Use paragraphs for detailed explanations.
+             write a summary
              - Use headings and bullet points for clarity.
              - Provide step-by-step explanations where applicable.
              - Keep paragraphs short and easy to read.

@@ -1,35 +1,34 @@
-'use client';
-import ReactMarkdown from 'react-markdown';
-import { useChat } from 'ai/react';
-import { Copy, Check, Globe, Play } from 'lucide-react';
-import { useEffect, useState, useRef } from "react";
-import { marked } from "marked";
+"use client";
+import React, { useEffect, useState, useRef } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import { useChat } from "ai/react";
+import { Copy, Check, Globe, Play } from "lucide-react";
 
-// ChatGPT-like thinking dots component
 function ChatGPTLoadingAnimation() {
   return (
     <div className="flex items-start justify-start">
-      <span className="dot bg-[#f7eee3] w-1 h-1 rounded-full animate-dot" />
-      <span className="dot bg-[#f7eee3] w-1 h-1 rounded-full animate-dot delay-200" />
-      <span className="dot bg-[#f7eee3] w-1 h-1 rounded-full animate-dot delay-400" />
+      <span className="dot animate-dot h-1 w-1 rounded-full bg-[#f7eee3]" />
+      <span className="dot animate-dot h-1 w-1 rounded-full bg-[#f7eee3] delay-200" />
+      <span className="dot animate-dot delay-400 h-1 w-1 rounded-full bg-[#f7eee3]" />
       <style>
         {`
-        @keyframes dotFlashing {
-          0% { opacity: 0.2; }
-          50% { opacity: 1; }
-          100% { opacity: 0.2; }
-        }
-        .animate-dot {
-          animation: dotFlashing 1.4s infinite linear;
-        }
-        /* Custom delays for each dot */
-        .delay-200 {
-          animation-delay: 0.2s;
-        }
-        .delay-400 {
-          animation-delay: 0.4s;
-        }
-      `}
+          @keyframes dotFlashing {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+          }
+          .animate-dot {
+            animation: dotFlashing 1.4s infinite linear;
+          }
+          .delay-200 {
+            animation-delay: 0.2s;
+          }
+          .delay-400 {
+            animation-delay: 0.4s;
+          }
+        `}
       </style>
     </div>
   );
@@ -37,56 +36,59 @@ function ChatGPTLoadingAnimation() {
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
-  const [isWebSearchLoading, setIsWebSearchLoading] = useState(false); // New state for web search loading
+  const [isWebSearchLoading, setIsWebSearchLoading] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const [lastQuery, setLastQuery] = useState<string>('');
+  const [lastQuery, setLastQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string>('llama3-70b-8192');
+  const [selectedModel, setSelectedModel] = useState<string>("llama3-70b-8192");
   const [error, setError] = useState<string | null>(null);
-  const [searchLinks, setSearchLinks] = useState<string[]>([]); // New state for storing links
+  const [searchLinks, setSearchLinks] = useState<string[]>([]);
 
-  const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
-    api: '/api/chat',
-    body: {
-      model: selectedModel,
-    },
-    onResponse: (_response) => {
-      setIsLoading(false);
-      resetInputField();
-      setError(null);
-    },
-    onError: (error) => {
-      console.error('Error:', error);
-      setIsLoading(false);
-      setError('An error occurred. Please try again.');
-    },
-  });
+  const { messages, input, handleInputChange, handleSubmit, setInput } =
+    useChat({
+      api: "/api/chat",
+      body: {
+        model: selectedModel,
+      },
+      onResponse: (_response) => {
+        setIsLoading(false);
+        resetInputField();
+        setError(null);
+      },
+      onError: (error) => {
+        console.error("Error:", error);
+        setIsLoading(false);
+        setError("An error occurred. Please try again.");
+      },
+    });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
+    if (!isLoading) {
+      scrollToBottom();
+    }
+  }, [isLoading, messages.length]);
 
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${Math.min(
         textareaRef.current.scrollHeight,
-        200
+        200,
       )}px`;
     }
   };
 
   const resetInputField = () => {
-    setInput('');
+    setInput("");
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
     }
   };
 
@@ -96,14 +98,9 @@ export default function Page() {
       setCopiedMessageId(id);
       setTimeout(() => setCopiedMessageId(null), 2000);
     } catch (err) {
-      console.error('Failed to copy text: ', err);
+      console.error("Failed to copy text: ", err);
     }
   };
-
-  marked.setOptions({
-    gfm: true,
-    breaks: true,
-  });
 
   const extractLinks = (content: string): string[] => {
     const linkRegex = /https?:\/\/[^\s]+/g;
@@ -122,37 +119,36 @@ export default function Page() {
     try {
       handleSubmit(event);
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error("Error submitting form:", error);
       setIsLoading(false);
-      setError('An error occurred. Please try again.');
+      setError("An error occurred. Please try again.");
     }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
+    if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       void onSubmit(event);
-    } else if (event.key === 'Enter' && event.shiftKey) {
+    } else if (event.key === "Enter" && event.shiftKey) {
       adjustTextareaHeight();
     }
   };
 
   const handleSearchWeb = async () => {
     if (!lastQuery.trim()) {
-      console.error('No query to search');
+      console.error("No query to search");
       return;
     }
 
-    setIsWebSearchLoading(true); // Set web search loading state
-
+    setIsWebSearchLoading(true);
     try {
-      const response = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: [
             {
-              role: 'user',
+              role: "user",
               content: lastQuery,
             },
           ],
@@ -164,66 +160,130 @@ export default function Page() {
       }
 
       const data = await response.json();
-      const links = extractLinks(data.results); // Extract links from the results
-      setSearchLinks(links); // Store links in state
-      const cleanedResults = data.results.replace(/https?:\/\/[^\s]+/g, '');
+      const links = extractLinks(data.results);
+      setSearchLinks(links);
+      const cleanedResults = data.results.replace(/https?:\/\/[^\s]+/g, "");
       setSearchResults(cleanedResults);
     } catch (error) {
-      console.error('Error during web search:', error);
-      setSearchResults('Failed to fetch search results. Please try again.');
+      console.error("Error during web search:", error);
+      setSearchResults("Failed to fetch search results. Please try again.");
     } finally {
-      setIsWebSearchLoading(false); // Reset web search loading state
+      setIsWebSearchLoading(false);
     }
   };
 
   const handleSearchYouTube = (query: string) => {
-    window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
+    window.open(
+      `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
+      "_blank",
+    );
   };
 
   return (
-    <main className="flex h-screen w-screen flex-col bg-[#0c0c0c] overflow-hidden pb-16">
-      <div className="flex flex-col h-full w-full md:w-2/3 mx-auto relative">
+    <main className="flex h-screen w-screen flex-col overflow-hidden bg-[#0c0c0c] pb-16">
+      <div className="relative mx-auto flex h-full w-full flex-col md:w-2/3">
         {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto space-y-4 md:space-y-6 py-4 md:py-6 px-3 md:px-0 pb-24">
+        <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
           {messages.map((m, index) => (
             <div
               key={m.id}
-              className="flex flex-col animate-slide-in group relative mx-2 md:mx-0"
+              className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              {m.role === 'user' ? (
-                <div className="max-w-[85vw] md:max-w-xl text-[1.3em] md:text-[2.2em] text-[#E8E8E6] tracking-tight p-2 md:p-4">
-                  <article className="whitespace-pre-wrap break-words">
-                    <ReactMarkdown>{m.content}</ReactMarkdown>
-                  </article>
+              {m.role === "user" ? (
+                <div className="max-w-[85vw] p-2 text-[1.3em] tracking-tight text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2.2em]">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
+                    components={{
+                      hr: ({ node, ...props }) => (
+                        <hr {...props} className="my-custom-hr-class" />
+                      ),
+                    }}
+                  >
+                    {m.content}
+                  </ReactMarkdown>
                 </div>
               ) : (
-                <div className="max-w-[90vw] md:max-w-2xl text-[0.95rem] md:text-[1.2rem] tracking-tight text-[#E8E8E6] rounded-xl p-3 md:p-4 relative overflow-x-hidden">
-                  <ReactMarkdown className="prose prose-invert max-w-none">
+                <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-4 md:text-[1.2rem]">
+                  <ReactMarkdown
+                    className="prose prose-invert max-w-none"
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
+                    components={{
+                      // Custom anchor styling
+                      a: ({ node, ...props }) => (
+                        <a
+                          {...props}
+                          className="inline-block max-w-full overflow-hidden text-ellipsis text-[#FF5E00] no-underline hover:text-[#ff7e33]"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      ),
+                      // Paragraphs with some extra margin
+                      p: ({ node, ...props }) => (
+                        <p {...props} className="mb-3 break-words" />
+                      ),
+                      // Code block formatting for inline code and blocks
+                      // code: ({ node, className, children, ...props }) => {
+                      //   return inline ? (
+                      //     <code
+                      //       {...props}
+                      //       className="bg-[#1a1a1a] px-1 py-0.5 rounded"
+                      //     >
+                      //       {children}
+                      //     </code>
+                      //   ) : (
+                      //     <pre
+                      //       {...props}
+                      //       className="bg-[#1a1a1a] p-3 rounded overflow-x-auto"
+                      //     >
+                      //       <code>{children}</code>
+                      //     </pre>
+                      //   );
+                      // },
+                      // List formatting
+                      ul: ({ node, ...props }) => (
+                        <ul {...props} className="list-inside space-y-2" />
+                      ),
+                      li: ({ node, ...props }) => (
+                        <li
+                          {...props}
+                          className="break-words text-[#E8E8E6] opacity-80"
+                        />
+                      ),
+                    }}
+                  >
                     {m.content}
                   </ReactMarkdown>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    <div className="flex items-center justify-center bg-[#4544449d] text-white px-3 py-1.5 rounded-full hover:bg-blue-500 transition-colors">
-                      <button onClick={handleSearchWeb} className="text-sm md:text-base">
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="flex items-center justify-center rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors hover:bg-blue-500">
+                      <button
+                        onClick={handleSearchWeb}
+                        className="text-sm md:text-base"
+                      >
                         Web
                       </button>
-                      <Globe className="w-4 h-4 ml-1.5" />
+                      <Globe className="ml-1.5 h-4 w-4" />
                     </div>
 
-                    <div className="flex items-center justify-center bg-[#4544449d] text-white px-3 py-1.5 rounded-full hover:bg-blue-500 transition-colors">
-                      <button onClick={() => handleSearchYouTube(lastQuery)} className="text-sm md:text-base">
+                    <div className="flex items-center justify-center rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors hover:bg-blue-500">
+                      <button
+                        onClick={() => handleSearchYouTube(lastQuery)}
+                        className="text-sm md:text-base"
+                      >
                         YouTube
                       </button>
-                      <Play className="w-4 h-4 ml-1.5" />
+                      <Play className="ml-1.5 h-4 w-4" />
                     </div>
                   </div>
 
                   {/* Copy Button */}
                   <button
                     onClick={() => copyMessage(m.content, m.id)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-2"
+                    className="absolute right-2 top-2 p-2 opacity-0 transition-opacity group-hover:opacity-100"
                   >
                     {copiedMessageId === m.id ? (
                       <Check className="h-4 w-4 text-green-400" />
@@ -237,24 +297,30 @@ export default function Page() {
           ))}
 
           {/* Loading Animation for Assistant Response */}
-          {isLoading && (messages.length === 0 || messages[messages.length - 1]?.role === 'user') && (
-            <div className="flex flex-col animate-slide-in group relative mx-2 md:mx-0">
-              <div className="max-w-[90vw] md:max-w-2xl text-[0.95rem] md:text-[0.8rem] tracking-tight text-[#E8E8E6] rounded-xl p-3 md:p-4  shadow-lg">
-                <div className="flex  items-center justify-start gap-2">
-                  <ChatGPTLoadingAnimation />
-                  <span className="text-[#e8e8e67d] text-sm tracking-tight">creating</span>
+          {isLoading &&
+            (messages.length === 0 ||
+              messages[messages.length - 1]?.role === "user") && (
+              <div className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
+                <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
+                  <div className="flex items-center justify-start gap-2">
+                    <ChatGPTLoadingAnimation />
+                    <span className="text-sm tracking-tight text-[#e8e8e67d]">
+                      creating
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Loading Animation for Web Search */}
           {isWebSearchLoading && (
-            <div className="flex flex-col animate-slide-in group relative mx-2 md:mx-0">
-              <div className="max-w-[90vw] md:max-w-2xl text-[0.95rem] md:text-[0.8rem] tracking-tight text-[#E8E8E6] rounded-xl p-3 md:p-4 shadow-lg">
+            <div className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
+              <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
                 <div className="flex items-center justify-start gap-2">
                   <ChatGPTLoadingAnimation />
-                  <span className="text-[#e8e8e67d] text-sm tracking-tight">Searching</span>
+                  <span className="text-sm tracking-tight text-[#e8e8e67d]">
+                    Searching
+                  </span>
                 </div>
               </div>
             </div>
@@ -262,25 +328,27 @@ export default function Page() {
 
           {/* Search Results Section */}
           {searchResults && (
-            <div className="mx-3 md:mx-0 p-4 bg-gradient-to-r from-[#1a1a1a] to-[#252525] rounded-xl border border-[#f7eee332] shadow-lg overflow-x-hidden">
-              <div className="flex items-center justify-between mb-4">
+            <div className="mx-3 overflow-x-hidden rounded-xl border border-[#f7eee332] bg-gradient-to-r from-[#1a1a1a] to-[#252525] p-4 shadow-lg md:mx-0">
+              <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-[#FF5E00] flex-shrink-0" />
-                  <h3 className="text-base md:text-lg font-medium text-[#E8E8E6] truncate">Web Search Results</h3>
+                  <Globe className="h-5 w-5 flex-shrink-0 text-[#FF5E00]" />
+                  <h3 className="truncate text-base font-medium text-[#E8E8E6] md:text-lg">
+                    Web Search Results
+                  </h3>
                 </div>
-                <div className="relative group">
-                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#4544449d] text-white hover:bg-[#FF5E00] transition-colors duration-200">
+                <div className="group relative">
+                  <button className="flex items-center gap-2 rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors duration-200 hover:bg-[#FF5E00]">
                     <span className="text-sm">Sources</span>
-                    <Copy className="w-4 h-4" />
+                    <Copy className="h-4 w-4" />
                   </button>
-                  <div className="absolute right-0 mt-2 w-max max-w-[300px] p-2 hidden group-hover:block bg-[#1a1a1a] rounded-lg border border-[#f7eee332] shadow-xl z-10">
+                  <div className="absolute right-0 z-10 mt-2 hidden w-max max-w-[300px] rounded-lg border border-[#f7eee332] bg-[#1a1a1a] p-2 shadow-xl group-hover:block">
                     {searchLinks.map((link, index) => (
                       <a
                         key={index}
                         href={link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block px-3 py-2 text-sm text-[#E8E8E6] hover:bg-[#252525] rounded-lg truncate"
+                        className="block truncate rounded-lg px-3 py-2 text-sm text-[#E8E8E6] hover:bg-[#252525]"
                       >
                         {link}
                       </a>
@@ -290,23 +358,44 @@ export default function Page() {
               </div>
               <div className="prose prose-sm md:prose-base prose-invert max-w-none">
                 <ReactMarkdown
-                  className="text-[#E8E8E6] opacity-90 leading-relaxed"
+                  className="leading-relaxed text-[#E8E8E6] opacity-90"
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeRaw]}
                   components={{
                     a: ({ node, ...props }) => (
-                      <a {...props} className="text-[#FF5E00] hover:text-[#ff7e33] no-underline inline-block max-w-full overflow-hidden text-ellipsis" target="_blank" rel="noopener noreferrer" />
+                      <a
+                        {...props}
+                        className="inline-block max-w-full overflow-hidden text-ellipsis text-[#FF5E00] no-underline hover:text-[#ff7e33]"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      />
                     ),
                     p: ({ node, ...props }) => (
                       <p {...props} className="mb-3 break-words" />
                     ),
                     ul: ({ node, ...props }) => (
-                      <ul {...props} className="space-y-2 list-inside" />
+                      <ul {...props} className="list-inside space-y-2" />
                     ),
                     li: ({ node, ...props }) => (
-                      <li {...props} className="text-[#E8E8E6] opacity-80 break-words" />
+                      <li
+                        {...props}
+                        className="break-words text-[#E8E8E6] opacity-80"
+                      />
                     ),
-                    code: ({ node, ...props }) => (
-                      <code {...props} className="inline-block max-w-full overflow-hidden text-ellipsis bg-[#1a1a1a] px-1 py-.5 rounded" />
-                    ),
+                    // code: ({ node, inline, className, children, ...props }) =>
+                    //   inline ? (
+                    //     <code
+                    //       {...props}
+                    //       className="inline-block max-w-full overflow-hidden text-ellipsis bg-[#1a1a1a]
+                    //       px-1 py-0.5 rounded"
+                    //     >
+                    //       {children}
+                    //     </code>
+                    //   ) : (
+                    //     <pre className="bg-[#1a1a1a] p-3 rounded overflow-x-auto">
+                    //       <code>{children}</code>
+                    //     </pre>
+                    //   ),
                   }}
                 >
                   {searchResults}
@@ -318,11 +407,14 @@ export default function Page() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Bar - Fixed at bottom center */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent">
-          <form onSubmit={onSubmit} className="max-w-2xl mx-auto w-full px-3 md:px-0">
-            <div className="group flex items-center w-full bg-gradient-to-r from-[#1a1a1a] to-[#1f1f1f] p-2.5 rounded-2xl border border-[#f7eee332] shadow-lg backdrop-blur-sm transition-all duration-300">
-              <div className="flex-1 flex items-center bg-[#2a2a2a] p-2 rounded-xl overflow-hidden border border-transparent group-hover:border-[#f7eee332] transition-all duration-300">
+        {/* Input Bar */}
+        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4">
+          <form
+            onSubmit={onSubmit}
+            className="mx-auto w-full max-w-2xl px-3 md:px-0"
+          >
+            <div className="group flex w-full items-center rounded-2xl border border-[#f7eee332] bg-gradient-to-r from-[#1a1a1a] to-[#1f1f1f] p-2.5 shadow-lg backdrop-blur-sm transition-all duration-300">
+              <div className="flex flex-1 items-center overflow-hidden rounded-xl border border-transparent bg-[#2a2a2a] p-2 transition-all duration-300 group-hover:border-[#f7eee332]">
                 <textarea
                   ref={textareaRef}
                   placeholder="Ask me anything..."
@@ -332,49 +424,36 @@ export default function Page() {
                     adjustTextareaHeight();
                   }}
                   onKeyDown={handleKeyDown}
-                  className="flex-1 min-h-[48px] max-h-[120px] bg-transparent px-4 py-3 text-[#f7eee3] text-sm md:text-base placeholder:text-[#f7eee380] outline-none resize-none transition-all duration-200"
+                  className="max-h-[120px] min-h-[48px] flex-1 resize-none bg-transparent px-4 py-3 text-sm text-[#f7eee3] outline-none transition-all duration-200 placeholder:text-[#f7eee380] md:text-base"
                 />
-                {/* Model Selection Dropdown */}
                 <select
                   value={selectedModel}
                   onChange={(e) => setSelectedModel(e.target.value)}
-                  className="bg-transparent text-[#f7eee3] text-sm focus:outline-none cursor-pointer min-w-[120px]"
+                  className="min-w-[120px] cursor-pointer bg-transparent text-sm text-[#f7eee3] focus:outline-none"
                 >
                   <option value="llama3--70b--8192">Llama 3 70B</option>
-                  <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
+                  <option value="llama-3.1-8b-instant">
+                    llama-3.1-8b-instant
+                  </option>
                   <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
-                
                   {/* Add more options as needed */}
                 </select>
-
-                {/* Submit Button */}
-                {/*
-                <button
-                  type="submit"
-                  disabled={isLoading || !input.trim()}
-                  className="ml-2 p-3.5 rounded-xl bg-gradient-to-r from-[#FF5E00] to-[#ff7e33] text-[#f7eee3] shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100"
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <MoveUpRight className="w-5 h-5" />
-                  )}
-                </button>
-                */}
               </div>
             </div>
 
-            {/* Input Length Indicator and Error Message */}
             {input.length > 0 && (
-              <div className="flex justify-between items-center mt-1.5 px-1 text-xs text-[#f7eee380]">
-                <span>{input.length > 0 ? 'Press Enter to send, Shift + Enter for new line' : ''}</span>
+              <div className="mt-1.5 flex items-center justify-between px-1 text-xs text-[#f7eee380]">
+                <span>
+                  {input.length > 0
+                    ? "Press Enter to send, Shift + Enter for new line"
+                    : ""}
+                </span>
                 <span>{input.length}/2000</span>
               </div>
             )}
 
-            {/* Error Message Display */}
             {error && (
-              <div className="mt-2 text-sm text-red-500 text-center">
+              <div className="mt-2 text-center text-sm text-red-500">
                 {error}
               </div>
             )}

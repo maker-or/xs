@@ -34,6 +34,12 @@ function ChatGPTLoadingAnimation() {
   );
 }
 
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [isWebSearchLoading, setIsWebSearchLoading] = useState(false);
@@ -44,12 +50,35 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [searchLinks, setSearchLinks] = useState<string[]>([]);
 
+  // State to store chat ID and initial messages loaded from storage
+  const [chatId, setChatId] = useState<string | undefined>(undefined);
+  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
+
+  // Load stored chat ID and messages on component mount
+  useEffect(() => {
+    const storedChatId = localStorage.getItem("chatId");
+    if (storedChatId) {
+      setChatId(storedChatId);
+    }
+    const storedMessages = localStorage.getItem("chatMessages");
+    if (storedMessages) {
+      try {
+        setInitialMessages(JSON.parse(storedMessages));
+      } catch (err) {
+        console.error("Failed to parse stored messages", err);
+      }
+    }
+  }, []);
+
+  // Use the useChat hook with initialMessages and chatId
   const { messages, input, handleInputChange, handleSubmit, setInput } =
     useChat({
       api: "/api/chat",
       body: {
         model: selectedModel,
       },
+      id: chatId,
+      initialMessages: initialMessages,
       onResponse: (_response) => {
         setIsLoading(false);
         resetInputField();
@@ -61,6 +90,13 @@ export default function Page() {
         setError("An error occurred. Please try again.");
       },
     });
+
+  // Save messages to localStorage anytime they change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("chatMessages", JSON.stringify(messages));
+    }
+  }, [messages]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -80,7 +116,7 @@ export default function Page() {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${Math.min(
         textareaRef.current.scrollHeight,
-        200,
+        200
       )}px`;
     }
   };
@@ -174,14 +210,35 @@ export default function Page() {
 
   const handleSearchYouTube = (query: string) => {
     window.open(
-      `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
-      "_blank",
+      `https://www.youtube.com/results?search_query=${encodeURIComponent(
+        query
+      )}`,
+      "_blank"
     );
+  };
+
+  // Handler to clear chat history and chat ID both in state and localStorage.
+  const handleClearHistory = () => {
+    localStorage.removeItem("chatMessages");
+    localStorage.removeItem("chatId");
+    // Depending on your app structure, you might want to reload or
+    // reset state values.
+    window.location.reload();
   };
 
   return (
     <main className="flex h-screen w-screen flex-col overflow-hidden bg-[#0c0c0c] pb-16">
       <div className="relative mx-auto flex h-full w-full flex-col md:w-2/3">
+        {/* Clear History Button */}
+        <div className="absolute right-4 top-4 z-10">
+          <button
+            onClick={handleClearHistory}
+            className="rounded-full bg-[#4544449d] px-4 py-2 text-sm text-white hover:bg-[#FF5E00]"
+          >
+            Clear History
+          </button>
+        </div>
+
         {/* Messages Container */}
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
           {messages.map((m, index) => (
@@ -211,7 +268,6 @@ export default function Page() {
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeRaw]}
                     components={{
-                      // Custom anchor styling
                       a: ({ node, ...props }) => (
                         <a
                           {...props}
@@ -220,29 +276,9 @@ export default function Page() {
                           rel="noopener noreferrer"
                         />
                       ),
-                      // Paragraphs with some extra margin
                       p: ({ node, ...props }) => (
                         <p {...props} className="mb-3 break-words" />
                       ),
-                      // Code block formatting for inline code and blocks
-                      // code: ({ node, className, children, ...props }) => {
-                      //   return inline ? (
-                      //     <code
-                      //       {...props}
-                      //       className="bg-[#1a1a1a] px-1 py-0.5 rounded"
-                      //     >
-                      //       {children}
-                      //     </code>
-                      //   ) : (
-                      //     <pre
-                      //       {...props}
-                      //       className="bg-[#1a1a1a] p-3 rounded overflow-x-auto"
-                      //     >
-                      //       <code>{children}</code>
-                      //     </pre>
-                      //   );
-                      // },
-                      // List formatting
                       ul: ({ node, ...props }) => (
                         <ul {...props} className="list-inside space-y-2" />
                       ),
@@ -382,20 +418,6 @@ export default function Page() {
                         className="break-words text-[#E8E8E6] opacity-80"
                       />
                     ),
-                    // code: ({ node, inline, className, children, ...props }) =>
-                    //   inline ? (
-                    //     <code
-                    //       {...props}
-                    //       className="inline-block max-w-full overflow-hidden text-ellipsis bg-[#1a1a1a]
-                    //       px-1 py-0.5 rounded"
-                    //     >
-                    //       {children}
-                    //     </code>
-                    //   ) : (
-                    //     <pre className="bg-[#1a1a1a] p-3 rounded overflow-x-auto">
-                    //       <code>{children}</code>
-                    //     </pre>
-                    //   ),
                   }}
                 >
                   {searchResults}

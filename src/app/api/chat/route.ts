@@ -85,6 +85,8 @@ const groq = createOpenAI({
   baseURL: 'https://api.groq.com/openai/v1',
   apiKey: process.env.GROQ_API_KEY ?? '',
 });
+
+
     // Generate the response using Groq
     try {
       const result = streamText({
@@ -92,7 +94,7 @@ const groq = createOpenAI({
         system: `
           You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams. Your task is to answer questions based on the provided context.answer answer genral questions from your own intelligence like {hi,hello,i love you} . Follow these guidelines:
       
-          1. **Role**: Act as a knowledgeable and helpful assistant.
+          1. **Role**: Act as a knowledgeable and helpful assistant don't show the thinking process. just provide the answer.
           2. **Task**: Answer user questions indetail and explain it clearly answer each question for 15 marks .
           3. **Output Format**:
              - Start with a indetailed explation of the answer.

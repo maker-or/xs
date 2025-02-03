@@ -77,6 +77,10 @@ export default function Page() {
       api: "/api/chat",
       body: {
         model: selectedModel,
+        format: selectedModel === "deepseek-r1-distill-llama-70b" ? {
+          systemPrompt: "don't show the thinking process. just provide the answer",
+          responseFormat: "structured"
+        } : undefined
       },
       id: chatId,
       initialMessages: initialMessages,
@@ -148,7 +152,7 @@ export default function Page() {
     event.preventDefault();
     if (!input.trim()) return;
 
-    setIsLoading(true);
+    setIsLoading(true); // Ensure loading state is set
     setSearchResults(null);
     setLastQuery(input);
     setError(null);
@@ -338,6 +342,7 @@ export default function Page() {
                         )
                       }}
                     >
+                      
                       {m.content}
                     </ReactMarkdown>
                   </div>
@@ -545,8 +550,8 @@ export default function Page() {
                     llama-3.1-8b-instant
                   </option>
                   <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
-                  <option value="deepseek-r1-distill-llama-70b">
-                    deepseek-r1
+                  <option value="llama-3.3-70b-specdec">
+                  llama-3.3-70b
                   </option>
                   {/* Add more options as needed */}
                 </select>

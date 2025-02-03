@@ -187,7 +187,7 @@ export default function Page() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [{ role: "user", content: lastQuery }],
+          messages: [{ role: "assistant", content: lastQuery }],
         }),
       });
       if (!response.ok) {
@@ -540,10 +540,11 @@ export default function Page() {
                   className="min-w-[120px] cursor-pointer bg-transparent text-sm text-[#f7eee3] focus:outline-none"
                 >
                   <option value="llama3--70b--8192">Llama 3 70B</option>
-                  <option value="llama-3.1-8b-instant">
+                  {/* <option value="llama-3.1-8b-instant">
                     llama-3.1-8b-instant
-                  </option>
+                  </option> */}
                   <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
+                  <option value="deepseek-r1-distill-llama-70b">deepseek-r1</option>
                 </select>
               </div>
             </div>

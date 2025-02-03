@@ -36,7 +36,7 @@ function ChatGPTLoadingAnimation() {
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
@@ -50,7 +50,8 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [searchLinks, setSearchLinks] = useState<string[]>([]);
 
-  // State to store chat ID and initial messages loaded from storage
+  // We'll manage messages locally so we can update (delete) an assistant
+  // message when regenerating a query.
   const [chatId, setChatId] = useState<string | undefined>(undefined);
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
 
@@ -223,11 +224,11 @@ export default function Page() {
     localStorage.removeItem("chatId");
     window.location.reload();
   };
- 
-  // Add the shareChat function
+
+  // Share the chat via API and copy the shareable URL to clipboard.
   const shareChat = async () => {
     try {
-      const response = await fetch('/api/shared', {
+      const response = await fetch("/api/shared", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -246,11 +247,52 @@ export default function Page() {
     }
   };
 
+  /**
+   * The regenerateQuery function removes the assistant message
+   * corresponding to the provided user query (if any) from the local
+   * messages (via initialMessages) so that the new response will render
+   * in its place.
+   */
+  const regenerateQuery = async (query: string, messageId: string) => {
+    // Filter out the specific assistant response that follows the user message with the matching query.
+    const updatedMessages = messages.filter((m, index) => {
+      if (
+        m.role === "assistant" &&
+        m.id === messageId &&
+        index > 0 &&
+        messages[index - 1]?.role === "user" &&
+        messages[index - 1]?.content === query
+      ) {
+        return false; // Remove the specific assistant response
+      }
+      return true;
+    });
+
+    // Update the locally stored messages.
+    setInitialMessages(updatedMessages as Message[]);
+
+    // Also update localStorage for consistency.
+    localStorage.setItem("chatMessages", JSON.stringify(updatedMessages));
+
+    // Prepare to resend the same query.
+    setInput(query);
+    setIsLoading(true);
+    setSearchResults(null);
+    setError(null);
+
+    try {
+      // Create and dispatch a synthetic submit event.
+      await handleSubmit(new Event("submit"));
+    } catch (error) {
+      console.error("Error regenerating query:", error);
+      setIsLoading(false);
+      setError("An error occurred. Please try again.");
+    }
+  };
+
   return (
     <main className="flex h-screen w-screen flex-col overflow-hidden bg-[#0c0c0c] pb-16">
-      <div className="relative mx-auto flex h-full w-full flex-col md:w-2/3">
-        {/* Clear History and Share Buttons */}
-        <div className="absolute right-4 top-4 z-10 flex gap-2">
+              <div className="absolute right-4 top-4 z-10 flex gap-2">
           <button
             onClick={shareChat}
             className="rounded-full bg-[#4544449d] px-4 py-2 text-sm text-white hover:bg-[#FF5E00] flex items-center gap-2"
@@ -265,99 +307,120 @@ export default function Page() {
             Clear History
           </button>
         </div>
+      <div className="relative mx-auto flex h-full w-full flex-col md:w-2/3">
+        {/* Clear History and Share Buttons */}
+
 
         {/* Messages Container */}
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
-          {messages.map((m, index) => (
-            <div
-              key={m.id}
-              className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {m.role === "user" ? (
-                <div className="max-w-[85vw] p-2 text-[1.3em] tracking-tight text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2.2em]">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                    components={{
-                      hr: ({ node, ...props }) => (
-                        <hr {...props} className="my-custom-hr-class" />
-                      ),
-                    }}
-                  >
-                    {m.content}
-                  </ReactMarkdown>
-                </div>
-              ) : (
-                <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-4 md:text-[1.2rem]">
-                  <ReactMarkdown
-                    className="prose prose-invert max-w-none"
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                    components={{
-                      a: ({ node, ...props }) => (
-                        <a
-                          {...props}
-                          className="inline-block max-w-full overflow-hidden text-ellipsis text-[#FF5E00] no-underline hover:text-[#ff7e33]"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        />
-                      ),
-                      p: ({ node, ...props }) => (
-                        <p {...props} className="mb-3 break-words" />
-                      ),
-                      ul: ({ node, ...props }) => (
-                        <ul {...props} className="list-inside space-y-2" />
-                      ),
-                      li: ({ node, ...props }) => (
-                        <li
-                          {...props}
-                          className="break-words text-[#E8E8E6] opacity-80"
-                        />
-                      ),
-                    }}
-                  >
-                    {m.content}
-                  </ReactMarkdown>
-
-                  {/* Action Buttons */}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <div className="flex items-center justify-center rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors hover:bg-blue-500">
-                      <button
-                        onClick={handleSearchWeb}
-                        className="text-sm md:text-base"
-                      >
-                        Web
-                      </button>
-                      <Globe className="ml-1.5 h-4 w-4" />
-                    </div>
-
-                    <div className="flex items-center justify-center rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors hover:bg-blue-500">
-                      <button
-                        onClick={() => handleSearchYouTube(lastQuery)}
-                        className="text-sm md:text-base"
-                      >
-                        YouTube
-                      </button>
-                      <Play className="ml-1.5 h-4 w-4" />
-                    </div>
+          {messages.map((m, index) => {
+            // For assistant messages, pick the immediately preceding user query.
+            const previousUserMessage =
+              m.role === "assistant" &&
+              index > 0 &&
+              messages[index - 1]?.role === "user"
+                ? messages[index - 1]?.content ?? ""
+                : "";
+            return (
+              <div
+                key={m.id}
+                className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                {m.role === "user" ? (
+                  <div className="max-w-[85vw] p-2 text-[1.3em] tracking-tight text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2.2em]">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                      components={{
+                        hr: ({ node, ...props }) => (
+                          <hr {...props} className="my-custom-hr-class" />
+                        )
+                      }}
+                    >
+                      {m.content}
+                    </ReactMarkdown>
                   </div>
+                ) : (
+                  <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-4 md:text-[1.2rem]">
+                    <ReactMarkdown
+                      className="prose prose-invert max-w-none"
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                      components={{
+                        a: ({ node, ...props }) => (
+                          <a
+                            {...props}
+                            className="inline-block max-w-full overflow-hidden text-ellipsis text-[#FF5E00] no-underline hover:text-[#ff7e33]"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          />
+                        ),
+                        p: ({ node, ...props }) => (
+                          <p {...props} className="mb-3 break-words" />
+                        ),
+                        ul: ({ node, ...props }) => (
+                          <ul {...props} className="list-inside space-y-2" />
+                        ),
+                        li: ({ node, ...props }) => (
+                          <li {...props} className="break-words text-[#E8E8E6] opacity-80" />
+                        )
+                      }}
+                    >
+                      {m.content}
+                    </ReactMarkdown>
 
-                  {/* Copy Button */}
-                  <button
-                    onClick={() => copyMessage(m.content, m.id)}
-                    className="absolute right-2 top-2 p-2 opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    {copiedMessageId === m.id ? (
-                      <Check className="h-4 w-4 text-green-400" />
-                    ) : (
-                      <Copy className="h-4 w-4 text-[#f7eee3] hover:text-[#FF5E00]" />
+                    {/* Action Buttons */}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors hover:bg-blue-500">
+                        <button
+                          onClick={handleSearchWeb}
+                          className="text-sm md:text-base"
+                        >
+                          Web
+                        </button>
+                        <Globe className="ml-1.5 h-4 w-4" />
+                      </div>
+
+                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors hover:bg-blue-500">
+                        <button
+                          onClick={() => handleSearchYouTube(lastQuery)}
+                          className="text-sm md:text-base"
+                        >
+                          YouTube
+                        </button>
+                        <Play className="ml-1.5 h-4 w-4" />
+                      </div>
+                    </div>
+
+                    {/* Regenerate Button */}
+                    {previousUserMessage && (
+                      <div className="mt-3">
+                        <button
+                          onClick={() => regenerateQuery(previousUserMessage, m.id)}
+                          className="rounded-full bg-[#4544449d] px-3 py-1.5 text-sm text-white transition-colors hover:bg-[#FF5E00]"
+                        >
+                          Regenerate
+                        </button>
+                      </div>
                     )}
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+
+                    {/* Copy Button */}
+                    <button
+                      onClick={() => copyMessage(m.content, m.id)}
+                      className="absolute right-2 top-2 p-2 opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      {copiedMessageId === m.id ? (
+                        <Check className="h-4 w-4 text-green-400" />
+                      ) : (
+                        <Copy className="h-4 w-4 text-[#f7eee3] hover:text-[#FF5E00]" />
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
           {/* Loading Animation for Assistant Response */}
           {isLoading &&
@@ -440,10 +503,7 @@ export default function Page() {
                       <ul {...props} className="list-inside space-y-2" />
                     ),
                     li: ({ node, ...props }) => (
-                      <li
-                        {...props}
-                        className="break-words text-[#E8E8E6] opacity-80"
-                      />
+                      <li {...props} className="break-words text-[#E8E8E6] opacity-80" />
                     ),
                   }}
                 >
@@ -485,6 +545,9 @@ export default function Page() {
                     llama-3.1-8b-instant
                   </option>
                   <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
+                  <option value="deepseek-r1-distill-llama-70b">
+                    deepseek-r1
+                  </option>
                   {/* Add more options as needed */}
                 </select>
               </div>

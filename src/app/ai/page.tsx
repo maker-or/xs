@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { useChat } from "ai/react";
-import { Copy, Check, Globe, Play, Share2 } from "lucide-react";
+import { Copy, Check, Globe, Play, Share2, ArrowUp, RotateCw } from "lucide-react";
 
 function ChatGPTLoadingAnimation() {
   return (
@@ -55,6 +55,8 @@ export default function Page() {
   const [chatId, setChatId] = useState<string | undefined>(undefined);
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
 
+  const [isAtTop, setIsAtTop] = useState(false); // Track if chat is at the top
+
   // Load stored chat ID and messages on component mount
   useEffect(() => {
     const storedChatId = localStorage.getItem("chatId");
@@ -70,7 +72,20 @@ export default function Page() {
       }
     }
   }, []);
+  // //*********************************** */
+  // const ScrollButton = () => {
+  //   const [isAtTop, setIsAtTop] = useState(true);
 
+  //   useEffect(() => {
+  //     const handleScroll = () => {
+  //       setIsAtTop(window.scrollY < 100); // Adjust threshold as needed
+  //     };
+
+  //     window.addEventListener("scroll", handleScroll);
+  //     return () => window.removeEventListener("scroll", handleScroll);
+  //   }, []);
+  // }
+  //*********************************** */
   // Use the useChat hook with initialMessages and chatId
   const { messages, input, handleInputChange, handleSubmit, setInput } =
     useChat({
@@ -294,23 +309,55 @@ export default function Page() {
     }
   };
 
+  const handleScroll = () => {
+    if (messagesEndRef.current) {
+      const { scrollTop, clientHeight, scrollHeight } = messagesEndRef.current;
+      setIsAtTop(scrollTop === 0); // Update state based on scroll position
+    }
+  };
+
+  useEffect(() => {
+    const container = messagesEndRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+    }
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, []);
+
   return (
-    <main className="flex h-screen w-screen flex-col overflow-hidden bg-[#0c0c0c] pb-16">
-              <div className="absolute right-4 top-4 z-10 flex gap-2">
-          <button
-            onClick={shareChat}
-            className="rounded-full bg-[#4544449d] px-4 py-2 text-sm text-white hover:bg-[#FF5E00] flex items-center gap-2"
-          >
-            <Share2 className="h-4 w-4" />
-            Share Chat
-          </button>
-          <button
-            onClick={handleClearHistory}
-            className="rounded-full bg-[#4544449d] px-4 py-2 text-sm text-white hover:bg-[#FF5E00]"
-          >
-            Clear History
-          </button>
-        </div>
+    <main className="">
+      {/* Add this button before the closing main tag */}
+      <button
+        onClick={() => {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        }}
+        className="fixed bottom-5 right-4 z-50 rounded-full bg-[#292a29] p-2 text-white shadow-lg transition-all hover:bg-[#575757]"
+        aria-label="Scroll to top or bottom"
+      >
+        <ArrowUp className={`h-5 w-5 transition-transform ${isAtTop ? "rotate-180" : ""}`} />
+      </button>
+      <div className="absolute right-4 top-4 z-10 flex gap-2">
+        <button
+          onClick={shareChat}
+          className="rounded-full bg-[#4544449d] px-4 py-2 text-sm text-white hover:bg-[#FF5E00] flex items-center gap-2"
+        >
+          <Share2 className="h-4 w-4" />
+          Share Chat
+        </button>
+        <button
+          onClick={handleClearHistory}
+          className="rounded-full bg-[#4544449d] px-4 py-2 text-sm text-white hover:bg-[#FF5E00]"
+        >
+          Clear History
+        </button>
+      </div>
       <div className="relative mx-auto flex h-full w-full flex-col md:w-2/3">
         {/* Clear History and Share Buttons */}
 
@@ -321,11 +368,12 @@ export default function Page() {
             // For assistant messages, pick the immediately preceding user query.
             const previousUserMessage =
               m.role === "assistant" &&
-              index > 0 &&
-              messages[index - 1]?.role === "user"
+                index > 0 &&
+                messages[index - 1]?.role === "user"
                 ? messages[index - 1]?.content ?? ""
                 : "";
             return (
+
               <div
                 key={m.id}
                 className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
@@ -342,7 +390,7 @@ export default function Page() {
                         )
                       }}
                     >
-                      
+
                       {m.content}
                     </ReactMarkdown>
                   </div>
@@ -376,51 +424,57 @@ export default function Page() {
                     </ReactMarkdown>
 
                     {/* Action Buttons */}
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors hover:bg-blue-500">
+                    <div className="mb-14 flex flex-wrap gap-2">
+
+                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colorshover:bg-[#294A6D] hover:text-[#48AAFF]">
                         <button
                           onClick={handleSearchWeb}
                           className="text-sm md:text-base"
                         >
-                          Web
+                          <Globe className="h-4 w-4" />
                         </button>
-                        <Globe className="ml-1.5 h-4 w-4" />
+
                       </div>
 
-                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors hover:bg-blue-500">
+                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors  hover:bg-[#294A6D] hover:text-[#48AAFF]">
                         <button
                           onClick={() => handleSearchYouTube(lastQuery)}
                           className="text-sm md:text-base"
                         >
-                          YouTube
+                          <Play className=" h-4 w-4" />
                         </button>
-                        <Play className="ml-1.5 h-4 w-4" />
+
                       </div>
+                      {previousUserMessage && (
+                        <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF] ">
+                          <button
+                            onClick={() => regenerateQuery(previousUserMessage, m.id)}
+                            className="rtext-sm md:text-base"
+                          >
+
+                            <RotateCw className=" h-4 w-4" />
+                          </button>
+
+
+                        </div>
+                      )}
+                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors  hover:bg-[#294A6D] hover:text-[#48AAFF]">
+                        <button
+                          onClick={() => copyMessage(m.content, m.id)}
+                          className="rtext-sm md:text-base"
+                        >
+                          {copiedMessageId === m.id ? (
+                            <Check className="h-4 w-4 text-[#48AAFF]" />
+                          ) : (
+                            <Copy className="h-4 w-4 text-[#f7eee3] hover:text-[#48AAFF]" />
+                          )}
+                        </button>
+                      </div>
+
                     </div>
 
-                    {/* Regenerate Button */}
-                    {previousUserMessage && (
-                      <div className="mt-3">
-                        <button
-                          onClick={() => regenerateQuery(previousUserMessage, m.id)}
-                          className="rounded-full bg-[#4544449d] px-3 py-1.5 text-sm text-white transition-colors hover:bg-[#FF5E00]"
-                        >
-                          Regenerate
-                        </button>
-                      </div>
-                    )}
 
-                    {/* Copy Button */}
-                    <button
-                      onClick={() => copyMessage(m.content, m.id)}
-                      className="absolute right-2 top-2 p-2 opacity-0 transition-opacity group-hover:opacity-100"
-                    >
-                      {copiedMessageId === m.id ? (
-                        <Check className="h-4 w-4 text-green-400" />
-                      ) : (
-                        <Copy className="h-4 w-4 text-[#f7eee3] hover:text-[#FF5E00]" />
-                      )}
-                    </button>
+
                   </div>
                 )}
               </div>
@@ -551,7 +605,7 @@ export default function Page() {
                   </option>
                   <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
                   <option value="llama-3.3-70b-specdec">
-                  llama-3.3-70b
+                    llama-3.3-70b
                   </option>
                   <option value="deepseek-r1-distill-llama-70b">deepseek-r1</option>
                 </select>

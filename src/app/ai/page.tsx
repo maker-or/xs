@@ -55,9 +55,14 @@ export default function Page() {
   const [chatId, setChatId] = useState<string | undefined>(undefined);
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
 
+  // NEW: State to control auto scroll behavior.
+  // When skipAutoScroll is true (for example, during regeneration)
+  // the chat will not scroll to the bottom automatically.
+  const [skipAutoScroll, setSkipAutoScroll] = useState(false);
 
+  // REGENERATION STATES
   const [regenResponses, setRegenResponses] = useState<Record<string, string>>({});
-const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null>(null);
+  const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null>(null);
 
   const [isAtTop, setIsAtTop] = useState(false); // Track if chat is at the top
 
@@ -129,11 +134,12 @@ const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Modified useEffect – it only scrolls when skipAutoScroll is false.
   useEffect(() => {
-    if (!isLoading) {
+    if (!skipAutoScroll) {
       scrollToBottom();
     }
-  }, [isLoading, messages.length]);
+  }, [messages, isLoading, skipAutoScroll]);
 
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
@@ -170,8 +176,8 @@ const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!input.trim()) return;
-
-    setIsLoading(true); // Ensure loading state is set
+    setSkipAutoScroll(false);
+    setIsLoading(true);
     setSearchResults(null);
     setLastQuery(input);
     setError(null);
@@ -278,6 +284,7 @@ const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null
    */
   const regenerateQuery = async (query: string, messageId: string) => {
     setRegeneratingMessageId(messageId);
+    setSkipAutoScroll(true); // DON'T auto-scroll when regenerating!
     setIsLoading(true);
     setError(null);
     try {
@@ -415,6 +422,15 @@ const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null
 
         {/* Messages Container */}
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
+          <style jsx global>{`
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to   { opacity: 1; }
+            }
+            .animate-fade-in {
+              animation: fadeIn 0.5s ease-in-out;
+            }
+          `}</style>
           {messages.map((m, index) => {
             // For assistant messages, pick the immediately preceding user query.
             const previousUserMessage =
@@ -424,13 +440,12 @@ const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null
                 ? messages[index - 1]?.content ?? ""
                 : "";
             return (
-
-              <div
-                key={m.id}
-                className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                {m.role === "user" ? (
+              m.role === "user" ? (
+                <div
+                  key={m.id}
+                  className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
                   <div className="max-w-[85vw] p-2 text-[1.3em] tracking-tight text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2.2em]">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
@@ -445,53 +460,56 @@ const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null
                       {m.content}
                     </ReactMarkdown>
                   </div>
-                ) : (
+                </div>
+              ) : (
+                <div
+                  key={m.id}
+                  className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
                   <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-4 md:text-[1.2rem]">
-                    <ReactMarkdown
-                      className="prose prose-invert max-w-none"
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeRaw]}
-                      components={{
-                        a: ({ node, ...props }) => (
-                          <a
-                            {...props}
-                            className="inline-block max-w-full overflow-hidden text-ellipsis text-[#FF5E00] no-underline hover:text-[#ff7e33]"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          />
-                        ),
-                        p: ({ node, ...props }) => <p {...props} className="mb-3 break-words" />,
-                        ul: ({ node, ...props }) => <ul {...props} className="list-inside space-y-2" />,
-                        li: ({ node, ...props }) => <li {...props} className="break-words text-[#E8E8E6] opacity-80" />,
-                      }}
+                    <div
+                      key={`assistant-${m.id}-${regenResponses[m.id] ? "regen" : "original"}`}
+                      className="animate-fade-in transition-opacity duration-500"
                     >
-                      {regenResponses[m.id] || m.content}
-                    </ReactMarkdown>
+                      <ReactMarkdown
+                        className="prose prose-invert max-w-none"
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeRaw]}
+                        components={{
+                          a: ({ node, ...props }) => (
+                            <a
+                              {...props}
+                              className="inline-block max-w-full overflow-hidden text-ellipsis text-[#FF5E00] no-underline hover:text-[#ff7e33]"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            />
+                          ),
+                          p: ({ node, ...props }) => <p {...props} className="mb-3 break-words" />,
+                          ul: ({ node, ...props }) => <ul {...props} className="list-inside space-y-2" />,
+                          li: ({ node, ...props }) => (
+                            <li {...props} className="break-words text-[#E8E8E6] opacity-80" />
+                          ),
+                        }}
+                      >
+                        {regenResponses[m.id] || m.content}
+                      </ReactMarkdown>
+                    </div>
 
                     {/* Action Buttons */}
                     <div className="mb-14 flex flex-wrap gap-2">
-
-                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colorshover:bg-[#294A6D] hover:text-[#48AAFF]">
-                        <button
-                          onClick={handleSearchWeb}
-                          className="text-sm md:text-base"
-                        >
+                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
+                        <button onClick={handleSearchWeb} className="text-sm md:text-base">
                           <Globe className="h-4 w-4" />
                         </button>
-
                       </div>
-
-                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors  hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                        <button
-                          onClick={() => handleSearchYouTube(lastQuery)}
-                          className="text-sm md:text-base"
-                        >
-                          <Play className=" h-4 w-4" />
+                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
+                        <button onClick={() => handleSearchYouTube(lastQuery)} className="text-sm md:text-base">
+                          <Play className="h-4 w-4" />
                         </button>
-
                       </div>
                       {previousUserMessage && (
-                        <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF] ">
+                        <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
                           <button
                             onClick={() => regenerateQuery(previousUserMessage, m.id)}
                             className="rtext-sm md:text-base"
@@ -500,18 +518,13 @@ const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null
                             {regeneratingMessageId === m.id ? (
                               <ChatGPTLoadingAnimation />
                             ) : (
-                              <RotateCw className=" h-4 w-4" />
+                              <RotateCw className="h-4 w-4" />
                             )}
                           </button>
-
-
                         </div>
                       )}
-                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors  hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                        <button
-                          onClick={() => copyMessage(m.content, m.id)}
-                          className="rtext-sm md:text-base"
-                        >
+                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
+                        <button onClick={() => copyMessage(m.content, m.id)} className="rtext-sm md:text-base">
                           {copiedMessageId === m.id ? (
                             <Check className="h-4 w-4 text-[#48AAFF]" />
                           ) : (
@@ -519,14 +532,10 @@ const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null
                           )}
                         </button>
                       </div>
-
                     </div>
-
-
-
                   </div>
-                )}
-              </div>
+                </div>
+              )
             );
           })}
 

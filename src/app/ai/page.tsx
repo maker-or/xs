@@ -422,6 +422,7 @@ export default function Page() {
 
         {/* Messages Container */}
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
+          {/* eslint-disable-next-line react/no-unknown-property */}
           <style jsx global>{`
             @keyframes fadeIn {
               from { opacity: 0; }

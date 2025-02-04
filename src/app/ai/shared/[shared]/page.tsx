@@ -419,9 +419,8 @@ export default function Page() {
           ))}
 
           {/* Loading Animation for Assistant Response */}
-          {loading &&
-            (messages.length === 0 ||
-              messages[messages.length - 1]?.role === "user") && (
+          {loading && messages.length > 0 && 
+            messages[messages.length - 1]?.role === "user" && (
               <div className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
                 <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
                   <div className="flex items-center justify-start gap-2">
@@ -435,7 +434,7 @@ export default function Page() {
             )}
 
           {/* Loading Animation for Web Search */}
-          { searchResults === null && lastQuery && (
+          {loading && searchResults === null && lastQuery && (
             <div className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
               <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
                 <div className="flex items-center justify-start gap-2">

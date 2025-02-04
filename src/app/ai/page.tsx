@@ -553,7 +553,7 @@ export default function Page() {
                   <option value="llama-3.3-70b-specdec">
                   llama-3.3-70b
                   </option>
-                  {/* Add more options as needed */}
+                  <option value="deepseek-r1-distill-llama-70b">deepseek-r1</option>
                 </select>
               </div>
             </div>

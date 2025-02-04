@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { useChat } from "ai/react";
-import { Copy, Check, Globe, Play, Share2, ArrowUp, RotateCw } from "lucide-react";
+import { Copy, Check, Globe, Play, Share2, ArrowUp, RotateCw ,MessageCircleX} from "lucide-react";
 
 function ChatGPTLoadingAnimation() {
   return (
@@ -54,6 +54,10 @@ export default function Page() {
   // message when regenerating a query.
   const [chatId, setChatId] = useState<string | undefined>(undefined);
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
+
+
+  const [regenResponses, setRegenResponses] = useState<Record<string, string>>({});
+const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null>(null);
 
   const [isAtTop, setIsAtTop] = useState(false); // Track if chat is at the top
 
@@ -273,39 +277,83 @@ export default function Page() {
    * in its place.
    */
   const regenerateQuery = async (query: string, messageId: string) => {
-    // Filter out the specific assistant response that follows the user message with the matching query.
-    const updatedMessages = messages.filter((m, index) => {
-      if (
-        m.role === "assistant" &&
-        m.id === messageId &&
-        index > 0 &&
-        messages[index - 1]?.role === "user" &&
-        messages[index - 1]?.content === query
-      ) {
-        return false; // Remove the specific assistant response
-      }
-      return true;
-    });
-
-    // Update the locally stored messages.
-    setInitialMessages(updatedMessages as Message[]);
-
-    // Also update localStorage for consistency.
-    localStorage.setItem("chatMessages", JSON.stringify(updatedMessages));
-
-    // Prepare to resend the same query.
-    setInput(query);
+    setRegeneratingMessageId(messageId);
     setIsLoading(true);
-    setSearchResults(null);
     setError(null);
-
     try {
-      // Create and dispatch a synthetic submit event.
-      await handleSubmit(new Event("submit"));
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: selectedModel,
+          ...(selectedModel === "deepseek-r1-distill-llama-70b"
+            ? {
+                format: {
+                  systemPrompt: "don't show the thinking process. just provide the answer",
+                  responseFormat: "structured",
+                },
+              }
+            : {}),
+          messages: [
+            {
+              role: "user",
+              content: query,
+            },
+          ],
+        }),
+      });
+
+      // Get the raw response text.
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
+
+      // Remove the "f:" prefix if it exists.
+      const cleanedText = responseText.startsWith("f:")
+        ? responseText.slice(2).trim()
+        : responseText;
+
+      // Extract the initial JSON part by finding the first closing brace.
+      const firstJSONEnd = cleanedText.indexOf("}") + 1;
+      let jsonPart = "";
+      let textPart = "";
+      if (firstJSONEnd > 0) {
+        jsonPart = cleanedText.substring(0, firstJSONEnd);
+        textPart = cleanedText.substring(firstJSONEnd).trim();
+      } else {
+        textPart = cleanedText;
+      }
+      console.log("Extracted JSON part:", jsonPart);
+      console.log("Extracted text part:", textPart);
+
+      // Optional: Parse the JSON part if you need to use fields like messageId.
+      try {
+        const parsedJSON = JSON.parse(jsonPart);
+        console.log("Parsed JSON:", parsedJSON);
+      } catch (e) {
+        console.warn("Could not parse JSON part", e);
+      }
+
+      // Use a regex to extract all tokens like 0:"...".
+      const tokenRegex = /\d+:"([^"]*)"/g;
+      let content = "";
+      let tokenMatch;
+      while ((tokenMatch = tokenRegex.exec(textPart)) !== null) {
+        content += tokenMatch[1];
+      }
+      // If no tokens are found, fallback to the entire textPart.
+      if (!content) {
+        content = textPart;
+      }
+      console.log("Final content:", content);
+
+      // Use the newly parsed content to update state.
+      setRegenResponses((prev) => ({ ...prev, [messageId]: content }));
     } catch (error) {
       console.error("Error regenerating query:", error);
-      setIsLoading(false);
       setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+      setRegeneratingMessageId(null);
     }
   };
 
@@ -338,24 +386,27 @@ export default function Page() {
             behavior: "smooth",
           });
         }}
-        className="fixed bottom-5 right-4 z-50 rounded-full bg-[#292a29] p-2 text-white shadow-lg transition-all hover:bg-[#575757]"
+        className="fixed bottom-5 right-4 z-50 rounded-full bg-[#292a29] p-2 text-[#f7eee3] shadow-lg transition-all hover:bg-[#575757]"
         aria-label="Scroll to top or bottom"
       >
         <ArrowUp className={`h-5 w-5 transition-transform ${isAtTop ? "rotate-180" : ""}`} />
       </button>
+
+
       <div className="absolute right-4 top-4 z-10 flex gap-2">
         <button
           onClick={shareChat}
-          className="rounded-full bg-[#4544449d] px-4 py-2 text-sm text-white hover:bg-[#FF5E00] flex items-center gap-2"
+          className="rounded-full bg-[#292a29] p-3 text-sm text-[#f7eee3] hover:bg-[#575757]flex items-center justify-center gap-2"
         >
           <Share2 className="h-4 w-4" />
-          Share Chat
+           
         </button>
         <button
           onClick={handleClearHistory}
-          className="rounded-full bg-[#4544449d] px-4 py-2 text-sm text-white hover:bg-[#FF5E00]"
+          className="rounded-full bg-[#4544449d] p-3 text-sm text-white hover:bg-[#575757] flex items-center justify-center gap-2"
         >
-          Clear History
+           
+          <MessageCircleX className="h-4 w-4"/>
         </button>
       </div>
       <div className="relative mx-auto flex h-full w-full flex-col md:w-2/3">
@@ -409,18 +460,12 @@ export default function Page() {
                             rel="noopener noreferrer"
                           />
                         ),
-                        p: ({ node, ...props }) => (
-                          <p {...props} className="mb-3 break-words" />
-                        ),
-                        ul: ({ node, ...props }) => (
-                          <ul {...props} className="list-inside space-y-2" />
-                        ),
-                        li: ({ node, ...props }) => (
-                          <li {...props} className="break-words text-[#E8E8E6] opacity-80" />
-                        )
+                        p: ({ node, ...props }) => <p {...props} className="mb-3 break-words" />,
+                        ul: ({ node, ...props }) => <ul {...props} className="list-inside space-y-2" />,
+                        li: ({ node, ...props }) => <li {...props} className="break-words text-[#E8E8E6] opacity-80" />,
                       }}
                     >
-                      {m.content}
+                      {regenResponses[m.id] || m.content}
                     </ReactMarkdown>
 
                     {/* Action Buttons */}
@@ -450,9 +495,13 @@ export default function Page() {
                           <button
                             onClick={() => regenerateQuery(previousUserMessage, m.id)}
                             className="rtext-sm md:text-base"
+                            disabled={regeneratingMessageId === m.id || isLoading}
                           >
-
-                            <RotateCw className=" h-4 w-4" />
+                            {regeneratingMessageId === m.id ? (
+                              <ChatGPTLoadingAnimation />
+                            ) : (
+                              <RotateCw className=" h-4 w-4" />
+                            )}
                           </button>
 
 
@@ -597,7 +646,7 @@ export default function Page() {
                 <select
                   value={selectedModel}
                   onChange={(e) => setSelectedModel(e.target.value)}
-                  className="min-w-[120px] cursor-pointer bg-transparent text-sm text-[#f7eee3] focus:outline-none"
+                  className="max-w-[110px] cursor-pointer bg-transparent text-sm text-[#f7eee3] focus:outline-none"
                 >
                   <option value="llama3--70b--8192">Llama 3 70B</option>
                   <option value="llama-3.1-8b-instant">

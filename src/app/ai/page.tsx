@@ -4,7 +4,16 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { useChat } from "ai/react";
-import { Copy, Check, Globe, Play, Share2, ArrowUp, RotateCw ,MessageCircleX} from "lucide-react";
+import {
+  Copy,
+  Check,
+  Globe,
+  Play,
+  Share2,
+  ArrowUp,
+  RotateCw,
+  MessageCircleX,
+} from "lucide-react";
 
 function ChatGPTLoadingAnimation() {
   return (
@@ -61,8 +70,12 @@ export default function Page() {
   const [skipAutoScroll, setSkipAutoScroll] = useState(false);
 
   // REGENERATION STATES
-  const [regenResponses, setRegenResponses] = useState<Record<string, string>>({});
-  const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null>(null);
+  const [regenResponses, setRegenResponses] = useState<Record<string, string>>(
+    {},
+  );
+  const [regeneratingMessageId, setRegeneratingMessageId] = useState<
+    string | null
+  >(null);
 
   const [isAtTop, setIsAtTop] = useState(false); // Track if chat is at the top
 
@@ -101,10 +114,14 @@ export default function Page() {
       api: "/api/chat",
       body: {
         model: selectedModel,
-        format: selectedModel === "deepseek-r1-distill-llama-70b" ? {
-          systemPrompt: "don't show the thinking process. just provide the answer",
-          responseFormat: "structured"
-        } : undefined
+        format:
+          selectedModel === "deepseek-r1-distill-llama-70b"
+            ? {
+                systemPrompt:
+                  "don't show the thinking process. just provide the answer",
+                responseFormat: "structured",
+              }
+            : undefined,
       },
       id: chatId,
       initialMessages: initialMessages,
@@ -146,7 +163,7 @@ export default function Page() {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${Math.min(
         textareaRef.current.scrollHeight,
-        200
+        200,
       )}px`;
     }
   };
@@ -241,9 +258,9 @@ export default function Page() {
   const handleSearchYouTube = (query: string) => {
     window.open(
       `https://www.youtube.com/results?search_query=${encodeURIComponent(
-        query
+        query,
       )}`,
-      "_blank"
+      "_blank",
     );
   };
 
@@ -284,7 +301,7 @@ export default function Page() {
    */
   const regenerateQuery = async (query: string, messageId: string) => {
     setRegeneratingMessageId(messageId);
-    setSkipAutoScroll(true); // DON'T auto-scroll when regenerating!
+    setSkipAutoScroll(true);
     setIsLoading(true);
     setError(null);
     try {
@@ -296,65 +313,32 @@ export default function Page() {
           ...(selectedModel === "deepseek-r1-distill-llama-70b"
             ? {
                 format: {
-                  systemPrompt: "don't show the thinking process. just provide the answer",
+                  systemPrompt:
+                    "don't show the thinking process. just provide the answer",
                   responseFormat: "structured",
                 },
               }
             : {}),
-          messages: [
-            {
-              role: "user",
-              content: query,
-            },
-          ],
+          messages: [{ role: "user", content: query }],
         }),
       });
 
-      // Get the raw response text.
       const responseText = await response.text();
-      console.log("Raw response:", responseText);
+      
+      // Remove any leading/trailing whitespace and split
+      const parts = responseText.trim().split(/\s+/);
+      
+      // Reconstruct the response with Markdown-like formatting
+      const formattedResponse = parts
+        .map(part => part.replace(/^0:"?|"?$/, ''))
+        .filter(part => part.length > 0)
+        .join(' ')
+        // Add some basic Markdown formatting to make it look more structured
+        .replace(/^/, '# ')  // Add a header
+        .replace(/\.\s/g, '.\n\n')  // Add line breaks after periods
+        .replace(/(\w+:)\s/g, '## $1\n');  // Convert some phrases to subheaders
 
-      // Remove the "f:" prefix if it exists.
-      const cleanedText = responseText.startsWith("f:")
-        ? responseText.slice(2).trim()
-        : responseText;
-
-      // Extract the initial JSON part by finding the first closing brace.
-      const firstJSONEnd = cleanedText.indexOf("}") + 1;
-      let jsonPart = "";
-      let textPart = "";
-      if (firstJSONEnd > 0) {
-        jsonPart = cleanedText.substring(0, firstJSONEnd);
-        textPart = cleanedText.substring(firstJSONEnd).trim();
-      } else {
-        textPart = cleanedText;
-      }
-      console.log("Extracted JSON part:", jsonPart);
-      console.log("Extracted text part:", textPart);
-
-      // Optional: Parse the JSON part if you need to use fields like messageId.
-      try {
-        const parsedJSON = JSON.parse(jsonPart);
-        console.log("Parsed JSON:", parsedJSON);
-      } catch (e) {
-        console.warn("Could not parse JSON part", e);
-      }
-
-      // Use a regex to extract all tokens like 0:"...".
-      const tokenRegex = /\d+:"([^"]*)"/g;
-      let content = "";
-      let tokenMatch;
-      while ((tokenMatch = tokenRegex.exec(textPart)) !== null) {
-        content += tokenMatch[1];
-      }
-      // If no tokens are found, fallback to the entire textPart.
-      if (!content) {
-        content = textPart;
-      }
-      console.log("Final content:", content);
-
-      // Use the newly parsed content to update state.
-      setRegenResponses((prev) => ({ ...prev, [messageId]: content }));
+      setRegenResponses(prev => ({ ...prev, [messageId]: formattedResponse }));
     } catch (error) {
       console.error("Error regenerating query:", error);
       setError("An error occurred. Please try again.");
@@ -374,11 +358,11 @@ export default function Page() {
   useEffect(() => {
     const container = messagesEndRef.current;
     if (container) {
-      container.addEventListener('scroll', handleScroll);
+      container.addEventListener("scroll", handleScroll);
     }
     return () => {
       if (container) {
-        container.removeEventListener('scroll', handleScroll);
+        container.removeEventListener("scroll", handleScroll);
       }
     };
   }, []);
@@ -396,147 +380,255 @@ export default function Page() {
         className="fixed bottom-5 right-4 z-50 rounded-full bg-[#292a29] p-2 text-[#f7eee3] shadow-lg transition-all hover:bg-[#575757]"
         aria-label="Scroll to top or bottom"
       >
-        <ArrowUp className={`h-5 w-5 transition-transform ${isAtTop ? "rotate-180" : ""}`} />
+        <ArrowUp
+          className={`h-5 w-5 transition-transform ${isAtTop ? "rotate-180" : ""}`}
+        />
       </button>
-
 
       <div className="absolute right-4 top-4 z-10 flex gap-2">
         <button
           onClick={shareChat}
-          className="rounded-full bg-[#292a29] p-3 text-sm text-[#f7eee3] hover:bg-[#575757]flex items-center justify-center gap-2"
+          className="hover:bg-[#575757]flex items-center justify-center gap-2 rounded-full bg-[#292a29] p-3 text-sm text-[#f7eee3]"
         >
           <Share2 className="h-4 w-4" />
-           
         </button>
         <button
           onClick={handleClearHistory}
-          className="rounded-full bg-[#4544449d] p-3 text-sm text-white hover:bg-[#575757] flex items-center justify-center gap-2"
+          className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-sm text-white hover:bg-[#575757]"
         >
-           
-          <MessageCircleX className="h-4 w-4"/>
+          <MessageCircleX className="h-4 w-4" />
         </button>
       </div>
       <div className="relative mx-auto flex h-full w-full flex-col md:w-2/3">
         {/* Clear History and Share Buttons */}
 
-
         {/* Messages Container */}
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
           {/* eslint-disable-next-line react/no-unknown-property */}
           <style jsx global>{`
+            /* Fade In Animation */
             @keyframes fadeIn {
-              from { opacity: 0; }
-              to   { opacity: 1; }
+              from {
+                opacity: 0;
+                transform: translateY(8px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
             }
             .animate-fade-in {
-              animation: fadeIn 0.5s ease-in-out;
+              animation: fadeIn 0.4s ease-out forwards;
+            }
+
+            /* Text Replace Animation */
+            @keyframes textReplace {
+              0% {
+                opacity: 1;
+                transform: translateY(0);
+              }
+              20% {
+                opacity: 0;
+                transform: translateY(-8px);
+              }
+              40% {
+                opacity: 0;
+                transform: translateY(8px);
+              }
+              100% {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+            .textReplace {
+              animation: textReplace 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            /* Loading Text Gradient */
+            .loading-text {
+              background: linear-gradient(
+                90deg,
+                #666 0%,
+                #999 50%,
+                #666 100%
+              );
+              background-size: 200% auto;
+              animation: gradient 2s linear infinite;
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+            }
+
+            @keyframes gradient {
+              0% { background-position: 0% center; }
+              100% { background-position: -200% center; }
+            }
+
+            /* Loaded Text */
+            .loaded-text {
+              color: #E8E8E6;
+              transition: color 0.3s ease;
             }
           `}</style>
+
           {messages.map((m, index) => {
             // For assistant messages, pick the immediately preceding user query.
             const previousUserMessage =
               m.role === "assistant" &&
-                index > 0 &&
-                messages[index - 1]?.role === "user"
-                ? messages[index - 1]?.content ?? ""
+              index > 0 &&
+              messages[index - 1]?.role === "user"
+                ? (messages[index - 1]?.content ?? "")
                 : "";
-            return (
-              m.role === "user" ? (
-                <div
-                  key={m.id}
-                  className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="max-w-[85vw] p-2 text-[1.3em] tracking-tight text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2.2em]">
+            return m.role === "user" ? (
+              <div
+                key={m.id}
+                className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="max-w-[85vw] p-2 text-[1.3em] tracking-tight text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2.2em]">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
+                    components={{
+                      hr: ({ node, ...props }) => (
+                        <hr {...props} className="my-custom-hr-class" />
+                      ),
+                    }}
+                  >
+                    {m.content}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            ) : (
+              <div
+                key={m.id}
+                className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-4 md:text-[1.2rem]">
+                  <div
+                    key={`assistant-${m.id}-${regenResponses[m.id] ? "regen" : "original"}`}
+                    className={`${regenResponses[m.id] ? "textReplace" : "animate-fade-in"} transition-opacity duration-500`}
+                  >
                     <ReactMarkdown
+                      className="prose prose-invert max-w-none"
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeRaw]}
                       components={{
+                        h1: ({ node, ...props }) => (
+                          <h1 {...props} className="mb-4 text-2xl font-bold text-[#E8E8E6]" />
+                        ),
+                        h2: ({ node, ...props }) => (
+                          <h2 {...props} className="mb-3 text-xl font-semibold text-[#E8E8E6]" />
+                        ),
+                        h3: ({ node, ...props }) => (
+                          <h3 {...props} className="mb-2 text-lg font-medium text-[#E8E8E6]" />
+                        ),
+                        a: ({ node, ...props }) => (
+                          <a
+                            {...props}
+                            className="inline-block max-w-full overflow-hidden text-ellipsis text-[#684938] no-underline hover:text-[#ff7e33]"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          />
+                        ),
+                        p: ({ node, ...props }) => (
+                          <p {...props} className="mb-4 leading-relaxed text-[#E8E8E6] opacity-90" />
+                        ),
+                        ul: ({ node, ...props }) => (
+                          <ul {...props} className="mb-4 list-disc space-y-2 pl-6" />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol {...props} className="mb-4 list-decimal space-y-2 pl-6" />
+                        ),
+                        li: ({ node, ...props }) => (
+                          <li {...props} className="text-[#E8E8E6] opacity-80" />
+                        ),
+                        blockquote: ({ node, ...props }) => (
+                          <blockquote
+                            {...props}
+                            className="border-l-4 border-[#FF5E00] pl-4 italic text-[#E8E8E6] opacity-80"
+                          />
+                        ),
+                        code: ({ node, className, children, ...props }: { node?: any, className?: string, children?: React.ReactNode, inline?: boolean }) => {
+                          const match = /language-(\w+)/.exec(className || '');
+                          return props.inline ? (
+                            <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#454240]">
+                              {children}
+                            </code>
+                          ) : match ? (
+                            <div className="relative my-4 overflow-hidden rounded-lg bg-[#1a1a1a]">
+                              <pre className="overflow-x-auto p-4">
+                                <code {...props} className={className}>
+                                  {String(children).trim()}
+                                </code>
+                              </pre>
+                            </div>
+                          ) : (
+                            <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#FF5E00]">
+                              {children}
+                            </code>
+                          );
+                        },
                         hr: ({ node, ...props }) => (
-                          <hr {...props} className="my-custom-hr-class" />
-                        )
+                          <hr {...props} className="my-6 border-[#f7eee332]" />
+                        ),
                       }}
                     >
-
-                      {m.content}
+                      {regenResponses[m.id] || m.content}
                     </ReactMarkdown>
                   </div>
-                </div>
-              ) : (
-                <div
-                  key={m.id}
-                  className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-4 md:text-[1.2rem]">
-                    <div
-                      key={`assistant-${m.id}-${regenResponses[m.id] ? "regen" : "original"}`}
-                      className="animate-fade-in transition-opacity duration-500"
-                    >
-                      <ReactMarkdown
-                        className="prose prose-invert max-w-none"
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeRaw]}
-                        components={{
-                          a: ({ node, ...props }) => (
-                            <a
-                              {...props}
-                              className="inline-block max-w-full overflow-hidden text-ellipsis text-[#FF5E00] no-underline hover:text-[#ff7e33]"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            />
-                          ),
-                          p: ({ node, ...props }) => <p {...props} className="mb-3 break-words" />,
-                          ul: ({ node, ...props }) => <ul {...props} className="list-inside space-y-2" />,
-                          li: ({ node, ...props }) => (
-                            <li {...props} className="break-words text-[#E8E8E6] opacity-80" />
-                          ),
-                        }}
-                      >
-                        {regenResponses[m.id] || m.content}
-                      </ReactMarkdown>
-                    </div>
 
-                    {/* Action Buttons */}
-                    <div className="mb-14 flex flex-wrap gap-2">
+                  {/* Action Buttons */}
+                  <div className="mb-14 flex flex-wrap gap-2">
+                    <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
+                      <button
+                        onClick={handleSearchWeb}
+                        className="text-sm md:text-base"
+                      >
+                        <Globe className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
+                      <button
+                        onClick={() => handleSearchYouTube(lastQuery)}
+                        className="text-sm md:text-base"
+                      >
+                        <Play className="h-4 w-4" />
+                      </button>
+                    </div>
+                    {previousUserMessage && (
                       <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                        <button onClick={handleSearchWeb} className="text-sm md:text-base">
-                          <Globe className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                        <button onClick={() => handleSearchYouTube(lastQuery)} className="text-sm md:text-base">
-                          <Play className="h-4 w-4" />
-                        </button>
-                      </div>
-                      {previousUserMessage && (
-                        <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                          <button
-                            onClick={() => regenerateQuery(previousUserMessage, m.id)}
-                            className="rtext-sm md:text-base"
-                            disabled={regeneratingMessageId === m.id || isLoading}
-                          >
-                            {regeneratingMessageId === m.id ? (
-                              <ChatGPTLoadingAnimation />
-                            ) : (
-                              <RotateCw className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                        <button onClick={() => copyMessage(m.content, m.id)} className="rtext-sm md:text-base">
-                          {copiedMessageId === m.id ? (
-                            <Check className="h-4 w-4 text-[#48AAFF]" />
+                        <button
+                          onClick={() =>
+                            regenerateQuery(previousUserMessage, m.id)
+                          }
+                          className="rtext-sm md:text-base"
+                          disabled={regeneratingMessageId === m.id || isLoading}
+                        >
+                          {regeneratingMessageId === m.id ? (
+                            <ChatGPTLoadingAnimation />
                           ) : (
-                            <Copy className="h-4 w-4 text-[#f7eee3] hover:text-[#48AAFF]" />
+                            <RotateCw className="h-4 w-4" />
                           )}
                         </button>
                       </div>
+                    )}
+                    <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
+                      <button
+                        onClick={() => copyMessage(m.content, m.id)}
+                        className="rtext-sm md:text-base"
+                      >
+                        {copiedMessageId === m.id ? (
+                          <Check className="h-4 w-4 text-[#48AAFF]" />
+                        ) : (
+                          <Copy className="h-4 w-4 text-[#f7eee3] hover:text-[#48AAFF]" />
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
-              )
+              </div>
             );
           })}
 
@@ -621,7 +713,10 @@ export default function Page() {
                       <ul {...props} className="list-inside space-y-2" />
                     ),
                     li: ({ node, ...props }) => (
-                      <li {...props} className="break-words text-[#E8E8E6] opacity-80" />
+                      <li
+                        {...props}
+                        className="break-words text-[#E8E8E6] opacity-80"
+                      />
                     ),
                   }}
                 >
@@ -663,10 +758,10 @@ export default function Page() {
                     llama-3.1-8b-instant
                   </option>
                   <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
-                  <option value="llama-3.3-70b-specdec">
-                    llama-3.3-70b
+                  <option value="llama-3.3-70b-specdec">llama-3.3-70b</option>
+                  <option value="deepseek-r1-distill-llama-70b">
+                    deepseek-r1
                   </option>
-                  <option value="deepseek-r1-distill-llama-70b">deepseek-r1</option>
                 </select>
               </div>
             </div>

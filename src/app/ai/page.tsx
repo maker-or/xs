@@ -550,29 +550,29 @@ export default function Page() {
                             className="border-l-4 border-[#FF5E00] pl-4 italic text-[#E8E8E6] opacity-80"
                           />
                         ),
-                        code: ({ node, className, children, ...props }: { node?: any, className?: string, children?: React.ReactNode, inline?: boolean }) => {
-                          const match = /language-(\w+)/.exec(className || '');
-                          return props.inline ? (
-                            <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#454240]">
-                              {children}
-                            </code>
-                          ) : match ? (
-                            <div className="relative my-4 overflow-hidden rounded-lg bg-[#1a1a1a]">
-                              <pre className="overflow-x-auto p-4">
-                                <code {...props} className={className}>
-                                  {String(children).trim()}
-                                </code>
-                              </pre>
-                            </div>
-                          ) : (
-                            <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#FF5E00]">
-                              {children}
-                            </code>
-                          );
-                        },
-                        hr: ({ node, ...props }) => (
-                          <hr {...props} className="my-6 border-[#f7eee332]" />
-                        ),
+                        // code: ({ node, className, children, ...props }: { node?: any, className?: string, children?: React.ReactNode, inline?: boolean }) => {
+                        //   const match = /language-(\w+)/.exec(className || '');
+                        //   return props.inline ? (
+                        //     <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#454240]">
+                        //       {children}
+                        //     </code>
+                        //   ) : match ? (
+                        //     <div className="relative my-4 overflow-hidden rounded-lg bg-[#1a1a1a]">
+                        //       <pre className="overflow-x-auto p-4">
+                        //         <code {...props} className={className}>
+                        //           {String(children).trim()}
+                        //         </code>
+                        //       </pre>
+                        //     </div>
+                        //   ) : (
+                        //     <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#FF5E00]">
+                        //       {children}
+                        //     </code>
+                        //   );
+                        // },
+                        // hr: ({ node, ...props }) => (
+                        //   <hr {...props} className="my-6 border-[#f7eee332]" />
+                        // ),
                       }}
                     >
                       {regenResponses[m.id] || m.content}

@@ -43,7 +43,7 @@ export async function POST(req: Request): Promise<Response> {
     console.log('Query Embedding:', queryEmbedding);
 
     // Query Pinecone for relevant context
-    const index = pinecone.index('eem');
+    const index = pinecone.index('cd');
     const queryResponse = await index.namespace('').query({
       vector: queryEmbedding,
       topK: 5,

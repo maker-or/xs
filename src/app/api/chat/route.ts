@@ -1,6 +1,6 @@
 import { createOpenAI } from '@ai-sdk/openai';
 //import Groq from "groq-sdk"; // Ensure this package is installed
-import { streamText, smoothStream } from 'ai';
+import { streamText, smoothStream ,generateText} from 'ai';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { getEmbedding } from '~/utils/embeddings';
 import { type ConvertibleMessage } from '~/utils/types';
@@ -16,11 +16,9 @@ export async function POST(req: Request): Promise<Response> {
   try {
     console.log('Welcome to AI');
     
-    // Parse the request JSON once
     const body = await req.json() as RequestBody;
     const selectedModel = body.model || "llama3-70b-8192";
 
-    // Validate the request body
     if (!body.messages || body.messages.length === 0) {
       throw new Error('No messages provided');
     }
@@ -33,66 +31,74 @@ export async function POST(req: Request): Promise<Response> {
     const query = lastMessage.content;
     console.log('Query:', query);
 
-    // Initialize Pinecone
-    const pinecone = new Pinecone({
-      apiKey: process.env.PINECONE_API_KEY ?? '',
+    // First, let's ask the LLM to decide whether to use RAG or not
+    const groq = createOpenAI({
+      baseURL: 'https://api.groq.com/openai/v1',
+      apiKey: process.env.GROQ_API_KEY ?? '',
     });
 
-    // Get embeddings for the query
-    const queryEmbedding = await getEmbedding(query);
-    console.log('Query Embedding:', queryEmbedding);
+    const decisionPrompt = `
+      Analyze this query: "${query}"
+      Should I use RAG (retrieval from knowledge base) or answer from general knowledge?
+      If the query is related to studies, exams, or educational content, respond with "USE_RAG".
+      If it's a general conversation or question, respond with "USE_GENERAL".
+      Respond with only one of these two options.
+    `;
 
-    // Query Pinecone for relevant context
-    const index = pinecone.index('cd');
-    const queryResponse = await index.namespace('').query({
-      vector: queryEmbedding,
-      topK: 5,
-      includeMetadata: true,
+    const decision = await generateText({
+      model: groq(selectedModel),
+      prompt: decisionPrompt,
+      temperature: 0,
     });
 
-    console.log('Pinecone Query Response:', JSON.stringify(queryResponse, null, 2));
+    console.log("the descioni is",decision)
+    
+    const a = decision.text;
+    console.log("the a is",a)
+    const useRag = a.includes("USE_RAG");
+    console.log("the useRag is",useRag)
+    let finalPrompt = '';
 
-    // Validate Pinecone response
-    if (!queryResponse.matches || queryResponse.matches.length === 0) {
-      throw new Error('No relevant context found in Pinecone');
+    if (useRag) {
+      // Initialize Pinecone and perform RAG
+      const pinecone = new Pinecone({
+        apiKey: process.env.PINECONE_API_KEY ?? '',
+      });
+
+      const queryEmbedding = await getEmbedding(query);
+      const index = pinecone.index('cd');
+      const queryResponse = await index.namespace('').query({
+        vector: queryEmbedding,
+        topK: 5,
+        includeMetadata: true,
+      });
+
+      if (!queryResponse.matches || queryResponse.matches.length === 0) {
+        throw new Error('No relevant context found in Pinecone');
+      }
+
+      const context = queryResponse.matches
+        .map((match) => `Book: ${String(match.metadata?.book ?? 'Unknown')}\nPage: ${String(match.metadata?.page_number ?? 'Unknown')}\nText: ${String(match.metadata?.text ?? '')}`)
+        .join('\n\n');
+
+      finalPrompt = `
+        Context: ${context}
+        Question: ${query}
+        Please provide a comprehensive and detailed answer based on the provided context and cite the book name at the end of the response.
+      `;
+    } else {
+      // Use general knowledge
+      finalPrompt = `
+        Question: ${query}
+        keep the response friendly tone and short.`;
     }
-
-    // Construct context from Pinecone results
-    const context = queryResponse.matches
-      .map((match) => `Book: ${String(match.metadata?.book ?? 'Unknown')}\nPage: ${String(match.metadata?.page_number ?? 'Unknown')}\nText: ${String(match.metadata?.text ?? '')}`)
-      .join('\n\n');
-
-    console.log('Context:', context);
-
-    // Construct the final prompt for Groq
-    const finalPrompt = `
-Context: ${context}
-Question: ${query}
-Please provide a comprehensive and detailed answer to the user's query and cite the book name at the end of the response.
-`;
-
-    console.log('Final Prompt:', finalPrompt);
-
-    //const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    // const groq = createGroq({
-    //   baseURL: 'https://api.groq.com/openai/v1',
-    //   GROQ_API_KEY: process.env.GROQ_API_KEY
-
-    // });
-
-
-const groq = createOpenAI({
-  baseURL: 'https://api.groq.com/openai/v1',
-  apiKey: process.env.GROQ_API_KEY ?? '',
-});
-
 
     // Generate the response using Groq
     try {
       const result = streamText({
-        model: groq(selectedModel), // Use the selectedModel variable
+        model: groq(selectedModel),
         system: `
-          You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams. Your task is to answer questions based on the provided context.answer answer genral questions from your own intelligence like {hi,hello,i love you} . Follow these guidelines:
+          You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams. Your task is to answer questions based on the provided context . Follow these guidelines:
       
           1. **Role**: Act as a knowledgeable and helpful assistant don't show the thinking process. just provide the answer.
           2. **Task**: Answer user questions indetail and explain it clearly answer each question for 15 marks .
@@ -125,7 +131,7 @@ const groq = createOpenAI({
           Your goal is to ensure the user receives accurate, well-structured, and helpful answers.
         `,
         prompt: finalPrompt,
-        experimental_transform: smoothStream(),
+        // experimental_transform: smoothStream(),
       });
       
       return result.toDataStreamResponse({});

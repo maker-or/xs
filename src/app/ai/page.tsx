@@ -15,6 +15,19 @@ import {
   MessageCircleX,
 } from "lucide-react";
 
+import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu"
+import { Button } from "~/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu"
+
+
+
 function ChatGPTLoadingAnimation() {
   return (
     <div className="flex items-start justify-start">
@@ -49,6 +62,8 @@ interface Message {
   content: string;
 }
 
+type Checked = DropdownMenuCheckboxItemProps["checked"]
+
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [isWebSearchLoading, setIsWebSearchLoading] = useState(false);
@@ -78,6 +93,12 @@ export default function Page() {
   >(null);
 
   const [isAtTop, setIsAtTop] = useState(false); // Track if chat is at the top
+
+
+  //schacn ui
+  const [showStatusBar, setShowStatusBar] = React.useState<Checked>(true)
+  const [showActivityBar, setShowActivityBar] = React.useState<Checked>(false)
+  const [showPanel, setShowPanel] = React.useState<Checked>(false)
 
   // Load stored chat ID and messages on component mount
   useEffect(() => {
@@ -117,10 +138,10 @@ export default function Page() {
         format:
           selectedModel === "deepseek-r1-distill-llama-70b"
             ? {
-                systemPrompt:
-                  "don't show the thinking process. just provide the answer",
-                responseFormat: "structured",
-              }
+              systemPrompt:
+                "don't show the thinking process. just provide the answer",
+              responseFormat: "structured",
+            }
             : undefined,
       },
       id: chatId,
@@ -312,33 +333,20 @@ export default function Page() {
           model: selectedModel,
           ...(selectedModel === "deepseek-r1-distill-llama-70b"
             ? {
-                format: {
-                  systemPrompt:
-                    "don't show the thinking process. just provide the answer",
-                  responseFormat: "structured",
-                },
-              }
+              format: {
+                systemPrompt:
+                  "don't show the thinking process. just provide the answer",
+                responseFormat: "structured",
+              },
+            }
             : {}),
           messages: [{ role: "user", content: query }],
         }),
       });
 
       const responseText = await response.text();
-      
-      // Remove any leading/trailing whitespace and split
-      const parts = responseText.trim().split(/\s+/);
-      
-      // Reconstruct the response with Markdown-like formatting
-      const formattedResponse = parts
-        .map(part => part.replace(/^0:"?|"?$/, ''))
-        .filter(part => part.length > 0)
-        .join(' ')
-        // Add some basic Markdown formatting to make it look more structured
-        .replace(/^/, '# ')  // Add a header
-        .replace(/\.\s/g, '.\n\n')  // Add line breaks after periods
-        .replace(/(\w+:)\s/g, '## $1\n');  // Convert some phrases to subheaders
 
-      setRegenResponses(prev => ({ ...prev, [messageId]: formattedResponse }));
+      setRegenResponses(prev => ({ ...prev, [messageId]: responseText }));
     } catch (error) {
       console.error("Error regenerating query:", error);
       setError("An error occurred. Please try again.");
@@ -367,6 +375,17 @@ export default function Page() {
     };
   }, []);
 
+  const processContent = (content: string) => {
+    // Replace <think> tags with a styled div
+    return content.replace(/<think>(.*?)<\/think>/gs, (_, content) => 
+      `<details class="think-container" style="background: #1a1a1a; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
+     <summary>Thinking proccess</summary>
+        <span style="color: #FF5E00; font-weight: bold;">Thinking:</span>
+        <div style="margin-top: 0.5rem;">${content}</div>
+      </details>`
+    );
+  };
+
   return (
     <main className="">
       {/* Add this button before the closing main tag */}
@@ -394,7 +413,7 @@ export default function Page() {
         </button>
         <button
           onClick={handleClearHistory}
-          className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-sm text-white hover:bg-[#575757]"
+          className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
         >
           <MessageCircleX className="h-4 w-4" />
         </button>
@@ -475,8 +494,8 @@ export default function Page() {
             // For assistant messages, pick the immediately preceding user query.
             const previousUserMessage =
               m.role === "assistant" &&
-              index > 0 &&
-              messages[index - 1]?.role === "user"
+                index > 0 &&
+                messages[index - 1]?.role === "user"
                 ? (messages[index - 1]?.content ?? "")
                 : "";
             return m.role === "user" ? (
@@ -550,32 +569,32 @@ export default function Page() {
                             className="border-l-4 border-[#FF5E00] pl-4 italic text-[#E8E8E6] opacity-80"
                           />
                         ),
-                        // code: ({ node, className, children, ...props }: { node?: any, className?: string, children?: React.ReactNode, inline?: boolean }) => {
-                        //   const match = /language-(\w+)/.exec(className || '');
-                        //   return props.inline ? (
-                        //     <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#454240]">
-                        //       {children}
-                        //     </code>
-                        //   ) : match ? (
-                        //     <div className="relative my-4 overflow-hidden rounded-lg bg-[#1a1a1a]">
-                        //       <pre className="overflow-x-auto p-4">
-                        //         <code {...props} className={className}>
-                        //           {String(children).trim()}
-                        //         </code>
-                        //       </pre>
-                        //     </div>
-                        //   ) : (
-                        //     <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#FF5E00]">
-                        //       {children}
-                        //     </code>
-                        //   );
-                        // },
-                        // hr: ({ node, ...props }) => (
-                        //   <hr {...props} className="my-6 border-[#f7eee332]" />
-                        // ),
+                        code: ({ node, className, children, ...props }: { node?: unknown, className?: string, children?: React.ReactNode, inline?: boolean }) => {
+                          const match = /language-(\w+)/.exec(className || '');
+                          return props.inline ? (
+                            <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#454240]">
+                              {children}
+                            </code>
+                          ) : match ? (
+                            <div className="relative my-4 overflow-hidden rounded-lg bg-[#1a1a1a]">
+                              <pre className="overflow-x-auto p-4">
+                                <code {...props} className={className}>
+                                  {String(children).trim()}
+                                </code>
+                              </pre>
+                            </div>
+                          ) : (
+                            <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#FF5E00]">
+                              {children}
+                            </code>
+                          );
+                        },
+                        hr: ({ node, ...props }) => (
+                          <hr {...props} className="my-6 border-[#f7eee332]" />
+                        ),
                       }}
                     >
-                      {regenResponses[m.id] || m.content}
+                      {processContent(regenResponses[m.id] || m.content)}
                     </ReactMarkdown>
                   </div>
 
@@ -748,6 +767,7 @@ export default function Page() {
                   onKeyDown={handleKeyDown}
                   className="max-h-[120px] min-h-[48px] flex-1 resize-none bg-transparent px-4 py-3 text-sm text-[#f7eee3] outline-none transition-all duration-200 placeholder:text-[#f7eee380] md:text-base"
                 />
+
                 <select
                   value={selectedModel}
                   onChange={(e) => setSelectedModel(e.target.value)}
@@ -763,7 +783,9 @@ export default function Page() {
                     deepseek-r1
                   </option>
                 </select>
+
               </div>
+
             </div>
 
             {input.length > 0 && (

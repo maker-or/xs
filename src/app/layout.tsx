@@ -13,6 +13,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { Monitoring } from "react-scan/monitoring/next";
 import Head from "next/head";
+import First from "~/components/ui/First";
+import Para from "~/components/ui/Para";
+import Header from "~/components/ui/Header";
 
 export const metadata: Metadata = {
   title: "Sphere",
@@ -35,8 +38,11 @@ export default function RootLayout({
             {/* Move the Script component here */}
 
             <SignedOut>
-              <div className="scroll-behavior: auto; flex h-screen w-screen flex-col items-center justify-center bg-[#b1b1b1]">
-                <SignIn routing="hash" />
+              <div className=" h-[100svh] w-[100svw] text-red-700 flex-col items-center justify-center ">
+              <Header />
+                <First />
+                <Para />
+                {/* <SignIn routing="hash"  /> */}
               </div>
             </SignedOut>
 

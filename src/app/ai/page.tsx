@@ -80,20 +80,13 @@ export default function Page() {
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
 
   // NEW: State to control auto scroll behavior.
-  // When skipAutoScroll is true (for example, during regeneration)
-  // the chat will not scroll to the bottom automatically.
   const [skipAutoScroll, setSkipAutoScroll] = useState(false);
 
-  // REGENERATION STATES
-  const [regenResponses, setRegenResponses] = useState<Record<string, string>>(
-    {},
-  );
-  const [regeneratingMessageId, setRegeneratingMessageId] = useState<
-    string | null
-  >(null);
-
-  const [isAtTop, setIsAtTop] = useState(false); // Track if chat is at the top
-
+  // NEW REGENERATION STATES:
+  // Instead of doing our own manual fetch-and-stream,
+  // we now mark when a regeneration is in progress and which assistant message we wish to replace.
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [regenForMessageId, setRegenForMessageId] = useState<string | null>(null);
 
   //schacn ui
   const [showStatusBar, setShowStatusBar] = React.useState<Checked>(true)
@@ -115,21 +108,10 @@ export default function Page() {
       }
     }
   }, []);
-  // //*********************************** */
-  // const ScrollButton = () => {
-  //   const [isAtTop, setIsAtTop] = useState(true);
 
-  //   useEffect(() => {
-  //     const handleScroll = () => {
-  //       setIsAtTop(window.scrollY < 100); // Adjust threshold as needed
-  //     };
-
-  //     window.addEventListener("scroll", handleScroll);
-  //     return () => window.removeEventListener("scroll", handleScroll);
-  //   }, []);
-  // }
-  //*********************************** */
-  // Use the useChat hook with initialMessages and chatId
+  // Use the useChat hook with initialMessages and chatId.
+  // Notice we adjust the onResponse callback: if we're in regeneration mode,
+  // we clear our "regenerating" flags (so that our UI returns to normal).
   const { messages, input, handleInputChange, handleSubmit, setInput } =
     useChat({
       api: "/api/chat",
@@ -138,10 +120,10 @@ export default function Page() {
         format:
           selectedModel === "deepseek-r1-distill-llama-70b"
             ? {
-              systemPrompt:
-                "don't show the thinking process. just provide the answer",
-              responseFormat: "structured",
-            }
+                systemPrompt:
+                  "don't show the thinking process. just provide the answer",
+                responseFormat: "structured",
+              }
             : undefined,
       },
       id: chatId,
@@ -150,6 +132,10 @@ export default function Page() {
         setIsLoading(false);
         resetInputField();
         setError(null);
+        if (isRegenerating) {
+          setIsRegenerating(false);
+          setRegenForMessageId(null);
+        }
       },
       onError: (error) => {
         console.error("Error:", error);
@@ -172,7 +158,6 @@ export default function Page() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Modified useEffect – it only scrolls when skipAutoScroll is false.
   useEffect(() => {
     if (!skipAutoScroll) {
       scrollToBottom();
@@ -285,14 +270,12 @@ export default function Page() {
     );
   };
 
-  // Handler to clear chat history and chat ID both in state and localStorage.
   const handleClearHistory = () => {
     localStorage.removeItem("chatMessages");
     localStorage.removeItem("chatId");
     window.location.reload();
   };
 
-  // Share the chat via API and copy the shareable URL to clipboard.
   const shareChat = async () => {
     try {
       const response = await fetch("/api/shared", {
@@ -315,71 +298,32 @@ export default function Page() {
   };
 
   /**
-   * The regenerateQuery function removes the assistant message
-   * corresponding to the provided user query (if any) from the local
-   * messages (via initialMessages) so that the new response will render
-   * in its place.
+   * Modified regenerateQuery.
+   *
+   * Instead of manually calling fetch and processing the stream,
+   * we now use the useChat hook's streaming mechanism.
+   * We mark that a regeneration is happening (with the messageId of the original answer),
+   * set the input field to the query, and programmatically invoke handleSubmit.
    */
-  const regenerateQuery = async (query: string, messageId: string) => {
-    setRegeneratingMessageId(messageId);
+  const regenerateQuery = (query: string, messageId: string) => {
+    setRegenForMessageId(messageId);
+    setIsRegenerating(true);
     setSkipAutoScroll(true);
     setIsLoading(true);
     setError(null);
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: selectedModel,
-          ...(selectedModel === "deepseek-r1-distill-llama-70b"
-            ? {
-              format: {
-                systemPrompt:
-                  "don't show the thinking process. just provide the answer",
-                responseFormat: "structured",
-              },
-            }
-            : {}),
-          messages: [{ role: "user", content: query }],
-        }),
-      });
 
-      const responseText = await response.text();
+    setInput(query);
 
-      setRegenResponses(prev => ({ ...prev, [messageId]: responseText }));
-    } catch (error) {
-      console.error("Error regenerating query:", error);
-      setError("An error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-      setRegeneratingMessageId(null);
-    }
+    // Call handleSubmit via a synthetic event in order to reuse the streaming logic.
+    setTimeout(() => {
+      handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+    }, 0);
   };
-
-  const handleScroll = () => {
-    if (messagesEndRef.current) {
-      const { scrollTop, clientHeight, scrollHeight } = messagesEndRef.current;
-      setIsAtTop(scrollTop === 0); // Update state based on scroll position
-    }
-  };
-
-  useEffect(() => {
-    const container = messagesEndRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll);
-    }
-    return () => {
-      if (container) {
-        container.removeEventListener("scroll", handleScroll);
-      }
-    };
-  }, []);
 
   const processContent = (content: string) => {
-    // Replace <think> tags with a styled div
     return content.replace(/<think>(.*?)<\/think>/gs, (_, content) => 
       `<details class="think-container" style="background: #1a1a1a; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
-     <summary>Thinking proccess</summary>
+        <summary>Thinking proccess</summary>
         <span style="color: #FF5E00; font-weight: bold;">Thinking:</span>
         <div style="margin-top: 0.5rem;">${content}</div>
       </details>`
@@ -388,22 +332,6 @@ export default function Page() {
 
   return (
     <main className="">
-      {/* Add this button before the closing main tag */}
-      <button
-        onClick={() => {
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-          });
-        }}
-        className="fixed bottom-5 right-4 z-50 rounded-full bg-[#292a29] p-2 text-[#f7eee3] shadow-lg transition-all hover:bg-[#575757]"
-        aria-label="Scroll to top or bottom"
-      >
-        <ArrowUp
-          className={`h-5 w-5 transition-transform ${isAtTop ? "rotate-180" : ""}`}
-        />
-      </button>
-
       <div className="absolute right-4 top-4 z-10 flex gap-2">
         <button
           onClick={shareChat}
@@ -419,71 +347,37 @@ export default function Page() {
         </button>
       </div>
       <div className="relative mx-auto flex h-full w-full flex-col md:w-2/3">
-        {/* Clear History and Share Buttons */}
-
-        {/* Messages Container */}
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
-          {/* eslint-disable-next-line react/no-unknown-property */}
+          {/* Global Styles for Animations */}
           <style jsx global>{`
-            /* Fade In Animation */
             @keyframes fadeIn {
-              from {
-                opacity: 0;
-                transform: translateY(8px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
+              from { opacity: 0; transform: translateY(8px); }
+              to { opacity: 1; transform: translateY(0); }
             }
             .animate-fade-in {
               animation: fadeIn 0.4s ease-out forwards;
             }
-
-            /* Text Replace Animation */
             @keyframes textReplace {
-              0% {
-                opacity: 1;
-                transform: translateY(0);
-              }
-              20% {
-                opacity: 0;
-                transform: translateY(-8px);
-              }
-              40% {
-                opacity: 0;
-                transform: translateY(8px);
-              }
-              100% {
-                opacity: 1;
-                transform: translateY(0);
-              }
+              0% { opacity: 1; transform: translateY(0); }
+              20% { opacity: 0; transform: translateY(-8px); }
+              40% { opacity: 0; transform: translateY(8px); }
+              100% { opacity: 1; transform: translateY(0); }
             }
             .textReplace {
               animation: textReplace 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             }
-
-            /* Loading Text Gradient */
             .loading-text {
-              background: linear-gradient(
-                90deg,
-                #666 0%,
-                #999 50%,
-                #666 100%
-              );
+              background: linear-gradient(90deg, #666 0%, #999 50%, #666 100%);
               background-size: 200% auto;
               animation: gradient 2s linear infinite;
               -webkit-background-clip: text;
               -webkit-text-fill-color: transparent;
               background-clip: text;
             }
-
             @keyframes gradient {
               0% { background-position: 0% center; }
               100% { background-position: -200% center; }
             }
-
-            /* Loaded Text */
             .loaded-text {
               color: #E8E8E6;
               transition: color 0.3s ease;
@@ -491,11 +385,11 @@ export default function Page() {
           `}</style>
 
           {messages.map((m, index) => {
-            // For assistant messages, pick the immediately preceding user query.
+            // For assistant messages, pick the immediate preceding user query.
             const previousUserMessage =
               m.role === "assistant" &&
-                index > 0 &&
-                messages[index - 1]?.role === "user"
+              index > 0 &&
+              messages[index - 1]?.role === "user"
                 ? (messages[index - 1]?.content ?? "")
                 : "";
             return m.role === "user" ? (
@@ -522,12 +416,10 @@ export default function Page() {
               <div
                 key={m.id}
                 className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
-                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-4 md:text-[1.2rem]">
                   <div
-                    key={`assistant-${m.id}-${regenResponses[m.id] ? "regen" : "original"}`}
-                    className={`${regenResponses[m.id] ? "textReplace" : "animate-fade-in"} transition-opacity duration-500`}
+                    className={`${"animate-fade-in"} transition-opacity duration-500`}
                   >
                     <ReactMarkdown
                       className="prose prose-invert max-w-none"
@@ -569,9 +461,9 @@ export default function Page() {
                             className="border-l-4 border-[#FF5E00] pl-4 italic text-[#E8E8E6] opacity-80"
                           />
                         ),
-                        code: ({ node, className, children, ...props }: { node?: unknown, className?: string, children?: React.ReactNode, inline?: boolean }) => {
+                        code: ({ node, className, children, ...props }) => {
                           const match = /language-(\w+)/.exec(className || '');
-                          return props.inline ? (
+                          return props.about ? (
                             <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#454240]">
                               {children}
                             </code>
@@ -594,7 +486,7 @@ export default function Page() {
                         ),
                       }}
                     >
-                      {processContent(regenResponses[m.id] || m.content)}
+                      {processContent(m.content)}
                     </ReactMarkdown>
                   </div>
 
@@ -622,10 +514,10 @@ export default function Page() {
                           onClick={() =>
                             regenerateQuery(previousUserMessage, m.id)
                           }
-                          className="rtext-sm md:text-base"
-                          disabled={regeneratingMessageId === m.id || isLoading}
+                          className="text-sm md:text-base"
+                          disabled={regenForMessageId === m.id || isLoading}
                         >
-                          {regeneratingMessageId === m.id ? (
+                          {regenForMessageId === m.id ? (
                             <ChatGPTLoadingAnimation />
                           ) : (
                             <RotateCw className="h-4 w-4" />
@@ -636,7 +528,7 @@ export default function Page() {
                     <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
                       <button
                         onClick={() => copyMessage(m.content, m.id)}
-                        className="rtext-sm md:text-base"
+                        className="text-sm md:text-base"
                       >
                         {copiedMessageId === m.id ? (
                           <Check className="h-4 w-4 text-[#48AAFF]" />
@@ -651,7 +543,6 @@ export default function Page() {
             );
           })}
 
-          {/* Loading Animation for Assistant Response */}
           {isLoading &&
             (messages.length === 0 ||
               messages[messages.length - 1]?.role === "user") && (
@@ -667,7 +558,6 @@ export default function Page() {
               </div>
             )}
 
-          {/* Loading Animation for Web Search */}
           {isWebSearchLoading && (
             <div className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
               <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
@@ -681,7 +571,6 @@ export default function Page() {
             </div>
           )}
 
-          {/* Search Results Section */}
           {searchResults && (
             <div className="mx-3 overflow-x-hidden rounded-xl border border-[#f7eee332] bg-gradient-to-r from-[#1a1a1a] to-[#252525] p-4 shadow-lg md:mx-0">
               <div className="mb-4 flex items-center justify-between">
@@ -748,8 +637,7 @@ export default function Page() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4 m-2">
           <form
             onSubmit={onSubmit}
             className="mx-auto w-full max-w-2xl px-3 md:px-0"

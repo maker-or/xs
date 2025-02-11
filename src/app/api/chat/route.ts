@@ -65,8 +65,26 @@ export async function POST(req: Request): Promise<Response> {
         apiKey: process.env.PINECONE_API_KEY ?? '',
       });
 
+
+      const sub = `
+You are a query classifier. Your task is to categorize a given query into one of the following subjects and return only the corresponding subject tag. Do not include any other text in your response.
+
+The possible subject categories and their tags are:
+
+*   Compiler Design: cd
+*   Data Analysis and Algorithms: daa
+*   Data Communication and Networking/CRYPTOGRAPHY AND NETWORK SECURITY: ol
+*   Engineering Economics and Management: eem
+
+Analyze the following query: "${query}" and return the appropriate tag.
+    `;
+      const i = await generateText({
+        model: groq(selectedModel),
+        prompt: sub,
+        temperature: 0,
+      });
       const queryEmbedding = await getEmbedding(query);
-      const index = pinecone.index('cd');
+      const index = pinecone.index(i.text);
       const queryResponse = await index.namespace('').query({
         vector: queryEmbedding,
         topK: 5,
@@ -131,10 +149,10 @@ export async function POST(req: Request): Promise<Response> {
           Your goal is to ensure the user receives accurate, well-structured, and helpful answers.
         `,
         prompt: finalPrompt,
-        // experimental_transform: smoothStream(),
+    //    experimental_transform: smoothStream(),
       });
-      
-      return result.toDataStreamResponse({});
+
+      return result.toDataStreamResponse();
     } catch (error) {
       console.error('Error during streamText:', error);
       return new Response(

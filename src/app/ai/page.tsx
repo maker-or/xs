@@ -661,14 +661,17 @@ export default function Page() {
                   onChange={(e) => setSelectedModel(e.target.value)}
                   className="max-w-[110px] cursor-pointer bg-transparent text-sm text-[#f7eee3] focus:outline-none"
                 >
-                  <option value="llama3--70b--8192">Llama 3 70B</option>
+                  <option value="llama3--70b--8192">Llama 3</option>
                   <option value="llama-3.1-8b-instant">
-                    llama-3.1-8b-instant
+                    llama-3.1
                   </option>
                   <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
-                  <option value="llama-3.3-70b-specdec">llama-3.3-70b</option>
+                  <option value="llama-3.3-70b-specdec">llama-3.3</option>
                   <option value="deepseek-r1-distill-llama-70b">
                     deepseek-r1
+                  </option>
+                  <option value="qwen-2.5">
+                  qwen-2.5-32b
                   </option>
                 </select>
 

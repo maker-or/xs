@@ -46,7 +46,7 @@ export async function POST(req: Request): Promise<Response> {
     `;
 
     const decision = await generateText({
-      model: groq(selectedModel),
+      model: groq('llama-3.3-70b-versatile'),
       prompt: decisionPrompt,
       temperature: 0,
     });
@@ -78,11 +78,15 @@ The possible subject categories and their tags are:
 
 Analyze the following query: "${query}" and return the appropriate tag.
     `;
+
+    //console.log("the sub is",sub)
       const i = await generateText({
-        model: groq(selectedModel),
+        model: groq('llama-3.3-70b-versatile'),
         prompt: sub,
         temperature: 0,
       });
+
+      console.log("the i is",i)
       const queryEmbedding = await getEmbedding(query);
       const index = pinecone.index(i.text);
       const queryResponse = await index.namespace('').query({

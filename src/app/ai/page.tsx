@@ -364,7 +364,7 @@ export default function Page() {
   }
 
   return (
-    <main className="">
+    <main className={`${showWhiteboard ? 'pr-[33.333%]' : ''} transition-all duration-300`}>
       <div className="absolute right-4 top-4 z-10 flex gap-2">
         <button
           onClick={shareChat}
@@ -387,7 +387,7 @@ export default function Page() {
           canvas
         </button>
       </div>
-      <div className="relative mx-auto flex h-full w-full flex-col md:w-2/3">
+      <div className={`relative mx-auto flex h-full w-full flex-col ${showWhiteboard ? 'md:w-full' : 'md:w-2/3'}`}>
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
           {/* Global Styles for Animations */}
           <style>{`
@@ -588,10 +588,10 @@ export default function Page() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4 m-2">
+        <div className={`fixed bottom-0 ${showWhiteboard ? 'right-[33.333%]' : 'right-0'} left-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4 m-2 transition-all duration-300`}>
           <form
             onSubmit={onSubmit}
-            className="mx-auto w-full max-w-2xl px-3 md:px-0"
+            className={`mx-auto w-full ${showWhiteboard ? 'max-w-full px-4' : 'max-w-2xl px-3 md:px-0'}`}
           >
             <div className="group flex w-full items-center rounded-2xl border border-[#f7eee332] bg-gradient-to-r from-[#1a1a1a] to-[#1f1f1f] p-2.5 shadow-lg backdrop-blur-sm transition-all duration-300">
               <div className="flex flex-1 items-center overflow-hidden rounded-xl border border-transparent bg-[#2a2a2a] p-2 transition-all duration-300 group-hover:border-[#f7eee332]">
@@ -648,10 +648,12 @@ export default function Page() {
             )}
           </form>
         </div>
-        {showWhiteboard && (
+      </div>
+
+      {showWhiteboard && (
         <div
           ref={whiteboardRef}
-          className="fixed right-0 top-0 z-20 h-[100svh] w-full md:w-1/3 bg-white svg"
+          className="fixed right-0 top-0 z-20 h-[100svh] w-full border-l border-[#f7eee332] md:w-1/3 bg-[#1a1a1a]"
           style={{ touchAction: "none" }}
         >
           <Tldraw
@@ -672,8 +674,6 @@ export default function Page() {
           </button>
         </div>
       )}
-
-      </div>
     </main>
   );
 }

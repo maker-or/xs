@@ -11,47 +11,68 @@ import {
   Play,
   Share2,
   ArrowUp,
+  Paintbrush,
   RotateCw,
   MessageCircleX,
 } from "lucide-react";
 
 import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu"
-import { Button } from "~/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu"
+
+import { Editor, Tldraw, TLUiComponents, useEditor } from "tldraw";
+import "tldraw/tldraw.css";
+
+
+import styles from "~/app/chat.module.css"; 
+
+function ExportCanvasButton() {
+  const editor = useEditor();
+
+  return (
+    <button
+      className="absolute top-10 left-0 z-30 flex items-center justify-center gap-2 
+                 rounded-br-xl bg-[#1A1A1C] p-3 text-sm text-[#f7eee3] 
+                 hover:bg-[#575757]"
+      style={{ pointerEvents: 'all' }}
+      onClick={async () => {
+        if (!editor) return;
+
+        const shapeIds = editor.getCurrentPageShapeIds();
+        if (shapeIds.size === 0) return alert('No shapes on the canvas');
+
+        const { blob } = await editor.toImage([...shapeIds], {
+          background: true,
+          scale: 1,
+          quality: 1,
+          format: 'svg',
+        });
+
+        const link = document.createElement('a')
+				link.href = URL.createObjectURL(blob)
+				link.download = 'every-shape-on-the-canvas.jpg'
+				link.click()
+				URL.revokeObjectURL(link.href)
+      }}
+    >
+      Export Canvas
+    </button>
+  );
+}
+const components: TLUiComponents = {
+  SharePanel: ExportCanvasButton,
+};
 
 
 
 function ChatGPTLoadingAnimation() {
   return (
     <div className="flex items-start justify-start">
-      <span className="dot animate-dot h-1 w-1 rounded-full bg-[#f7eee3]" />
-      <span className="dot animate-dot h-1 w-1 rounded-full bg-[#f7eee3] delay-200" />
-      <span className="dot animate-dot delay-400 h-1 w-1 rounded-full bg-[#f7eee3]" />
-      <style>
-        {`
-          @keyframes dotFlashing {
-            0% { opacity: 0.2; }
-            50% { opacity: 1; }
-            100% { opacity: 0.2; }
-          }
-          .animate-dot {
-            animation: dotFlashing 1.4s infinite linear;
-          }
-          .delay-200 {
-            animation-delay: 0.2s;
-          }
-          .delay-400 {
-            animation-delay: 0.4s;
-          }
-        `}
-      </style>
+      <span className={`dot ${styles.animateDot} h-1 w-1 rounded-full bg-[#f7eee3]`} />
+      <span
+        className={`dot ${styles.animateDot} h-1 w-1 rounded-full bg-[#f7eee3] ${styles.delay200}`}
+      />
+      <span
+        className={`dot ${styles.animateDot} ${styles.delay400} h-1 w-1 rounded-full bg-[#f7eee3]`}
+      />
     </div>
   );
 }
@@ -73,6 +94,13 @@ export default function Page() {
   const [selectedModel, setSelectedModel] = useState<string>("llama3-70b-8192");
   const [error, setError] = useState<string | null>(null);
   const [searchLinks, setSearchLinks] = useState<string[]>([]);
+
+
+
+  const [showWhiteboard, setShowWhiteboard] = useState(false);
+  const [whiteboardData, setWhiteboardData] = useState<string | null>(null);
+  const whiteboardRef = useRef<HTMLDivElement>(null);
+  const tldrawEditor = useRef<Editor | null>(null);
 
   // We'll manage messages locally so we can update (delete) an assistant
   // message when regenerating a query.
@@ -330,6 +358,11 @@ export default function Page() {
     );
   };
 
+  function sanitizeContent(content: string): string {
+    // Remove any <string> tags, if present
+    return content.replace(/<\/?string>/g, "");
+  }
+
   return (
     <main className="">
       <div className="absolute right-4 top-4 z-10 flex gap-2">
@@ -344,6 +377,14 @@ export default function Page() {
           className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
         >
           <MessageCircleX className="h-4 w-4" />
+         
+        </button>
+        <button
+          onClick={() => setShowWhiteboard(true)}
+          className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
+        >
+          <Paintbrush className="h-4 w-4" />
+          canvas
         </button>
       </div>
       <div className="relative mx-auto flex h-full w-full flex-col md:w-2/3">
@@ -401,12 +442,6 @@ export default function Page() {
                 <div className="max-w-[85vw] p-2 text-[1.3em] tracking-tight text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2.2em]">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                    components={{
-                      hr: ({ node, ...props }) => (
-                        <hr {...props} className="my-custom-hr-class" />
-                      ),
-                    }}
                   >
                     {m.content}
                   </ReactMarkdown>
@@ -424,69 +459,8 @@ export default function Page() {
                     <ReactMarkdown
                       className="prose prose-invert max-w-none"
                       remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeRaw]}
-                      components={{
-                        h1: ({ node, ...props }) => (
-                          <h1 {...props} className="mb-4 text-2xl font-bold text-[#E8E8E6]" />
-                        ),
-                        h2: ({ node, ...props }) => (
-                          <h2 {...props} className="mb-3 text-xl font-semibold text-[#E8E8E6]" />
-                        ),
-                        h3: ({ node, ...props }) => (
-                          <h3 {...props} className="mb-2 text-lg font-medium text-[#E8E8E6]" />
-                        ),
-                        a: ({ node, ...props }) => (
-                          <a
-                            {...props}
-                            className="inline-block max-w-full overflow-hidden text-ellipsis text-[#684938] no-underline hover:text-[#ff7e33]"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          />
-                        ),
-                        p: ({ node, ...props }) => (
-                          <p {...props} className="mb-4 leading-relaxed text-[#E8E8E6] opacity-90" />
-                        ),
-                        ul: ({ node, ...props }) => (
-                          <ul {...props} className="mb-4 list-disc space-y-2 pl-6" />
-                        ),
-                        ol: ({ node, ...props }) => (
-                          <ol {...props} className="mb-4 list-decimal space-y-2 pl-6" />
-                        ),
-                        li: ({ node, ...props }) => (
-                          <li {...props} className="text-[#E8E8E6] opacity-80" />
-                        ),
-                        blockquote: ({ node, ...props }) => (
-                          <blockquote
-                            {...props}
-                            className="border-l-4 border-[#FF5E00] pl-4 italic text-[#E8E8E6] opacity-80"
-                          />
-                        ),
-                        // code: ({ node, className, children, ...props }) => {
-                        //   const match = /language-(\w+)/.exec(className || '');
-                        //   return props.inline ? (
-                        //     <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#454240]">
-                        //       {children}
-                        //     </code>
-                        //   ) : match ? (
-                        //     <div className="relative my-4 overflow-hidden rounded-lg bg-[#1a1a1a]">
-                        //       <pre className="overflow-x-auto p-4">
-                        //         <code {...props} className={className}>
-                        //           {String(children).trim()}
-                        //         </code>
-                        //       </pre>
-                        //     </div>
-                        //   ) : (
-                        //     <code {...props} className="rounded bg-[#1a1a1a] px-1.5 py-0.5 text-[#FF5E00]">
-                        //       {children}
-                        //     </code>
-                        //   );
-                        // },
-                        hr: ({ node, ...props }) => (
-                          <hr {...props} className="my-6 border-[#f7eee332]" />
-                        ),
-                      }}
                     >
-                      {processContent(m.content)}
+                      {sanitizeContent(m.content)}
                     </ReactMarkdown>
                   </div>
 
@@ -604,31 +578,8 @@ export default function Page() {
                 <ReactMarkdown
                   className="leading-relaxed text-[#E8E8E6] opacity-90"
                   remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeRaw]}
-                  components={{
-                    a: ({ node, ...props }) => (
-                      <a
-                        {...props}
-                        className="inline-block max-w-full overflow-hidden text-ellipsis text-[#FF5E00] no-underline hover:text-[#ff7e33]"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      />
-                    ),
-                    p: ({ node, ...props }) => (
-                      <p {...props} className="mb-3 break-words" />
-                    ),
-                    ul: ({ node, ...props }) => (
-                      <ul {...props} className="list-inside space-y-2" />
-                    ),
-                    li: ({ node, ...props }) => (
-                      <li
-                        {...props}
-                        className="break-words text-[#E8E8E6] opacity-80"
-                      />
-                    ),
-                  }}
                 >
-                  {searchResults}
+                  {sanitizeContent(searchResults)}
                 </ReactMarkdown>
               </div>
             </div>
@@ -697,6 +648,31 @@ export default function Page() {
             )}
           </form>
         </div>
+        {showWhiteboard && (
+        <div
+          ref={whiteboardRef}
+          className="fixed right-0 top-0 z-20 h-[100svh] w-full md:w-1/3 bg-white svg"
+          style={{ touchAction: "none" }}
+        >
+          <Tldraw
+            inferDarkMode
+            components={components}
+            onMount={(editor: Editor) => {
+              editor.setCamera({ x: 0, y: 0, z: 0 });
+              tldrawEditor.current = editor;
+            }}
+          />
+          <button
+            onClick={() => setShowWhiteboard(false)}
+            className="absolute top-0 right-0 z-30 flex items-center justify-center gap-2 
+                       rounded-bl-xl bg-[#1A1A1C] p-3 text-sm text-[#f7eee3] 
+                       hover:bg-[#575757]"
+          >
+            Close
+          </button>
+        </div>
+      )}
+
       </div>
     </main>
   );

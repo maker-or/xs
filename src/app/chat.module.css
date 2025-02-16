@@ -1,0 +1,85 @@
+@keyframes dotFlashing {
+    0% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.2;
+    }
+  }
+  
+  .animateDot {
+    animation: dotFlashing 1.4s infinite linear;
+  }
+  
+  .delay200 {
+    animation-delay: 0.2s;
+  }
+  
+  .delay400 {
+    animation-delay: 0.4s;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animateFadeIn {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+  
+  @keyframes textReplace {
+    0% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    20% {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    40% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .textReplace {
+    animation: textReplace 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .loadingText {
+    background: linear-gradient(90deg, #666 0%, #999 50%, #666 100%);
+    background-size: 200% auto;
+    animation: gradient 2s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  @keyframes gradient {
+    0% {
+      background-position: 0% center;
+    }
+    100% {
+      background-position: -200% center;
+    }
+  }
+  
+  .loadedText {
+    color: #e8e8e6;
+    transition: color 0.3s ease;
+  }
+  

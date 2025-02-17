@@ -108,6 +108,7 @@ Analyze the following query: "${query}" and return the appropriate tag.
         Context: ${context}
         Question: ${query}
         Please provide a comprehensive and detailed answer based on the provided context and cite the book name at the end of the response.
+         and also write the model named used to generate the answer.
       `;
     } else {
       // Use general knowledge
@@ -150,6 +151,8 @@ Analyze the following query: "${query}" and return the appropriate tag.
              - Always cite the source of your information at the end of your response, if applicable.
           8. **Question Generation**:
              - if the user requests you to generate a question, create only a thought-provoking and contextually appropriate question without providing any answers.
+
+          9. and also write the model named used to generate the answer.
       
           Your goal is to ensure the user receives accurate, well-structured, and helpful answers.
         `,

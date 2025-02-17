@@ -28,19 +28,16 @@ import html2canvas from "html2canvas";
 
 import styles from "~/app/chat.module.css";
 import { Attachment, JSONValue } from "ai";
-import { Json } from "@pinecone-database/pinecone/dist/pinecone-generated-ts-fetch/db_control";
 
-// Remove the ExportCanvasAttachmentButton component (no longer needed)
-// const components: TLUiComponents = {
-//   //SharePanel: ExportCanvasAttachmentButton,
-// };
 
 const components: TLUiComponents = {};
 
 function ChatGPTLoadingAnimation() {
   return (
     <div className="flex items-start justify-start">
-      <span className={`dot ${styles.animateDot} h-1 w-1 rounded-full bg-[#f7eee3]`} />
+      <span
+        className={`dot ${styles.animateDot} h-1 w-1 rounded-full bg-[#f7eee3]`}
+      />
       <span
         className={`dot ${styles.animateDot} h-1 w-1 rounded-full bg-[#f7eee3] ${styles.delay200}`}
       />
@@ -65,7 +62,8 @@ export default function Page() {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [lastQuery, setLastQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string>("llama3-70b-8192");
+  const [selectedModel, setSelectedModel] =
+    useState<string>("llama3-70b-8192");
   const [error, setError] = useState<string | null>(null);
   const [searchLinks, setSearchLinks] = useState<string[]>([]);
 
@@ -74,23 +72,18 @@ export default function Page() {
   const whiteboardRef = useRef<HTMLDivElement>(null);
   const tldrawEditor = useRef<Editor | null>(null);
 
-  // Manage messages locally so we can update (delete) an assistant message when regenerating a query.
-  const [chatId, setChatId] = useState<string | undefined>(undefined);
-  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
-
-  // NEW: State to control auto scroll behavior.
   const [skipAutoScroll, setSkipAutoScroll] = useState(false);
 
-  // NEW REGENERATION STATES:
   const [isRegenerating, setIsRegenerating] = useState(false);
-  const [regenForMessageId, setRegenForMessageId] = useState<string | null>(null);
+  const [regenForMessageId, setRegenForMessageId] = useState<string | null>(
+    null,
+  );
 
-  // Schacn UI state
   const [showStatusBar, setShowStatusBar] = React.useState<Checked>(true);
-  const [showActivityBar, setShowActivityBar] = React.useState<Checked>(false);
+  const [showActivityBar, setShowActivityBar] =
+    React.useState<Checked>(false);
   const [showPanel, setShowPanel] = React.useState<Checked>(false);
 
-  // Load stored chat ID and messages on component mount
   useEffect(() => {
     const storedChatId = localStorage.getItem("chatId");
     if (storedChatId) {
@@ -125,7 +118,7 @@ export default function Page() {
     doc.setFontSize(12);
   
     // Title
-    doc.text("Chat Transcript", margin, y);
+    doc.text("SphereAI", margin, y);
     y += lineHeight * 1.5; // Extra spacing after title
   
     // Markdown stripping function
@@ -168,7 +161,9 @@ export default function Page() {
   };
   
 
-  // Use the useChat hook with initialMessages and chatId.
+  const [chatId, setChatId] = useState<string | undefined>(undefined);
+  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
+
   const { messages, input, handleInputChange, handleSubmit, setInput } =
     useChat({
       api: "/api/chat",
@@ -194,7 +189,6 @@ export default function Page() {
       },
     });
 
-  // Save messages to localStorage anytime they change
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("chatMessages", JSON.stringify(messages));
@@ -257,7 +251,6 @@ export default function Page() {
     setError(null);
 
     try {
-      // Check if the input contains "@whiteboard"
       if (
         input.toLowerCase().includes("@whiteboard") &&
         showWhiteboard &&
@@ -269,9 +262,6 @@ export default function Page() {
           setIsLoading(false);
           return;
         }
-
-        // Optionally remove the "@whiteboard" flag from the query.
-        const queryWithoutWhiteboard = input.replace(/@whiteboard/gi, "").trim();
 
         try {
           const { blob } = await tldrawEditor.current.toImage([...shapeIds], {
@@ -292,14 +282,13 @@ export default function Page() {
               data: base64Result.split(",")[1],
             };
 
-            // Send the query along with the attachment using the vision model.
             handleSubmit(event, {
               data: {
-                model: "llama-3.2-90b-vision-preview", // Use the vision-enabled model
-                messages: [
-                  { role: "user", content: queryWithoutWhiteboard },
-                ],
-                experimental_attachments: [attachment] as unknown as JSONValue[],
+                model: "llama-3.2-90b-vision-preview",
+                messages: [{ role: "user", content: input }],
+                experimental_attachments: [
+                  attachment,
+                ] as unknown as JSONValue[],
               },
             });
           };
@@ -311,7 +300,6 @@ export default function Page() {
           setError("An error occurred while exporting the canvas.");
         }
       } else {
-        // Regular text submission
         handleSubmit(event);
       }
     } catch (error) {
@@ -321,7 +309,9 @@ export default function Page() {
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       void onSubmit(event);
@@ -413,7 +403,6 @@ export default function Page() {
 
     setInput(query);
 
-    // Call handleSubmit via a synthetic event to reuse the streaming logic.
     setTimeout(() => {
       handleSubmit({ preventDefault: () => {} } as React.FormEvent);
     }, 0);
@@ -422,24 +411,31 @@ export default function Page() {
   const processContent = (content: string) => {
     return content.replace(/<think>(.*?)<\/think>/gs, (_, content) =>
       `<details class="think-container" style="background: #1a1a1a; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
-        <summary>Thinking process</summary>
+        <summary>Thinking proccess</summary>
         <span style="color: #FF5E00; font-weight: bold;">Thinking:</span>
         <div style="margin-top: 0.5rem;">${content}</div>
-      </details>`
+      </details>`,
     );
   };
 
   function sanitizeContent(content: string): string {
-    // Remove any <string> tags, if present
     return content.replace(/<\/?string>/g, "");
   }
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <main className={`${showWhiteboard ? "pr-[33.333%]" : ""} transition-all duration-300`}>
+    <main
+      className={`${
+        showWhiteboard ? "pr-[33.333%]" : ""
+      } transition-all duration-300`}
+    >
       <div className="absolute right-4 top-4 z-10 flex gap-2">
         <button
           onClick={shareChat}
-          className="hover:bg-[#575757] flex items-center justify-center gap-2 rounded-full bg-[#292a29] p-3 text-sm text-[#f7eee3]"
+          className="hover:bg-[#575757]flex items-center justify-center gap-2 rounded-full bg-[#292a29] p-3 text-sm text-[#f7eee3]"
         >
           <Share2 className="h-4 w-4" />
         </button>
@@ -463,9 +459,12 @@ export default function Page() {
           <FileText /> export
         </button>
       </div>
-      <div className={`relative mx-auto flex h-full w-full flex-col ${showWhiteboard ? "md:w-full" : "md:w-2/3"}`}>
+      <div
+        className={`relative mx-auto flex h-full w-full flex-col ${
+          showWhiteboard ? "md:w-full" : "md:w-2/3"
+        }`}
+      >
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
-          {/* Global Styles for Animations */}
           <style>{`
             @keyframes fadeIn {
               from { opacity: 0; transform: translateY(8px); }
@@ -502,7 +501,6 @@ export default function Page() {
           `}</style>
 
           {messages.map((m, index) => {
-            // For assistant messages, pick the immediate preceding user query.
             const previousUserMessage =
               m.role === "assistant" &&
               index > 0 &&
@@ -516,36 +514,49 @@ export default function Page() {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="max-w-[85vw] p-2 text-[1.3em] tracking-tight text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2.2em]">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {m.content}
-                  </ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
                 </div>
               </div>
             ) : (
-              <div key={m.id} className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
+              <div
+                key={m.id}
+                className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
+              >
                 <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-4 md:text-[1.2rem]">
-                  <div className="animate-fade-in transition-opacity duration-500">
-                    <ReactMarkdown className="prose prose-invert max-w-none" remarkPlugins={[remarkGfm]}>
+                  <div
+                    className={`${"animate-fade-in"} transition-opacity duration-500`}
+                  >
+                    <ReactMarkdown
+                      className="prose prose-invert max-w-none"
+                      remarkPlugins={[remarkGfm]}
+                    >
                       {sanitizeContent(m.content)}
                     </ReactMarkdown>
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="mb-14 flex flex-wrap gap-2">
                     <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                      <button onClick={handleSearchWeb} className="text-sm md:text-base">
+                      <button
+                        onClick={handleSearchWeb}
+                        className="text-sm md:text-base"
+                      >
                         <Globe className="h-4 w-4" />
                       </button>
                     </div>
                     <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                      <button onClick={() => handleSearchYouTube(lastQuery)} className="text-sm md:text-base">
+                      <button
+                        onClick={() => handleSearchYouTube(lastQuery)}
+                        className="text-sm md:text-base"
+                      >
                         <Play className="h-4 w-4" />
                       </button>
                     </div>
                     {previousUserMessage && (
                       <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
                         <button
-                          onClick={() => regenerateQuery(previousUserMessage, m.id)}
+                          onClick={() =>
+                            regenerateQuery(previousUserMessage, m.id)
+                          }
                           className="text-sm md:text-base"
                           disabled={regenForMessageId === m.id || isLoading}
                         >
@@ -558,7 +569,10 @@ export default function Page() {
                       </div>
                     )}
                     <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                      <button onClick={() => copyMessage(m.content, m.id)} className="text-sm md:text-base">
+                      <button
+                        onClick={() => copyMessage(m.content, m.id)}
+                        className="text-sm md:text-base"
+                      >
                         {copiedMessageId === m.id ? (
                           <Check className="h-4 w-4 text-[#48AAFF]" />
                         ) : (
@@ -579,7 +593,9 @@ export default function Page() {
                 <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
                   <div className="flex items-center justify-start gap-2">
                     <ChatGPTLoadingAnimation />
-                    <span className="text-sm tracking-tight text-[#e8e8e67d]">creating</span>
+                    <span className="text-sm tracking-tight text-[#e8e8e67d]">
+                      creating
+                    </span>
                   </div>
                 </div>
               </div>
@@ -590,7 +606,9 @@ export default function Page() {
               <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
                 <div className="flex items-center justify-start gap-2">
                   <ChatGPTLoadingAnimation />
-                  <span className="text-sm tracking-tight text-[#e8e8e67d]">Searching</span>
+                  <span className="text-sm tracking-tight text-[#e8e8e67d]">
+                    Searching
+                  </span>
                 </div>
               </div>
             </div>
@@ -626,7 +644,10 @@ export default function Page() {
                 </div>
               </div>
               <div className="prose prose-sm md:prose-base prose-invert max-w-none">
-                <ReactMarkdown className="leading-relaxed text-[#E8E8E6] opacity-90" remarkPlugins={[remarkGfm]}>
+                <ReactMarkdown
+                  className="leading-relaxed text-[#E8E8E6] opacity-90"
+                  remarkPlugins={[remarkGfm]}
+                >
                   {sanitizeContent(searchResults)}
                 </ReactMarkdown>
               </div>
@@ -636,8 +657,23 @@ export default function Page() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className={`fixed bottom-0 ${showWhiteboard ? "right-[33.333%]" : "right-0"} left-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4 m-2 transition-all duration-300`}>
-          <form onSubmit={onSubmit} className={`mx-auto w-full ${showWhiteboard ? "max-w-full px-4" : "max-w-2xl px-3 md:px-0"}`}>
+        <div
+          className={`fixed bottom-0 ${
+            showWhiteboard ? "right-[33.333%]" : "right-0"
+          } left-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4 m-2 transition-all duration-300`}
+        >
+          <button
+            onClick={scrollToTop}
+            className="absolute top-2 right-2 z-20 rounded-full bg-[#4544449d] p-2 text-white hover:bg-[#575757]"
+          >
+            ↑
+          </button>
+          <form
+            onSubmit={onSubmit}
+            className={`mx-auto w-full ${
+              showWhiteboard ? "max-w-full px-4" : "max-w-2xl px-3 md:px-0"
+            }`}
+          >
             <div className="group flex w-full items-center rounded-2xl border border-[#f7eee332] bg-gradient-to-r from-[#1a1a1a] to-[#1f1f1f] p-2.5 shadow-lg backdrop-blur-sm transition-all duration-300">
               <div className="flex flex-1 items-center overflow-hidden rounded-xl border border-transparent bg-[#2a2a2a] p-2 transition-all duration-300 group-hover:border-[#f7eee332]">
                 <textarea
@@ -661,21 +697,30 @@ export default function Page() {
                   <option value="llama-3.1-8b-instant">llama-3.1</option>
                   <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
                   <option value="llama-3.3-70b-specdec">llama-3.3</option>
-                  <option value="deepseek-r1-distill-llama-70b">deepseek-r1</option>
+                  <option value="deepseek-r1-distill-llama-70b">
+                    deepseek-r1
+                  </option>
                   <option value="qwen-2.5-coder-32b">qwen-2.5</option>
-                  <option value="llama-3.2-90b-vision-preview">vision</option>
                 </select>
               </div>
             </div>
 
             {input.length > 0 && (
               <div className="mt-1.5 flex items-center justify-between px-1 text-xs text-[#f7eee380]">
-                <span>{input.length > 0 ? "Press Enter to send, Shift + Enter for new line" : ""}</span>
+                <span>
+                  {input.length > 0
+                    ? "Press Enter to send, Shift + Enter for new line"
+                    : ""}
+                </span>
                 <span>{input.length}/2000</span>
               </div>
             )}
 
-            {error && <div className="mt-2 text-center text-sm text-red-500">{error}</div>}
+            {error && (
+              <div className="mt-2 text-center text-sm text-red-500">
+                {error}
+              </div>
+            )}
           </form>
         </div>
       </div>
@@ -696,7 +741,9 @@ export default function Page() {
           />
           <button
             onClick={() => setShowWhiteboard(false)}
-            className="absolute top-0 right-0 z-30 flex items-center justify-center gap-2 rounded-bl-xl bg-[#1A1A1C] p-3 text-sm text-[#f7eee3] hover:bg-[#575757]"
+            className="absolute top-0 right-0 z-30 flex items-center justify-center gap-2 
+                       rounded-bl-xl bg-[#1A1A1C] p-3 text-sm text-[#f7eee3] 
+                       hover:bg-[#575757]"
           >
             Close
           </button>

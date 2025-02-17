@@ -10,6 +10,7 @@ import { type ConvertibleMessage } from '~/utils/types';
 interface RequestBody {
   messages: ConvertibleMessage[];
   model: string;
+  experimental_attachments?: string[];
 }
 
 export async function POST(req: Request): Promise<Response> {
@@ -17,6 +18,7 @@ export async function POST(req: Request): Promise<Response> {
     console.log('Welcome to AI');
     
     const body = await req.json() as RequestBody;
+    
     //console.log("the body is",body)
     const selectedModel = body.model || "llama3-70b-8192";
 
@@ -31,6 +33,19 @@ export async function POST(req: Request): Promise<Response> {
 
     const query = lastMessage.content;
     console.log('Query:', query);
+
+    // NEW: Check for attachments
+    const attachments = body.experimental_attachments || [];
+    if (attachments.length > 0) {
+      // Process the attachments
+      attachments.forEach((attachment) => {
+        // Example: Log the attachment data
+        console.log("yes it exists")
+        console.log('Attachment:', attachment);
+        // You can handle the attachment as needed (e.g., save it, process it, etc.)
+      });
+    }
+    else{console.log("no attachments found")}
 
     // First, let's ask the LLM to decide whether to use RAG or not
     const groq = createOpenAI({

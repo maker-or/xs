@@ -169,7 +169,7 @@ export default function Page() {
       api: "/api/chat",
       body: {
         model: selectedModel,
-        messages: initialMessages,
+       
       },
       id: chatId,
       initialMessages: initialMessages,
@@ -266,9 +266,9 @@ export default function Page() {
         try {
           const { blob } = await tldrawEditor.current.toImage([...shapeIds], {
             background: true,
-            scale: 1,
-            quality: 1,
-            format: "png",
+            scale: 0.1,
+            quality: 0.1,
+            format: "webp",
           });
 
           const file = new File([blob], "canvas.png", { type: "image/png" });
@@ -282,16 +282,36 @@ export default function Page() {
               data: base64Result.split(",")[1],
             };
 
+            console.log("Attachment:", attachment);
+            console.log("the data u", attachment.data);
+
+            const visionResponse = await fetch("/api/vision", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ image: attachment.data }),
+            });
+
+            console.log("the vision  response is", visionResponse);
+
+            if (!visionResponse.ok) {
+              throw new Error("Failed to analyze image");
+            }
+
+            const visionData = await visionResponse.json();
+            const visionText = visionData.text || "No description available.";
+            console.log("the vision text is", visionText);
+
+            const updatedInput = `${input} ${visionText} this is the context from tha analysied image now respond with a sutiable answer based on the context`;
             handleSubmit(event, {
               data: {
-                model: "llama-3.2-90b-vision-preview",
-                messages: [{ role: "user", content: input }],
-                experimental_attachments: [
-                  attachment,
-                ] as unknown as JSONValue[],
+                model: "llama-3.3-70b-specdec",
+                messages: [{ role: "user", content: updatedInput }],
+                
               },
             });
           };
+
+          // handleSubmit(updatedInput)
 
           reader.readAsDataURL(file);
         } catch (error) {

@@ -14,54 +14,28 @@ import {
   Paintbrush,
   RotateCw,
   MessageCircleX,
+  FileText,
+  Sparkles,
 } from "lucide-react";
 
-import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu"
+import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
 
 import { Editor, Tldraw, TLUiComponents, useEditor } from "tldraw";
 import "tldraw/tldraw.css";
 
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 
-import styles from "~/app/chat.module.css"; 
+import styles from "~/app/chat.module.css";
+import { Attachment, JSONValue } from "ai";
+import { Json } from "@pinecone-database/pinecone/dist/pinecone-generated-ts-fetch/db_control";
 
-function ExportCanvasButton() {
-  const editor = useEditor();
+// Remove the ExportCanvasAttachmentButton component (no longer needed)
+// const components: TLUiComponents = {
+//   //SharePanel: ExportCanvasAttachmentButton,
+// };
 
-  return (
-    <button
-      className="absolute top-10 left-0 z-30 flex items-center justify-center gap-2 
-                 rounded-br-xl bg-[#1A1A1C] p-3 text-sm text-[#f7eee3] 
-                 hover:bg-[#575757]"
-      style={{ pointerEvents: 'all' }}
-      onClick={async () => {
-        if (!editor) return;
-
-        const shapeIds = editor.getCurrentPageShapeIds();
-        if (shapeIds.size === 0) return alert('No shapes on the canvas');
-
-        const { blob } = await editor.toImage([...shapeIds], {
-          background: true,
-          scale: 1,
-          quality: 1,
-          format: 'svg',
-        });
-
-        const link = document.createElement('a')
-				link.href = URL.createObjectURL(blob)
-				link.download = 'every-shape-on-the-canvas.jpg'
-				link.click()
-				URL.revokeObjectURL(link.href)
-      }}
-    >
-      Export Canvas
-    </button>
-  );
-}
-const components: TLUiComponents = {
-  SharePanel: ExportCanvasButton,
-};
-
-
+const components: TLUiComponents = {};
 
 function ChatGPTLoadingAnimation() {
   return (
@@ -83,7 +57,7 @@ interface Message {
   content: string;
 }
 
-type Checked = DropdownMenuCheckboxItemProps["checked"]
+type Checked = DropdownMenuCheckboxItemProps["checked"];
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
@@ -95,15 +69,12 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [searchLinks, setSearchLinks] = useState<string[]>([]);
 
-
-
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [whiteboardData, setWhiteboardData] = useState<string | null>(null);
   const whiteboardRef = useRef<HTMLDivElement>(null);
   const tldrawEditor = useRef<Editor | null>(null);
 
-  // We'll manage messages locally so we can update (delete) an assistant
-  // message when regenerating a query.
+  // Manage messages locally so we can update (delete) an assistant message when regenerating a query.
   const [chatId, setChatId] = useState<string | undefined>(undefined);
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
 
@@ -111,15 +82,13 @@ export default function Page() {
   const [skipAutoScroll, setSkipAutoScroll] = useState(false);
 
   // NEW REGENERATION STATES:
-  // Instead of doing our own manual fetch-and-stream,
-  // we now mark when a regeneration is in progress and which assistant message we wish to replace.
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenForMessageId, setRegenForMessageId] = useState<string | null>(null);
 
-  //schacn ui
-  const [showStatusBar, setShowStatusBar] = React.useState<Checked>(true)
-  const [showActivityBar, setShowActivityBar] = React.useState<Checked>(false)
-  const [showPanel, setShowPanel] = React.useState<Checked>(false)
+  // Schacn UI state
+  const [showStatusBar, setShowStatusBar] = React.useState<Checked>(true);
+  const [showActivityBar, setShowActivityBar] = React.useState<Checked>(false);
+  const [showPanel, setShowPanel] = React.useState<Checked>(false);
 
   // Load stored chat ID and messages on component mount
   useEffect(() => {
@@ -137,22 +106,75 @@ export default function Page() {
     }
   }, []);
 
+  const createPDF = () => {
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "pt",
+      format: "a4",
+    });
+  
+    // Page dimensions
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 40;
+    const lineHeight = 18;
+    let y = margin;
+  
+    // Set default font
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(12);
+  
+    // Title
+    doc.text("Chat Transcript", margin, y);
+    y += lineHeight * 1.5; // Extra spacing after title
+  
+    // Markdown stripping function
+    const stripMarkdown = (text: string) => {
+      return text
+        .replace(/!\[.*?\]\(.*?\)/g, "") // Remove images
+        .replace(/\[(.*?)\]\(.*?\)/g, "$1") // Keep link text only
+        .replace(/[#>*_`~-]/g, "") // Remove common markdown characters
+        .replace(/\n{2,}/g, "\n") // Collapse multiple newlines
+        .trim();
+    };
+  
+    // Loop through messages
+    messages.forEach((message) => {
+      // Write message role (User, Assistant, etc.)
+      // doc.text(`${message.role.toUpperCase()}:`, margin, y);
+      // y += lineHeight / 2;
+  
+      // Convert markdown to plain text
+      const plainText = stripMarkdown(message.content);
+      
+      // Split text into lines fitting within page width
+      const lines = doc.splitTextToSize(plainText, pageWidth - margin * 2);
+      
+      // Add text while handling pagination
+      lines.forEach((line: string | string[]) => {
+        if (y + lineHeight > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(line, margin, y);
+        y += lineHeight;
+      });
+  
+      y += lineHeight; // Extra spacing between messages
+    });
+  
+    // Save PDF
+    doc.save("chat.pdf");
+  };
+  
+
   // Use the useChat hook with initialMessages and chatId.
-  // Notice we adjust the onResponse callback: if we're in regeneration mode,
-  // we clear our "regenerating" flags (so that our UI returns to normal).
   const { messages, input, handleInputChange, handleSubmit, setInput } =
     useChat({
       api: "/api/chat",
       body: {
         model: selectedModel,
-        format:
-          selectedModel === "deepseek-r1-distill-llama-70b"
-            ? {
-                systemPrompt:
-                  "don't show the thinking process. just provide the answer",
-                responseFormat: "structured",
-              }
-            : undefined,
+        messages: initialMessages,
       },
       id: chatId,
       initialMessages: initialMessages,
@@ -227,6 +249,7 @@ export default function Page() {
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!input.trim()) return;
+
     setSkipAutoScroll(false);
     setIsLoading(true);
     setSearchResults(null);
@@ -234,7 +257,63 @@ export default function Page() {
     setError(null);
 
     try {
-      handleSubmit(event);
+      // Check if the input contains "@whiteboard"
+      if (
+        input.toLowerCase().includes("@whiteboard") &&
+        showWhiteboard &&
+        tldrawEditor.current
+      ) {
+        const shapeIds = tldrawEditor.current.getCurrentPageShapeIds();
+        if (shapeIds.size === 0) {
+          alert("No shapes on the canvas");
+          setIsLoading(false);
+          return;
+        }
+
+        // Optionally remove the "@whiteboard" flag from the query.
+        const queryWithoutWhiteboard = input.replace(/@whiteboard/gi, "").trim();
+
+        try {
+          const { blob } = await tldrawEditor.current.toImage([...shapeIds], {
+            background: true,
+            scale: 1,
+            quality: 1,
+            format: "png",
+          });
+
+          const file = new File([blob], "canvas.png", { type: "image/png" });
+          const reader = new FileReader();
+
+          reader.onloadend = async () => {
+            const base64Result = reader.result as string;
+            const attachment = {
+              name: "canvas.png",
+              contentType: "image/png",
+              data: base64Result.split(",")[1],
+            };
+
+            // Send the query along with the attachment using the vision model.
+            handleSubmit(event, {
+              data: {
+                model: "llama-3.2-90b-vision-preview", // Use the vision-enabled model
+                messages: [
+                  { role: "user", content: queryWithoutWhiteboard },
+                ],
+                experimental_attachments: [attachment] as unknown as JSONValue[],
+              },
+            });
+          };
+
+          reader.readAsDataURL(file);
+        } catch (error) {
+          console.error("Error exporting canvas image:", error);
+          setIsLoading(false);
+          setError("An error occurred while exporting the canvas.");
+        }
+      } else {
+        // Regular text submission
+        handleSubmit(event);
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
       setIsLoading(false);
@@ -325,14 +404,6 @@ export default function Page() {
     }
   };
 
-  /**
-   * Modified regenerateQuery.
-   *
-   * Instead of manually calling fetch and processing the stream,
-   * we now use the useChat hook's streaming mechanism.
-   * We mark that a regeneration is happening (with the messageId of the original answer),
-   * set the input field to the query, and programmatically invoke handleSubmit.
-   */
   const regenerateQuery = (query: string, messageId: string) => {
     setRegenForMessageId(messageId);
     setIsRegenerating(true);
@@ -342,16 +413,16 @@ export default function Page() {
 
     setInput(query);
 
-    // Call handleSubmit via a synthetic event in order to reuse the streaming logic.
+    // Call handleSubmit via a synthetic event to reuse the streaming logic.
     setTimeout(() => {
       handleSubmit({ preventDefault: () => {} } as React.FormEvent);
     }, 0);
   };
 
   const processContent = (content: string) => {
-    return content.replace(/<think>(.*?)<\/think>/gs, (_, content) => 
+    return content.replace(/<think>(.*?)<\/think>/gs, (_, content) =>
       `<details class="think-container" style="background: #1a1a1a; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
-        <summary>Thinking proccess</summary>
+        <summary>Thinking process</summary>
         <span style="color: #FF5E00; font-weight: bold;">Thinking:</span>
         <div style="margin-top: 0.5rem;">${content}</div>
       </details>`
@@ -364,11 +435,11 @@ export default function Page() {
   }
 
   return (
-    <main className={`${showWhiteboard ? 'pr-[33.333%]' : ''} transition-all duration-300`}>
+    <main className={`${showWhiteboard ? "pr-[33.333%]" : ""} transition-all duration-300`}>
       <div className="absolute right-4 top-4 z-10 flex gap-2">
         <button
           onClick={shareChat}
-          className="hover:bg-[#575757]flex items-center justify-center gap-2 rounded-full bg-[#292a29] p-3 text-sm text-[#f7eee3]"
+          className="hover:bg-[#575757] flex items-center justify-center gap-2 rounded-full bg-[#292a29] p-3 text-sm text-[#f7eee3]"
         >
           <Share2 className="h-4 w-4" />
         </button>
@@ -377,17 +448,22 @@ export default function Page() {
           className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
         >
           <MessageCircleX className="h-4 w-4" />
-         
         </button>
         <button
           onClick={() => setShowWhiteboard(true)}
           className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
         >
           <Paintbrush className="h-4 w-4" />
-          canvas
+        </button>
+
+        <button
+          onClick={createPDF}
+          className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
+        >
+          <FileText /> export
         </button>
       </div>
-      <div className={`relative mx-auto flex h-full w-full flex-col ${showWhiteboard ? 'md:w-full' : 'md:w-2/3'}`}>
+      <div className={`relative mx-auto flex h-full w-full flex-col ${showWhiteboard ? "md:w-full" : "md:w-2/3"}`}>
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
           {/* Global Styles for Animations */}
           <style>{`
@@ -431,7 +507,7 @@ export default function Page() {
               m.role === "assistant" &&
               index > 0 &&
               messages[index - 1]?.role === "user"
-                ? (messages[index - 1]?.content ?? "")
+                ? messages[index - 1]?.content ?? ""
                 : "";
             return m.role === "user" ? (
               <div
@@ -440,26 +516,16 @@ export default function Page() {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="max-w-[85vw] p-2 text-[1.3em] tracking-tight text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2.2em]">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                  >
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {m.content}
                   </ReactMarkdown>
                 </div>
               </div>
             ) : (
-              <div
-                key={m.id}
-                className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
-              >
+              <div key={m.id} className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
                 <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-4 md:text-[1.2rem]">
-                  <div
-                    className={`${"animate-fade-in"} transition-opacity duration-500`}
-                  >
-                    <ReactMarkdown
-                      className="prose prose-invert max-w-none"
-                      remarkPlugins={[remarkGfm]}
-                    >
+                  <div className="animate-fade-in transition-opacity duration-500">
+                    <ReactMarkdown className="prose prose-invert max-w-none" remarkPlugins={[remarkGfm]}>
                       {sanitizeContent(m.content)}
                     </ReactMarkdown>
                   </div>
@@ -467,27 +533,19 @@ export default function Page() {
                   {/* Action Buttons */}
                   <div className="mb-14 flex flex-wrap gap-2">
                     <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                      <button
-                        onClick={handleSearchWeb}
-                        className="text-sm md:text-base"
-                      >
+                      <button onClick={handleSearchWeb} className="text-sm md:text-base">
                         <Globe className="h-4 w-4" />
                       </button>
                     </div>
                     <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                      <button
-                        onClick={() => handleSearchYouTube(lastQuery)}
-                        className="text-sm md:text-base"
-                      >
+                      <button onClick={() => handleSearchYouTube(lastQuery)} className="text-sm md:text-base">
                         <Play className="h-4 w-4" />
                       </button>
                     </div>
                     {previousUserMessage && (
                       <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
                         <button
-                          onClick={() =>
-                            regenerateQuery(previousUserMessage, m.id)
-                          }
+                          onClick={() => regenerateQuery(previousUserMessage, m.id)}
                           className="text-sm md:text-base"
                           disabled={regenForMessageId === m.id || isLoading}
                         >
@@ -500,10 +558,7 @@ export default function Page() {
                       </div>
                     )}
                     <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                      <button
-                        onClick={() => copyMessage(m.content, m.id)}
-                        className="text-sm md:text-base"
-                      >
+                      <button onClick={() => copyMessage(m.content, m.id)} className="text-sm md:text-base">
                         {copiedMessageId === m.id ? (
                           <Check className="h-4 w-4 text-[#48AAFF]" />
                         ) : (
@@ -524,9 +579,7 @@ export default function Page() {
                 <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
                   <div className="flex items-center justify-start gap-2">
                     <ChatGPTLoadingAnimation />
-                    <span className="text-sm tracking-tight text-[#e8e8e67d]">
-                      creating
-                    </span>
+                    <span className="text-sm tracking-tight text-[#e8e8e67d]">creating</span>
                   </div>
                 </div>
               </div>
@@ -537,9 +590,7 @@ export default function Page() {
               <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
                 <div className="flex items-center justify-start gap-2">
                   <ChatGPTLoadingAnimation />
-                  <span className="text-sm tracking-tight text-[#e8e8e67d]">
-                    Searching
-                  </span>
+                  <span className="text-sm tracking-tight text-[#e8e8e67d]">Searching</span>
                 </div>
               </div>
             </div>
@@ -575,10 +626,7 @@ export default function Page() {
                 </div>
               </div>
               <div className="prose prose-sm md:prose-base prose-invert max-w-none">
-                <ReactMarkdown
-                  className="leading-relaxed text-[#E8E8E6] opacity-90"
-                  remarkPlugins={[remarkGfm]}
-                >
+                <ReactMarkdown className="leading-relaxed text-[#E8E8E6] opacity-90" remarkPlugins={[remarkGfm]}>
                   {sanitizeContent(searchResults)}
                 </ReactMarkdown>
               </div>
@@ -588,11 +636,8 @@ export default function Page() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className={`fixed bottom-0 ${showWhiteboard ? 'right-[33.333%]' : 'right-0'} left-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4 m-2 transition-all duration-300`}>
-          <form
-            onSubmit={onSubmit}
-            className={`mx-auto w-full ${showWhiteboard ? 'max-w-full px-4' : 'max-w-2xl px-3 md:px-0'}`}
-          >
+        <div className={`fixed bottom-0 ${showWhiteboard ? "right-[33.333%]" : "right-0"} left-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4 m-2 transition-all duration-300`}>
+          <form onSubmit={onSubmit} className={`mx-auto w-full ${showWhiteboard ? "max-w-full px-4" : "max-w-2xl px-3 md:px-0"}`}>
             <div className="group flex w-full items-center rounded-2xl border border-[#f7eee332] bg-gradient-to-r from-[#1a1a1a] to-[#1f1f1f] p-2.5 shadow-lg backdrop-blur-sm transition-all duration-300">
               <div className="flex flex-1 items-center overflow-hidden rounded-xl border border-transparent bg-[#2a2a2a] p-2 transition-all duration-300 group-hover:border-[#f7eee332]">
                 <textarea
@@ -613,39 +658,24 @@ export default function Page() {
                   className="max-w-[110px] cursor-pointer bg-transparent text-sm text-[#f7eee3] focus:outline-none"
                 >
                   <option value="llama3--70b--8192">Llama 3</option>
-                  <option value="llama-3.1-8b-instant">
-                    llama-3.1
-                  </option>
+                  <option value="llama-3.1-8b-instant">llama-3.1</option>
                   <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
                   <option value="llama-3.3-70b-specdec">llama-3.3</option>
-                  <option value="deepseek-r1-distill-llama-70b">
-                    deepseek-r1
-                  </option>
-                  <option value="qwen-2.5">
-                  qwen-2.5-32b
-                  </option>
+                  <option value="deepseek-r1-distill-llama-70b">deepseek-r1</option>
+                  <option value="qwen-2.5-coder-32b">qwen-2.5</option>
+                  <option value="llama-3.2-90b-vision-preview">vision</option>
                 </select>
-
               </div>
-
             </div>
 
             {input.length > 0 && (
               <div className="mt-1.5 flex items-center justify-between px-1 text-xs text-[#f7eee380]">
-                <span>
-                  {input.length > 0
-                    ? "Press Enter to send, Shift + Enter for new line"
-                    : ""}
-                </span>
+                <span>{input.length > 0 ? "Press Enter to send, Shift + Enter for new line" : ""}</span>
                 <span>{input.length}/2000</span>
               </div>
             )}
 
-            {error && (
-              <div className="mt-2 text-center text-sm text-red-500">
-                {error}
-              </div>
-            )}
+            {error && <div className="mt-2 text-center text-sm text-red-500">{error}</div>}
           </form>
         </div>
       </div>
@@ -666,9 +696,7 @@ export default function Page() {
           />
           <button
             onClick={() => setShowWhiteboard(false)}
-            className="absolute top-0 right-0 z-30 flex items-center justify-center gap-2 
-                       rounded-bl-xl bg-[#1A1A1C] p-3 text-sm text-[#f7eee3] 
-                       hover:bg-[#575757]"
+            className="absolute top-0 right-0 z-30 flex items-center justify-center gap-2 rounded-bl-xl bg-[#1A1A1C] p-3 text-sm text-[#f7eee3] hover:bg-[#575757]"
           >
             Close
           </button>

@@ -27,7 +27,7 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     const query = lastMessage.content;
-    console.log(query);
+    //console.log(query);
 
     // const apiKey = process.env.PINECONE_API_KEY;
 
@@ -41,7 +41,7 @@ export async function POST(req: Request): Promise<Response> {
 
     // Get embeddings for the query
     const queryEmbedding = await getEmbedding(query);
-    console.log(queryEmbedding);
+    //console.log(queryEmbedding);
 
     // Query Pinecone
     // const index = pinecone.index('k');
@@ -90,8 +90,8 @@ export async function POST(req: Request): Promise<Response> {
     `;
 
     // console.log(context)
-    console.log(query)
-    console.log(final_prompt)
+    //console.log(query)
+    //console.log(final_prompt)
 
     const result = streamText({
       model: model,

@@ -17,6 +17,7 @@ export async function POST(req: Request): Promise<Response> {
     console.log('Welcome to AI');
     
     const body = await req.json() as RequestBody;
+    //console.log("the body is",body)
     const selectedModel = body.model || "llama3-70b-8192";
 
     if (!body.messages || body.messages.length === 0) {
@@ -51,7 +52,7 @@ export async function POST(req: Request): Promise<Response> {
       temperature: 0,
     });
 
-    console.log("the descioni is",decision)
+    //console.log("the descioni is",decision)
     
     const a = decision.text;
     console.log("the a is",a)
@@ -86,7 +87,7 @@ Analyze the following query: "${query}" and return the appropriate tag.
         temperature: 0,
       });
 
-      console.log("the i is",i)
+      //console.log("the i is",i)
       const queryEmbedding = await getEmbedding(query);
       const index = pinecone.index(i.text);
       const queryResponse = await index.namespace('').query({

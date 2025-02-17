@@ -24,7 +24,7 @@ export async function getEmbedding(text: string): Promise<number[]> {
       throw new Error("Embedding result or values are undefined.");
     }
 
-    console.log("Embedding result:", result);
+   // console.log("Embedding result:", result);
     return result; // Return the embedding values
 
   } catch (error) {

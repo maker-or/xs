@@ -63,7 +63,7 @@ export default function Page() {
   const [lastQuery, setLastQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] =
-    useState<string>("llama3-70b-8192");
+    useState<string>("google/gemini-2.0-flash-lite-preview-02-05:free");
   const [error, setError] = useState<string | null>(null);
   const [searchLinks, setSearchLinks] = useState<string[]>([]);
 
@@ -186,6 +186,7 @@ export default function Page() {
         console.error("Error:", error);
         setIsLoading(false);
         setError("An error occurred. Please try again.");
+        console.error("the error is",error)
       },
     });
 
@@ -304,7 +305,7 @@ export default function Page() {
             const updatedInput = `${input} ${visionText} this is the context from tha analysied image now respond with a sutiable answer based on the context`;
             handleSubmit(event, {
               data: {
-                model: "llama-3.3-70b-specdec",
+                model: "google/gemini-2.0-flash-lite-preview-02-05:free",
                 messages: [{ role: "user", content: updatedInput }],
                 
               },
@@ -713,14 +714,11 @@ export default function Page() {
                   onChange={(e) => setSelectedModel(e.target.value)}
                   className="max-w-[110px] cursor-pointer bg-transparent text-sm text-[#f7eee3] focus:outline-none"
                 >
-                  <option value="llama3--70b--8192">Llama 3</option>
-                  <option value="llama-3.1-8b-instant">llama-3.1</option>
-                  <option value="mixtral-8x7b-32768">mixtral-8x7b</option>
-                  <option value="llama-3.3-70b-specdec">llama-3.3</option>
-                  <option value="deepseek-r1-distill-llama-70b">
-                    deepseek-r1
-                  </option>
-                  <option value="qwen-2.5-coder-32b">qwen-2.5</option>
+                  <option value="google/gemini-2.0-flash-lite-preview-02-05:free">gemini-2.0-flash</option>
+                  <option value="deepseek/deepseek-r1:free">deepseek-r1</option>
+                  <option value="deepseek/deepseek-chat:free">deepseek-v3</option>
+                  <option value="meta-llama/llama-3.3-70b-instruct:free">llama-3.3</option>
+                  <option value="mistralai/mistral-small-24b-instruct-2501:free">mistral-3</option>
                 </select>
               </div>
             </div>

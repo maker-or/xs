@@ -1,4 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { streamText,generateText } from "ai";
 import Groq from "groq-sdk";
 import fs from "fs";
@@ -28,9 +29,13 @@ export async function POST(req: Request) {
       apiKey: process.env.GROQ_API_KEY ?? "",
     });
 
+    const openrouter = createOpenRouter({
+      apiKey: process.env.OPENROUTE_API_KEY ?? "",
+    });
+
     //const finalPrompt = `analyse the image ${userMessage}`;
 
-    const sys = `You are an advanced, multi-modal vision analysis model whose purpose is to accurately, thoroughly, and objectively describe any visual input. Whether the content is an image, a diagram, a screenshot, a conversation, a problem statement, or any other visual representation, you must provide a clear and detailed description that captures every element visible
+    const sys = `You are an advanced,  vision analysis model whose purpose is to accurately, thoroughly, and objectively describe any visual input. Whether the content is an image, a diagram, a screenshot, a conversation, a problem statement, or any other visual representation, you must provide a clear and detailed description that captures every element visible
     
     .
 
@@ -66,14 +71,14 @@ Your goal is to enable any human reader to fully understand the visual input sol
 
     // Build the prompt and stream the response
     const text = await generateText({
-        model: groq("llama-3.2-90b-vision-preview"), // Use the correct vision model
-        // system: sys,
+       // model: groq("llama-3.2-90b-vision-preview"),
+        model: openrouter('qwen/qwen2.5-vl-72b-instruct:free'),
 
-        // prompt: finalPrompt, // Keep the prompt here for overall context
+
         messages: [
           {
             role: "assistant",
-            content: sys, // System prompt as a string
+            content: sys, 
           },
           {
             role: "user",

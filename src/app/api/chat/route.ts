@@ -1,6 +1,7 @@
 import { createOpenAI } from '@ai-sdk/openai';
 //import Groq from "groq-sdk"; // Ensure this package is installed
 import { streamText, smoothStream ,generateText} from 'ai';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { getEmbedding } from '~/utils/embeddings';
 import { type ConvertibleMessage } from '~/utils/types';
@@ -53,6 +54,10 @@ export async function POST(req: Request): Promise<Response> {
       apiKey: process.env.GROQ_API_KEY ?? '',
     });
 
+    const openrouter = createOpenRouter({
+      apiKey: process.env.OPENROUTE_API_KEY ?? "",
+    });
+
     const decisionPrompt = `
       Analyze this query: "${query}"
       Should I use RAG (retrieval from knowledge base) or answer from general knowledge?
@@ -62,7 +67,9 @@ export async function POST(req: Request): Promise<Response> {
     `;
 
     const decision = await generateText({
-      model: groq('llama-3.3-70b-versatile'),
+      model: openrouter('google/gemini-2.0-flash-lite-preview-02-05:free'),
+
+      //model: groq('llama-3.3-70b-versatile'),
       prompt: decisionPrompt,
       temperature: 0,
     });
@@ -97,7 +104,8 @@ Analyze the following query: "${query}" and return the appropriate tag.
 
     //console.log("the sub is",sub)
       const i = await generateText({
-        model: groq('llama-3.3-70b-versatile'),
+        //model: groq('llama-3.3-70b-versatile'),
+        model: openrouter('google/gemini-2.0-flash-lite-preview-02-05:free'),
         prompt: sub,
         temperature: 0,
       });
@@ -135,7 +143,9 @@ Analyze the following query: "${query}" and return the appropriate tag.
     // Generate the response using Groq
     try {
       const result = streamText({
-        model: groq(selectedModel),
+       // model: groq(selectedModel),
+        model: openrouter(selectedModel),
+
         system: `
           You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams. Your task is to answer questions based on the provided context . Follow these guidelines:
       

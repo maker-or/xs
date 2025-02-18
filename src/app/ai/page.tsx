@@ -57,15 +57,15 @@ interface Message {
 interface VisionText {
   text: {
     text: string;
-    toolCalls: any[];
-    toolResults: any[];
+    toolCalls: string[];
+    toolResults: string[];
     finishReason: string;
     usage: {
       promptTokens: number;
       completionTokens: number;
       totalTokens: number;
     };
-    warnings: any[];
+    warnings: string[];
     request: {
       body: string;
     };
@@ -335,12 +335,14 @@ export default function Page() {
   
             const decoder = new TextDecoder();
             let resultText = "";
+            let done = false;
             if (!a) {
               throw new Error("Failed to read stream from /api/vision");
             }
   
-            while (true) {
-              const { done, value } = await a.read();
+            while (!done) { // Change from while (true) to while (!done)
+              const { done: chunkDone, value } = await a.read();
+              done = chunkDone; // Update done variable
               if (done) break;
               const chunk = decoder.decode(value, { stream: true });
               resultText += chunk;

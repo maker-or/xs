@@ -67,7 +67,7 @@ export async function POST(req: Request): Promise<Response> {
     `;
 
     const decision = await generateText({
-      model: openrouter('google/gemini-2.0-flash-lite-preview-02-05:free'),
+      model: openrouter('meta-llama/llama-3.3-70b-instruct:free">llama-3.3'),
 
       //model: groq('llama-3.3-70b-versatile'),
       prompt: decisionPrompt,
@@ -105,7 +105,7 @@ Analyze the following query: "${query}" and return the appropriate tag.
     //console.log("the sub is",sub)
       const i = await generateText({
         //model: groq('llama-3.3-70b-versatile'),
-        model: openrouter('google/gemini-2.0-flash-lite-preview-02-05:free'),
+        model: openrouter('meta-llama/llama-3.3-70b-instruct:free">llama-3.3'),
         prompt: sub,
         temperature: 0,
       });
@@ -177,7 +177,7 @@ Analyze the following query: "${query}" and return the appropriate tag.
           8. **Question Generation**:
              - if the user requests you to generate a question, create only a thought-provoking and contextually appropriate question without providing any answers.
 
-          9. and also write the model named used to generate the answer.
+       
       
           Your goal is to ensure the user receives accurate, well-structured, and helpful answers.
         `,

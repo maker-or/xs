@@ -54,6 +54,24 @@ interface Message {
   content: string;
 }
 
+interface VisionText {
+  text: {
+    text: string;
+    toolCalls: any[];
+    toolResults: any[];
+    finishReason: string;
+    usage: {
+      promptTokens: number;
+      completionTokens: number;
+      totalTokens: number;
+    };
+    warnings: any[];
+    request: {
+      body: string;
+    };
+  };
+}
+
 type Checked = DropdownMenuCheckboxItemProps["checked"];
 
 export default function Page() {
@@ -241,29 +259,40 @@ export default function Page() {
     return content.match(linkRegex) ?? [];
   };
 
+  function extractText(data: string): string | null {
+    try {
+      const parsedData: VisionText = JSON.parse(data);
+      return parsedData.text.text;
+    } catch (error) {
+      console.error("Error extracting text:", error);
+      return null;
+    }
+  }
+
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!input.trim()) return;
-
+  
     setSkipAutoScroll(false);
     setIsLoading(true);
     setSearchResults(null);
     setLastQuery(input);
     setError(null);
-
+  
     try {
       if (
         input.toLowerCase().includes("@whiteboard") &&
         showWhiteboard &&
         tldrawEditor.current
       ) {
+        setInput("analyzing...");
         const shapeIds = tldrawEditor.current.getCurrentPageShapeIds();
         if (shapeIds.size === 0) {
           alert("No shapes on the canvas");
           setIsLoading(false);
           return;
         }
-
+  
         try {
           const { blob } = await tldrawEditor.current.toImage([...shapeIds], {
             background: true,
@@ -271,10 +300,10 @@ export default function Page() {
             quality: 0.1,
             format: "webp",
           });
-
+  
           const file = new File([blob], "canvas.png", { type: "image/png" });
           const reader = new FileReader();
-
+  
           reader.onloadend = async () => {
             const base64Result = reader.result as string;
             const attachment = {
@@ -282,38 +311,58 @@ export default function Page() {
               contentType: "image/png",
               data: base64Result.split(",")[1],
             };
-
+  
             console.log("Attachment:", attachment);
             console.log("the data u", attachment.data);
-
+  
             const visionResponse = await fetch("/api/vision", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ image: attachment.data }),
             });
-
+  
             console.log("the vision  response is", visionResponse);
-
+  
             if (!visionResponse.ok) {
               throw new Error("Failed to analyze image");
             }
-
-            const visionData = await visionResponse.json();
-            const visionText = visionData.text || "No description available.";
-            console.log("the vision text is", visionText);
-
-            const updatedInput = `${input} ${visionText} this is the context from tha analysied image now respond with a sutiable answer based on the context`;
-            handleSubmit(event, {
-              data: {
-                model: "google/gemini-2.0-flash-lite-preview-02-05:free",
-                messages: [{ role: "user", content: updatedInput }],
-                
-              },
-            });
+  
+            const a = visionResponse.body?.getReader();
+            console.log("the a is", a);
+            if (!reader) {
+              throw new Error("Failed to read stream from /api/vision");
+            }
+  
+            const decoder = new TextDecoder();
+            let resultText = "";
+            if (!a) {
+              throw new Error("Failed to read stream from /api/vision");
+            }
+  
+            while (true) {
+              const { done, value } = await a.read();
+              if (done) break;
+              const chunk = decoder.decode(value, { stream: true });
+              resultText += chunk;
+              // Stream response directly to UI
+              setInput(`Analyzing... ${resultText}`);
+            }
+  
+            console.log("Final Vision Text:", resultText);
+  
+            // Extract the text using the extractText function
+            const extractedVisionText = extractText(resultText);
+  
+            if (extractedVisionText) {
+              setInput(extractedVisionText); // Show extracted text in UI
+            } else {
+              setInput(resultText); // Show the raw result if extraction fails
+              console.warn("Failed to extract text, showing raw result.");
+            }
+  
+            setIsLoading(false);
           };
-
-          // handleSubmit(updatedInput)
-
+  
           reader.readAsDataURL(file);
         } catch (error) {
           console.error("Error exporting canvas image:", error);
@@ -534,16 +583,16 @@ export default function Page() {
                 className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="max-w-[85vw] p-2 text-[1.3em] tracking-tight text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2.2em]">
+                <div className="max-w-[85vw] text-[1.3em]/9 start-end tracking-tight font-serif  rounded-2xl text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2em]">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
                 </div>
               </div>
             ) : (
               <div
                 key={m.id}
-                className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
+                className="animate-slide-in group relative  flex flex-col md:mx-0"
               >
-                <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-4 md:text-[1.2rem]">
+                <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-1 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-2 md:text-[1.2rem]">
                   <div
                     className={`${"animate-fade-in"} transition-opacity duration-500`}
                   >

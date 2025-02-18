@@ -71,8 +71,8 @@ Your goal is to enable any human reader to fully understand the visual input sol
 
     // Build the prompt and stream the response
     const text = await generateText({
-       // model: groq("llama-3.2-90b-vision-preview"),
-        model: openrouter('qwen/qwen2.5-vl-72b-instruct:free'),
+        //model: groq("llama-3.2-90b-vision-preview"),
+       model: openrouter('qwen/qwen2.5-vl-72b-instruct:free'),
 
 
         messages: [

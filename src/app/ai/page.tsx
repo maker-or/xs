@@ -3,6 +3,10 @@ import React, { useEffect, useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import DOMPurify from "dompurify";
+
 import { useChat } from "ai/react";
 import {
   Copy,
@@ -11,43 +15,49 @@ import {
   Play,
   Share2,
   ArrowUp,
-  Paintbrush,
+  Info,
   RotateCw,
   MessageCircleX,
   FileText,
-  Sparkles,
+  Square,
 } from "lucide-react";
 
 import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
-
-import { Editor, Tldraw, TLUiComponents, useEditor } from "tldraw";
+import { Editor, Tldraw, TLUiComponents } from "tldraw";
 import "tldraw/tldraw.css";
 
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
 import styles from "~/app/chat.module.css";
-import { Attachment, JSONValue } from "ai";
-
+import { Attachment } from "ai";
 
 const components: TLUiComponents = {};
 
-function ChatGPTLoadingAnimation() {
-  return (
-    <div className="flex items-start justify-start">
-      <span
-        className={`dot ${styles.animateDot} h-1 w-1 rounded-full bg-[#f7eee3]`}
-      />
-      <span
-        className={`dot ${styles.animateDot} h-1 w-1 rounded-full bg-[#f7eee3] ${styles.delay200}`}
-      />
-      <span
-        className={`dot ${styles.animateDot} ${styles.delay400} h-1 w-1 rounded-full bg-[#f7eee3]`}
-      />
-    </div>
-  );
+// -------------------------------------------------------------------------
+// MarkdownRenderer Component
+// -------------------------------------------------------------------------
+interface MarkdownRendererProps {
+  content: string;
 }
 
+const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
+  // Sanitize the markdown content before rendering.
+  const sanitizedContent = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
+  return (
+    <ReactMarkdown
+      className="prose prose-invert max-w-none"
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeKatex, rehypeRaw]}
+    >
+      {sanitizedContent}
+    </ReactMarkdown>
+  );
+};
+
+// -------------------------------------------------------------------------
+// Types
+// -------------------------------------------------------------------------
 interface Message {
   id: string;
   role: "user" | "assistant";
@@ -74,14 +84,18 @@ interface VisionText {
 
 type Checked = DropdownMenuCheckboxItemProps["checked"];
 
+// -------------------------------------------------------------------------
+// Main Page Component
+// -------------------------------------------------------------------------
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [isWebSearchLoading, setIsWebSearchLoading] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [lastQuery, setLastQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] =
-    useState<string>("google/gemini-2.0-flash-lite-preview-02-05:free");
+  const [selectedModel, setSelectedModel] = useState<string>(
+    "google/gemini-2.0-flash-lite-preview-02-05:free"
+  );
   const [error, setError] = useState<string | null>(null);
   const [searchLinks, setSearchLinks] = useState<string[]>([]);
 
@@ -91,17 +105,21 @@ export default function Page() {
   const tldrawEditor = useRef<Editor | null>(null);
 
   const [skipAutoScroll, setSkipAutoScroll] = useState(false);
-
   const [isRegenerating, setIsRegenerating] = useState(false);
-  const [regenForMessageId, setRegenForMessageId] = useState<string | null>(
-    null,
-  );
+  const [regenForMessageId, setRegenForMessageId] = useState<string | null>(null);
 
   const [showStatusBar, setShowStatusBar] = React.useState<Checked>(true);
-  const [showActivityBar, setShowActivityBar] =
-    React.useState<Checked>(false);
+  const [showActivityBar, setShowActivityBar] = React.useState<Checked>(false);
   const [showPanel, setShowPanel] = React.useState<Checked>(false);
 
+  const [chatId, setChatId] = useState<string | undefined>(undefined);
+  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
+
+  const [showActionButtons, setShowActionButtons] = useState(false);
+
+  // -----------------------------------------------------------------------
+  // Load previous session data (if any)
+  // -----------------------------------------------------------------------
   useEffect(() => {
     const storedChatId = localStorage.getItem("chatId");
     if (storedChatId) {
@@ -117,52 +135,41 @@ export default function Page() {
     }
   }, []);
 
+  // -----------------------------------------------------------------------
+  // PDF Export Function
+  // -----------------------------------------------------------------------
   const createPDF = () => {
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "pt",
       format: "a4",
     });
-  
-    // Page dimensions
+
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 40;
     const lineHeight = 18;
     let y = margin;
-  
-    // Set default font
+
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(12);
-  
-    // Title
+
     doc.text("SphereAI", margin, y);
-    y += lineHeight * 1.5; // Extra spacing after title
-  
-    // Markdown stripping function
+    y += lineHeight * 1.5;
+
     const stripMarkdown = (text: string) => {
       return text
-        .replace(/!\[.*?\]\(.*?\)/g, "") // Remove images
-        .replace(/\[(.*?)\]\(.*?\)/g, "$1") // Keep link text only
-        .replace(/[#>*_`~-]/g, "") // Remove common markdown characters
-        .replace(/\n{2,}/g, "\n") // Collapse multiple newlines
+        .replace(/!\[.*?\]\(.*?\)/g, "")
+        .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+        .replace(/[#>*_`~-]/g, "")
+        .replace(/\n{2,}/g, "\n")
         .trim();
     };
-  
-    // Loop through messages
+
     messages.forEach((message) => {
-      // Write message role (User, Assistant, etc.)
-      // doc.text(`${message.role.toUpperCase()}:`, margin, y);
-      // y += lineHeight / 2;
-  
-      // Convert markdown to plain text
       const plainText = stripMarkdown(message.content);
-      
-      // Split text into lines fitting within page width
       const lines = doc.splitTextToSize(plainText, pageWidth - margin * 2);
-      
-      // Add text while handling pagination
-      lines.forEach((line: string | string[]) => {
+      lines.forEach((line: string) => {
         if (y + lineHeight > pageHeight - margin) {
           doc.addPage();
           y = margin;
@@ -170,43 +177,35 @@ export default function Page() {
         doc.text(line, margin, y);
         y += lineHeight;
       });
-  
-      y += lineHeight; // Extra spacing between messages
+      y += lineHeight;
     });
-  
-    // Save PDF
+
     doc.save("chat.pdf");
   };
-  
 
-  const [chatId, setChatId] = useState<string | undefined>(undefined);
-  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
-
-  const { messages, input, handleInputChange, handleSubmit, setInput } =
-    useChat({
-      api: "/api/chat",
-      body: {
-        model: selectedModel,
-       
-      },
-      id: chatId,
-      initialMessages: initialMessages,
-      onResponse: (_response) => {
-        setIsLoading(false);
-        resetInputField();
-        setError(null);
-        if (isRegenerating) {
-          setIsRegenerating(false);
-          setRegenForMessageId(null);
-        }
-      },
-      onError: (error) => {
-        console.error("Error:", error);
-        setIsLoading(false);
-        setError("An error occurred. Please try again.");
-        console.error("the error is",error)
-      },
-    });
+  // -----------------------------------------------------------------------
+  // Chat hook configuration
+  // -----------------------------------------------------------------------
+  const { messages, input, handleInputChange, handleSubmit, setInput } = useChat({
+    api: "/api/chat",
+    body: { model: selectedModel },
+    id: chatId,
+    initialMessages: initialMessages,
+    onResponse: (_response) => {
+      setIsLoading(false);
+      resetInputField();
+      setError(null);
+      if (isRegenerating) {
+        setIsRegenerating(false);
+        setRegenForMessageId(null);
+      }
+    },
+    onError: (error) => {
+      console.error("Error:", error);
+      setIsLoading(false);
+      setError("An error occurred. Please try again.");
+    },
+  });
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -230,10 +229,7 @@ export default function Page() {
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(
-        textareaRef.current.scrollHeight,
-        200,
-      )}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
   };
 
@@ -269,16 +265,19 @@ export default function Page() {
     }
   }
 
+  // -----------------------------------------------------------------------
+  // Form Submission Handler
+  // -----------------------------------------------------------------------
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!input.trim()) return;
-  
+
     setSkipAutoScroll(false);
     setIsLoading(true);
     setSearchResults(null);
     setLastQuery(input);
     setError(null);
-  
+
     try {
       if (
         input.toLowerCase().includes("@whiteboard") &&
@@ -292,7 +291,7 @@ export default function Page() {
           setIsLoading(false);
           return;
         }
-  
+
         try {
           const { blob } = await tldrawEditor.current.toImage([...shapeIds], {
             background: true,
@@ -300,10 +299,10 @@ export default function Page() {
             quality: 0.1,
             format: "webp",
           });
-  
+
           const file = new File([blob], "canvas.png", { type: "image/png" });
           const reader = new FileReader();
-  
+
           reader.onloadend = async () => {
             const base64Result = reader.result as string;
             const attachment = {
@@ -311,60 +310,44 @@ export default function Page() {
               contentType: "image/png",
               data: base64Result.split(",")[1],
             };
-  
-            console.log("Attachment:", attachment);
-            console.log("the data u", attachment.data);
-  
+
             const visionResponse = await fetch("/api/vision", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ image: attachment.data }),
             });
-  
-            console.log("the vision  response is", visionResponse);
-  
+
             if (!visionResponse.ok) {
               throw new Error("Failed to analyze image");
             }
-  
+
             const a = visionResponse.body?.getReader();
-            console.log("the a is", a);
-            if (!reader) {
-              throw new Error("Failed to read stream from /api/vision");
-            }
-  
-            const decoder = new TextDecoder();
-            let resultText = "";
-            let done = false;
             if (!a) {
               throw new Error("Failed to read stream from /api/vision");
             }
-  
-            while (!done) { // Change from while (true) to while (!done)
+
+            const decoder = new TextDecoder();
+            let resultText = "";
+            let done = false;
+            while (!done) {
               const { done: chunkDone, value } = await a.read();
-              done = chunkDone; // Update done variable
+              done = chunkDone;
               if (done) break;
               const chunk = decoder.decode(value, { stream: true });
               resultText += chunk;
-              // Stream response directly to UI
               setInput(`Analyzing... ${resultText}`);
             }
-  
-            console.log("Final Vision Text:", resultText);
-  
-            // Extract the text using the extractText function
+
             const extractedVisionText = extractText(resultText);
-  
             if (extractedVisionText) {
-              setInput(extractedVisionText); // Show extracted text in UI
+              setInput(extractedVisionText);
             } else {
-              setInput(resultText); // Show the raw result if extraction fails
+              setInput(resultText);
               console.warn("Failed to extract text, showing raw result.");
             }
-  
             setIsLoading(false);
           };
-  
+
           reader.readAsDataURL(file);
         } catch (error) {
           console.error("Error exporting canvas image:", error);
@@ -381,9 +364,7 @@ export default function Page() {
     }
   };
 
-  const handleKeyDown = (
-    event: React.KeyboardEvent<HTMLTextAreaElement>,
-  ) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       void onSubmit(event);
@@ -404,12 +385,7 @@ export default function Page() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [
-            {
-              role: "user",
-              content: lastQuery,
-            },
-          ],
+          messages: [{ role: "user", content: lastQuery }],
         }),
       });
 
@@ -432,10 +408,8 @@ export default function Page() {
 
   const handleSearchYouTube = (query: string) => {
     window.open(
-      `https://www.youtube.com/results?search_query=${encodeURIComponent(
-        query,
-      )}`,
-      "_blank",
+      `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
+      "_blank"
     );
   };
 
@@ -472,106 +446,66 @@ export default function Page() {
     setSkipAutoScroll(true);
     setIsLoading(true);
     setError(null);
-
     setInput(query);
-
     setTimeout(() => {
       handleSubmit({ preventDefault: () => {} } as React.FormEvent);
     }, 0);
   };
 
-  const processContent = (content: string) => {
-    return content.replace(/<think>(.*?)<\/think>/gs, (_, content) =>
-      `<details class="think-container" style="background: #1a1a1a; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
-        <summary>Thinking proccess</summary>
-        <span style="color: #FF5E00; font-weight: bold;">Thinking:</span>
-        <div style="margin-top: 0.5rem;">${content}</div>
-      </details>`,
-    );
-  };
-
-  function sanitizeContent(content: string): string {
-    return content.replace(/<\/?string>/g, "");
-  }
-
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Add mouse move event listener
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (event.clientY < 50) { // Adjust the threshold as needed
+        setShowActionButtons(true);
+      } else {
+        setShowActionButtons(false);
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
+
   return (
-    <main
-      className={`${
-        showWhiteboard ? "pr-[33.333%]" : ""
-      } transition-all duration-300`}
-    >
-      <div className="absolute right-4 top-4 z-10 flex gap-2">
-        <button
-          onClick={shareChat}
-          className="hover:bg-[#575757]flex items-center justify-center gap-2 rounded-full bg-[#292a29] p-3 text-sm text-[#f7eee3]"
-        >
-          <Share2 className="h-4 w-4" />
-        </button>
-        <button
-          onClick={handleClearHistory}
-          className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
-        >
-          <MessageCircleX className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => setShowWhiteboard(true)}
-          className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
-        >
-          <Paintbrush className="h-4 w-4" />
-        </button>
-
-        <button
-          onClick={createPDF}
-          className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
-        >
-          <FileText /> export
-        </button>
+    <main className={`${showWhiteboard ? "pr-[33.333%]" : ""} transition-all duration-300`}>
+      <div className={`fixed top-0 right-0 z-10 transition-opacity duration-300 ${showActionButtons ? 'opacity-100' : 'opacity-0'}`}>
+        {showActionButtons && (
+          <div className=" flex gap-2 action-button">
+            <button
+              onClick={shareChat}
+              className="hover:bg-[#575757] flex items-center justify-center gap-2 rounded-full bg-[#292a29] p-3 text-sm text-[#f7eee3]"
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
+            <button
+              onClick={handleClearHistory}
+              className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
+            >
+              <MessageCircleX className="h-4 w-4" />
+            </button>
+            {/* <button
+              onClick={() => setShowWhiteboard(true)}
+              className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
+            >
+              <FileText className="h-4 w-4" />
+            </button> */}
+            <button
+              onClick={createPDF}
+              className="flex items-center justify-center gap-2 rounded-full bg-[#4544449d] p-3 text-white hover:bg-[#575757]"
+            >
+              <FileText /> export
+            </button>
+          </div>
+        )}
       </div>
-      <div
-        className={`relative mx-auto flex h-full w-full flex-col ${
-          showWhiteboard ? "md:w-full" : "md:w-2/3"
-        }`}
-      >
+      <div className={`relative mx-auto flex h-full w-full flex-col ${showWhiteboard ? "md:w-full" : "md:w-2/3"}`}>
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6">
-          <style>{`
-            @keyframes fadeIn {
-              from { opacity: 0; transform: translateY(8px); }
-              to { opacity: 1; transform: translateY(0); }
-            }
-            .animate-fade-in {
-              animation: fadeIn 0.4s ease-out forwards;
-            }
-            @keyframes textReplace {
-              0% { opacity: 1; transform: translateY(0); }
-              20% { opacity: 0; transform: translateY(-8px); }
-              40% { opacity: 0; transform: translateY(8px); }
-              100% { opacity: 1; transform: translateY(0); }
-            }
-            .textReplace {
-              animation: textReplace 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            .loading-text {
-              background: linear-gradient(90deg, #666 0%, #999 50%, #666 100%);
-              background-size: 200% auto;
-              animation: gradient 2s linear infinite;
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-              background-clip: text;
-            }
-            @keyframes gradient {
-              0% { background-position: 0% center; }
-              100% { background-position: -200% center; }
-            }
-            .loaded-text {
-              color: #E8E8E6;
-              transition: color 0.3s ease;
-            }
-          `}</style>
-
           {messages.map((m, index) => {
             const previousUserMessage =
               m.role === "assistant" &&
@@ -585,66 +519,40 @@ export default function Page() {
                 className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="max-w-[85vw] text-[1.3em]/9 start-end tracking-tight font-serif  rounded-2xl text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2em]">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                <div className="max-w-[85vw] text-[1.3em] tracking-tight font-serif rounded-2xl text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2em]">
+                  <MarkdownRenderer content={m.content} />
                 </div>
               </div>
             ) : (
-              <div
-                key={m.id}
-                className="animate-slide-in group relative  flex flex-col md:mx-0"
-              >
+              <div key={m.id} className="animate-slide-in group relative flex flex-col md:mx-0">
                 <div className="relative max-w-[90vw] overflow-x-hidden rounded-xl p-1 text-[0.95rem] tracking-tight text-[#E8E8E6] md:max-w-2xl md:p-2 md:text-[1.2rem]">
-                  <div
-                    className={`${"animate-fade-in"} transition-opacity duration-500`}
-                  >
-                    <ReactMarkdown
-                      className="prose prose-invert max-w-none"
-                      remarkPlugins={[remarkGfm]}
-                    >
-                      {sanitizeContent(m.content)}
-                    </ReactMarkdown>
+                  <div className="animate-fade-in transition-opacity duration-500">
+                    <MarkdownRenderer content={m.content} />
                   </div>
-
-                  <div className="mb-14 flex flex-wrap gap-2">
-                    <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                      <button
-                        onClick={handleSearchWeb}
-                        className="text-sm md:text-base"
-                      >
+                  <div className="mb-14 flex flex-wrap -gap-3 ">
+                    <div className="flex items-center justify-center rounded-full  p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
+                      <button onClick={handleSearchWeb} className="text-sm md:text-base">
                         <Globe className="h-4 w-4" />
                       </button>
                     </div>
-                    <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                      <button
-                        onClick={() => handleSearchYouTube(lastQuery)}
-                        className="text-sm md:text-base"
-                      >
+                    <div className="flex items-center justify-center rounded-full  p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
+                      <button onClick={() => handleSearchYouTube(lastQuery)} className="text-sm md:text-base">
                         <Play className="h-4 w-4" />
                       </button>
                     </div>
                     {previousUserMessage && (
-                      <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
+                      <div className="flex items-center justify-center rounded-full  p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
                         <button
-                          onClick={() =>
-                            regenerateQuery(previousUserMessage, m.id)
-                          }
+                          onClick={() => regenerateQuery(previousUserMessage, m.id)}
                           className="text-sm md:text-base"
                           disabled={regenForMessageId === m.id || isLoading}
                         >
-                          {regenForMessageId === m.id ? (
-                            <ChatGPTLoadingAnimation />
-                          ) : (
-                            <RotateCw className="h-4 w-4" />
-                          )}
+                          {regenForMessageId === m.id ? " " : <RotateCw className="h-4 w-4" />}
                         </button>
                       </div>
                     )}
-                    <div className="flex items-center justify-center rounded-full bg-[#4544449d] p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
-                      <button
-                        onClick={() => copyMessage(m.content, m.id)}
-                        className="text-sm md:text-base"
-                      >
+                    <div className="flex items-center justify-center rounded-full  p-3 text-white transition-colors hover:bg-[#294A6D] hover:text-[#48AAFF]">
+                      <button onClick={() => copyMessage(m.content, m.id)} className="text-sm md:text-base">
                         {copiedMessageId === m.id ? (
                           <Check className="h-4 w-4 text-[#48AAFF]" />
                         ) : (
@@ -657,35 +565,6 @@ export default function Page() {
               </div>
             );
           })}
-
-          {isLoading &&
-            (messages.length === 0 ||
-              messages[messages.length - 1]?.role === "user") && (
-              <div className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
-                <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
-                  <div className="flex items-center justify-start gap-2">
-                    <ChatGPTLoadingAnimation />
-                    <span className="text-sm tracking-tight text-[#e8e8e67d]">
-                      creating
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-          {isWebSearchLoading && (
-            <div className="animate-slide-in group relative mx-2 flex flex-col md:mx-0">
-              <div className="max-w-[90vw] rounded-xl p-3 text-[0.95rem] tracking-tight text-[#E8E8E6] shadow-lg md:max-w-2xl md:p-4 md:text-[0.8rem]">
-                <div className="flex items-center justify-start gap-2">
-                  <ChatGPTLoadingAnimation />
-                  <span className="text-sm tracking-tight text-[#e8e8e67d]">
-                    Searching
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {searchResults && (
             <div className="mx-3 overflow-x-hidden rounded-xl border border-[#f7eee332] bg-gradient-to-r from-[#1a1a1a] to-[#252525] p-4 shadow-lg md:mx-0">
               <div className="mb-4 flex items-center justify-between">
@@ -698,7 +577,7 @@ export default function Page() {
                 <div className="group relative">
                   <button className="flex items-center gap-2 rounded-full bg-[#4544449d] px-3 py-1.5 text-white transition-colors duration-200 hover:bg-[#FF5E00]">
                     <span className="text-sm">Sources</span>
-                    <Copy className="h-4 w-4" />
+                    <Info className="h-4 w-4" />
                   </button>
                   <div className="absolute right-0 z-10 mt-2 hidden w-max max-w-[300px] rounded-lg border border-[#f7eee332] bg-[#1a1a1a] p-2 shadow-xl group-hover:block">
                     {searchLinks.map((link, index) => (
@@ -716,38 +595,24 @@ export default function Page() {
                 </div>
               </div>
               <div className="prose prose-sm md:prose-base prose-invert max-w-none">
-                <ReactMarkdown
-                  className="leading-relaxed text-[#E8E8E6] opacity-90"
-                  remarkPlugins={[remarkGfm]}
-                >
-                  {sanitizeContent(searchResults)}
-                </ReactMarkdown>
+                <MarkdownRenderer content={searchResults} />
               </div>
             </div>
           )}
-
           <div ref={messagesEndRef} />
         </div>
 
         <div
-          className={`fixed bottom-0 ${
+          className={`fixed bottom-0 flex-row gap-3 items-center justify-center ${
             showWhiteboard ? "right-[33.333%]" : "right-0"
-          } left-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4 m-2 transition-all duration-300`}
+          } left-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4 transition-all duration-300`}
         >
-          <button
-            onClick={scrollToTop}
-            className="absolute top-2 right-2 z-20 rounded-full bg-[#4544449d] p-2 text-white hover:bg-[#575757]"
-          >
-            ↑
-          </button>
           <form
             onSubmit={onSubmit}
-            className={`mx-auto w-full ${
-              showWhiteboard ? "max-w-full px-4" : "max-w-2xl px-3 md:px-0"
-            }`}
+            className={`mx-auto w-full ${showWhiteboard ? "max-w-full px-4" : "max-w-2xl px-3 md:px-0"}`}
           >
-            <div className="group flex w-full items-center rounded-2xl border border-[#f7eee332] bg-gradient-to-r from-[#1a1a1a] to-[#1f1f1f] p-2.5 shadow-lg backdrop-blur-sm transition-all duration-300">
-              <div className="flex flex-1 items-center overflow-hidden rounded-xl border border-transparent bg-[#2a2a2a] p-2 transition-all duration-300 group-hover:border-[#f7eee332]">
+            <div className="group flex w-full items-center rounded-2xl border border-[#f7eee332] bg-gradient-to-r from-[#2f2f2f] to-[#454444] p-1 shadow-lg backdrop-blur-sm transition-all duration-300">
+              <div className="flex relative flex-1 items-center overflow-hidden rounded-xl border border-transparent bg-[#0c0c0c] py-5 transition-all duration-300 group-hover:border-[#f7eee332]">
                 <textarea
                   ref={textareaRef}
                   placeholder="Ask me anything..."
@@ -757,39 +622,28 @@ export default function Page() {
                     adjustTextareaHeight();
                   }}
                   onKeyDown={handleKeyDown}
-                  className="max-h-[120px] min-h-[48px] flex-1 resize-none bg-transparent px-4 py-3 text-sm text-[#f7eee3] outline-none transition-all duration-200 placeholder:text-[#f7eee380] md:text-base"
+                  className="max-h-[120px] min-h-[55px] flex-1 resize-none bg-transparent font-serif px-2 py-2 text-sm text-[#f7eee3] outline-none transition-all duration-200 placeholder:text-[#f7eee380] md:text-base"
                 />
-
-                <select
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  className="max-w-[110px] cursor-pointer bg-transparent text-sm text-[#f7eee3] focus:outline-none"
-                >
-                  <option value="google/gemini-2.0-flash-lite-preview-02-05:free">gemini-2.0-flash</option>
-                  <option value="deepseek/deepseek-r1:free">deepseek-r1</option>
-                  <option value="deepseek/deepseek-chat:free">deepseek-v3</option>
-                  <option value="meta-llama/llama-3.3-70b-instruct:free">llama-3.3</option>
-                  <option value="mistralai/mistral-small-24b-instruct-2501:free">mistral-3</option>
-                </select>
+                <div className="absolute right-2 bottom-2 flex gap-3 items-center justify-center">
+                  <button className="bg-gradient-to-tr from-[#0c0c0c] to-[#393838] p-2 rounded-lg" onClick={() => setShowWhiteboard(true)}>Canvas</button>
+                  <button
+                    type="submit"
+                    className="p-2 rounded-full bg-gradient-to-tr from-[#0c0c0c] to-[#393838] text-[#f7eee3] font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm backdrop-blur-sm"
+                  >
+                    {isLoading || isWebSearchLoading ? <Square fill="#f7eee3" /> : <ArrowUp className="text-[#f7eee3]" />}
+                  </button>
+                </div>
               </div>
             </div>
 
             {input.length > 0 && (
               <div className="mt-1.5 flex items-center justify-between px-1 text-xs text-[#f7eee380]">
-                <span>
-                  {input.length > 0
-                    ? "Press Enter to send, Shift + Enter for new line"
-                    : ""}
-                </span>
+                <span>Press Enter to send, Shift + Enter for new line</span>
                 <span>{input.length}/2000</span>
               </div>
             )}
 
-            {error && (
-              <div className="mt-2 text-center text-sm text-red-500">
-                {error}
-              </div>
-            )}
+            {error && <div className="mt-2 text-center text-sm text-red-500">{error}</div>}
           </form>
         </div>
       </div>
@@ -803,6 +657,7 @@ export default function Page() {
           <Tldraw
             inferDarkMode
             components={components}
+            persistenceKey="example"
             onMount={(editor: Editor) => {
               editor.setCamera({ x: 0, y: 0, z: 0 });
               tldrawEditor.current = editor;
@@ -810,9 +665,7 @@ export default function Page() {
           />
           <button
             onClick={() => setShowWhiteboard(false)}
-            className="absolute top-0 right-0 z-30 flex items-center justify-center gap-2 
-                       rounded-bl-xl bg-[#1A1A1C] p-3 text-sm text-[#f7eee3] 
-                       hover:bg-[#575757]"
+            className="absolute top-0 right-0 z-30 flex items-center justify-center gap-2 rounded-bl-xl bg-[#1A1A1C] p-3 text-sm text-[#f7eee3] hover:bg-[#575757]"
           >
             Close
           </button>

@@ -519,7 +519,7 @@ export default function Page() {
                 className="animate-slide-in group relative mx-2 flex flex-col md:mx-0"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="max-w-[85vw] text-[1.3em] tracking-tight font-serif rounded-2xl text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2em]">
+                <div className="max-w-[85vw] text-[1.3em] tracking-tight font-serif rounded-2xl text-[#E8E8E6] md:max-w-xl md:p-4 md:text-[2em] line-clamp-3">
                   <MarkdownRenderer content={m.content} />
                 </div>
               </div>

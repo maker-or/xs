@@ -46,11 +46,11 @@ interface MarkdownRendererProps {
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   // Sanitize and format markdown code blocks before rendering.
-  let sanitizedContent = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
+  let  sanitizedContent = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
 
   // Use regex to find code blocks and attempt to format them if they are code
   sanitizedContent = sanitizedContent.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-    let codeContent = code.trim();
+    const codeContent = code.trim();
     let formatted = codeContent;
     try {
       if (lang === "js" || lang === "javascript" || lang === "jsx" || lang === "ts" || lang === "typescript" || lang === "tsx") {

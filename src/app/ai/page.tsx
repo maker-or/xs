@@ -6,6 +6,8 @@ import rehypeRaw from "rehype-raw";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import DOMPurify from "dompurify";
+import prettier from "prettier/standalone";
+import parserBabel from "prettier/parser-babel";
 
 import { useChat } from "ai/react";
 import {
@@ -20,6 +22,7 @@ import {
   MessageCircleX,
   FileText,
   Square,
+  Paintbrush,
 } from "lucide-react";
 
 import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
@@ -42,8 +45,26 @@ interface MarkdownRendererProps {
 }
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
-  // Sanitize the markdown content before rendering.
-  const sanitizedContent = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
+  // Sanitize and format markdown code blocks before rendering.
+  let sanitizedContent = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
+
+  // Use regex to find code blocks and attempt to format them if they are code
+  sanitizedContent = sanitizedContent.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+    let codeContent = code.trim();
+    let formatted = codeContent;
+    try {
+      if (lang === "js" || lang === "javascript" || lang === "jsx" || lang === "ts" || lang === "typescript" || lang === "tsx") {
+        formatted = prettier.format(codeContent, {
+          parser: "babel",
+          plugins: [parserBabel]
+        });
+      }
+    } catch (error) {
+      console.error("Error formatting code block:", error);
+    }
+    return "```" + lang + "\n" + formatted.trim() + "\n```";
+  });
+
   return (
     <ReactMarkdown
       className="prose prose-invert max-w-none"
@@ -95,6 +116,7 @@ export default function Page() {
   const [searchResults, setSearchResults] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>(
     "google/gemini-2.0-flash-lite-preview-02-05:free"
+    
   );
   const [error, setError] = useState<string | null>(null);
   const [searchLinks, setSearchLinks] = useState<string[]>([]);
@@ -622,10 +644,10 @@ export default function Page() {
                     adjustTextareaHeight();
                   }}
                   onKeyDown={handleKeyDown}
-                  className="max-h-[120px] min-h-[55px] flex-1 resize-none bg-transparent font-serif px-2 py-2 text-sm text-[#f7eee3] outline-none transition-all duration-200 placeholder:text-[#f7eee380] md:text-base"
+                  className="max-h-[120px] min-h-[70px] flex-1 resize-none bg-transparent font-serif px-2 py-2 text-sm text-[#f7eee3] outline-none transition-all duration-200 placeholder:text-[#f7eee380] md:text-base"
                 />
                 <div className="absolute right-2 bottom-2 flex gap-3 items-center justify-center">
-                  <button className="bg-gradient-to-tr from-[#0c0c0c] to-[#393838] p-2 rounded-lg" onClick={() => setShowWhiteboard(true)}>Canvas</button>
+                  <button className="flex gap-2 bg-gradient-to-tr from-[#0c0c0c] to-[#0c0c0c] text-[#f7eee380] hover:text-[#f7eee3] p-2 rounded-lg" onClick={() => setShowWhiteboard(true)}>Canvas<Paintbrush /></button>
                   <button
                     type="submit"
                     className="p-2 rounded-full bg-gradient-to-tr from-[#0c0c0c] to-[#393838] text-[#f7eee3] font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm backdrop-blur-sm"

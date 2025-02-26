@@ -14,6 +14,8 @@ interface RequestBody {
   experimental_attachments?: string[];
 }
 
+
+
 export async function POST(req: Request): Promise<Response> {
   try {
     console.log('Welcome to AI');
@@ -60,14 +62,11 @@ export async function POST(req: Request): Promise<Response> {
 
     const decisionPrompt = `
       Analyze this query: "${query}"
-      Should I use RAG (retrieval from knowledge base) or answer from general knowledge?
-      If the query is related to studies, exams, or educational content, respond with "USE_RAG".
-      If it's a general conversation or question, respond with "USE_GENERAL".
-      Respond with only one of these two options.
+      if the given qurey is a problem,numerical then retrun "RESONING" else return "USE_RAG"
     `;
 
     const decision = await generateText({
-      model: openrouter('meta-llama/llama-3.3-70b-instruct:free">llama-3.3'),
+      model: openrouter('google/gemini-2.0-flash-lite-preview-02-05:free'),
 
       //model: groq('llama-3.3-70b-versatile'),
       prompt: decisionPrompt,
@@ -78,60 +77,63 @@ export async function POST(req: Request): Promise<Response> {
     
     const a = decision.text;
     console.log("the a is",a)
-    const useRag = a.includes("USE_RAG");
+    const useRag = a.includes("RESONING");
     console.log("the useRag is",useRag)
     let finalPrompt = '';
 
     if (useRag) {
       // Initialize Pinecone and perform RAG
-      const pinecone = new Pinecone({
-        apiKey: process.env.PINECONE_API_KEY ?? '',
-      });
+      // const pinecone = new Pinecone({
+      //   apiKey: process.env.PINECONE_API_KEY ?? '',
+      // });
 
 
-      const sub = `
-You are a query classifier. Your task is to categorize a given query into one of the following subjects and return only the corresponding subject tag. Do not include any other text in your response.
+//       const sub = `
+// You are a query classifier. Your task is to categorize a given query into one of the following subjects and return only the corresponding subject tag. Do not include any other text in your response.
 
-The possible subject categories and their tags are:
+// The possible subject categories and their tags are:
 
-*   Compiler Design: cd
-*   Data Analysis and Algorithms: daa
-*   Data Communication and Networking/CRYPTOGRAPHY AND NETWORK SECURITY: ol
-*   Engineering Economics and Management: eem
+// *   Compiler Design: cd
+// *   Data Analysis and Algorithms: daa
+// *   Data Communication and Networking/CRYPTOGRAPHY AND NETWORK SECURITY: ol
+// *   Engineering Economics and Management: eem
 
-Analyze the following query: "${query}" and return the appropriate tag.
-    `;
+// Analyze the following query: "${query}" and return the appropriate tag.
+//     `;
 
-    //console.log("the sub is",sub)
-      const i = await generateText({
-        //model: groq('llama-3.3-70b-versatile'),
-        model: openrouter('meta-llama/llama-3.3-70b-instruct:free">llama-3.3'),
-        prompt: sub,
-        temperature: 0,
-      });
+//     //console.log("the sub is",sub)
+//       const i = await generateText({
+//         //model: groq('llama-3.3-70b-versatile'),
+//         model: openrouter('google/gemini-2.0-flash-lite-preview-02-05:free'),
+//         prompt: sub,
+//         temperature: 0,
+//       });
 
       //console.log("the i is",i)
-      const queryEmbedding = await getEmbedding(query);
-      const index = pinecone.index(i.text);
-      const queryResponse = await index.namespace('').query({
-        vector: queryEmbedding,
-        topK: 5,
-        includeMetadata: true,
-      });
+      // const queryEmbedding = await getEmbedding(query);
+      // const index = pinecone.index(i.text);
+      // const queryResponse = await index.namespace('').query({
+      //   vector: queryEmbedding,
+      //   topK: 5,
+      //   includeMetadata: true,
+      // });
 
-      if (!queryResponse.matches || queryResponse.matches.length === 0) {
-        throw new Error('No relevant context found in Pinecone');
-      }
+      // if (!queryResponse.matches || queryResponse.matches.length === 0) {
+      //   throw new Error('No relevant context found in Pinecone');
+      // }
 
-      const context = queryResponse.matches
-        .map((match) => `Book: ${String(match.metadata?.book ?? 'Unknown')}\nPage: ${String(match.metadata?.page_number ?? 'Unknown')}\nText: ${String(match.metadata?.text ?? '')}`)
-        .join('\n\n');
+      // const context = queryResponse.matches
+      //   .map((match) => `Book: ${String(match.metadata?.book ?? 'Unknown')}\nPage: ${String(match.metadata?.page_number ?? 'Unknown')}\nText: ${String(match.metadata?.text ?? '')}`)
+      //   .join('\n\n');
 
+
+
+
+     // Context: ${context}
       finalPrompt = `
-        Context: ${context}
+        
         Question: ${query}
-        Please provide a comprehensive and detailed answer based on the provided context and cite the book name at the end of the response.
-         and also write the model named used to generate the answer.
+        Please provide a comprehensive and detailed answer and solve the problem in a step-by-step manner.
       `;
     } else {
       // Use general knowledge
@@ -144,16 +146,16 @@ Analyze the following query: "${query}" and return the appropriate tag.
     try {
       const result = streamText({
        // model: groq(selectedModel),
-        model: openrouter(selectedModel),
+        model: openrouter('google/gemini-2.0-flash-thinking-exp-1219:free'),
 
         system: `
-          You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams. Your task is to answer questions based on the provided context . Follow these guidelines:
+          You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams.  Follow these guidelines:
       
           1. **Role**: Act as a knowledgeable and helpful assistant don't show the thinking process. just provide the answer.
           2. **Task**: Answer user questions indetail and explain it clearly answer each question for 15 marks .
           3. **Output Format**:
              - Start with a indetailed explation of the answer.
-             - Use markdown formatting for headings and bullet points.
+             -Return the answers in the Markdown format.
              - Use bullet points for sub-points.
              - Use headings for sections and sub-headings for sub-points.
              - Use sub-headings for even more detailed explanations.
@@ -163,17 +165,11 @@ Analyze the following query: "${query}" and return the appropriate tag.
              - Provide step-by-step explanations where applicable.
              - Keep paragraphs short and easy to read.
              -After each paragraph you write, leave an empty line (a blank line) to improve readability and ensure the text is visually organized.
-
-          4. **Context Handling**:
-             - Use the provided context to generate answers.
-             - If the context is insufficient, state that you don't have enough information.
           5. **Tone and Style**:
              - Use a professional and friendly tone.
              - Avoid overly technical jargon unless requested.
           6. **Error Handling**:
              - If the query is unclear, ask for clarification before answering.
-          7. **Citations**:
-             - Always cite the source of your information at the end of your response, if applicable.
           8. **Question Generation**:
              - if the user requests you to generate a question, create only a thought-provoking and contextually appropriate question without providing any answers.
 

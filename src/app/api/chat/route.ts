@@ -62,11 +62,14 @@ export async function POST(req: Request): Promise<Response> {
 
     const decisionPrompt = `
       Analyze this query: "${query}"
-      if the given qurey is a problem,numerical then retrun "RESONING" else return "USE_RAG"
+      Should I use RAG (retrieval from knowledge base) or answer from general knowledge?
+      If the query is related to studies, exams, or educational content only theroy question respond with "USE_RAG".
+      If it's a general conversation or question, or a problem or numerical related to math,physics,chemistry or biology respond with "USE_GENERAL".
+      Respond with only one of these two options.
     `;
 
     const decision = await generateText({
-      model: openrouter('google/gemini-2.0-flash-lite-preview-02-05:free'),
+      model: openrouter('meta-llama/llama-3.3-70b-instruct:free'),
 
       //model: groq('llama-3.3-70b-versatile'),
       prompt: decisionPrompt,
@@ -77,69 +80,71 @@ export async function POST(req: Request): Promise<Response> {
     
     const a = decision.text;
     console.log("the a is",a)
-    const useRag = a.includes("RESONING");
+    const useRag = a.includes("USE_RAG");
     console.log("the useRag is",useRag)
     let finalPrompt = '';
 
     if (useRag) {
       // Initialize Pinecone and perform RAG
-      // const pinecone = new Pinecone({
-      //   apiKey: process.env.PINECONE_API_KEY ?? '',
-      // });
+      const pinecone = new Pinecone({
+        apiKey: process.env.PINECONE_API_KEY ?? '',
+      });
 
 
-//       const sub = `
-// You are a query classifier. Your task is to categorize a given query into one of the following subjects and return only the corresponding subject tag. Do not include any other text in your response.
+      const sub = `
+You are a query classifier. Your task is to categorize a given query into one of the following subjects and return only the corresponding subject tag. Do not include any other text,symbols or information in your response even the new line.
 
-// The possible subject categories and their tags are:
+The possible subject categories and their tags are:
 
-// *   Compiler Design: cd
-// *   Data Analysis and Algorithms: daa
-// *   Data Communication and Networking/CRYPTOGRAPHY AND NETWORK SECURITY: ol
-// *   Engineering Economics and Management: eem
+*   Compiler Design: cd
+*   Data Analysis and Algorithms: daa
+*   Data Communication and Networking/CRYPTOGRAPHY AND NETWORK SECURITY: ol
+*   Engineering Economics and Management: eem
+*   Chemistry : chemistry
 
-// Analyze the following query: "${query}" and return the appropriate tag.
-//     `;
+Analyze the following query: "${query}" and return the appropriate tag.
+    `;
 
-//     //console.log("the sub is",sub)
-//       const i = await generateText({
-//         //model: groq('llama-3.3-70b-versatile'),
-//         model: openrouter('google/gemini-2.0-flash-lite-preview-02-05:free'),
-//         prompt: sub,
-//         temperature: 0,
-//       });
+    //console.log("the sub is",sub)
+      const i = await generateText({
+        //model: groq('llama-3.3-70b-versatile'),
+        model: openrouter('meta-llama/llama-3.3-70b-instruct:free'),
+        prompt: sub,
+        temperature: 0,
+      });
 
-      //console.log("the i is",i)
-      // const queryEmbedding = await getEmbedding(query);
-      // const index = pinecone.index(i.text);
-      // const queryResponse = await index.namespace('').query({
-      //   vector: queryEmbedding,
-      //   topK: 5,
-      //   includeMetadata: true,
-      // });
+      console.log("the i is",i)
+      const queryEmbedding = await getEmbedding(query);
+      const index = pinecone.index(i.text);
+      const queryResponse = await index.namespace('').query({
+        vector: queryEmbedding,
+        topK: 5,
+        includeMetadata: true,
+      });
 
-      // if (!queryResponse.matches || queryResponse.matches.length === 0) {
-      //   throw new Error('No relevant context found in Pinecone');
-      // }
+      if (!queryResponse.matches || queryResponse.matches.length === 0) {
+        throw new Error('No relevant context found in Pinecone');
+      }
 
-      // const context = queryResponse.matches
-      //   .map((match) => `Book: ${String(match.metadata?.book ?? 'Unknown')}\nPage: ${String(match.metadata?.page_number ?? 'Unknown')}\nText: ${String(match.metadata?.text ?? '')}`)
-      //   .join('\n\n');
-
-
+      const context = queryResponse.matches
+        .map((match) => `Book: ${String(match.metadata?.book ?? 'Unknown')}\nPage: ${String(match.metadata?.page_number ?? 'Unknown')}\nText: ${String(match.metadata?.text ?? '')}`)
+        .join('\n\n');
 
 
-     // Context: ${context}
+
+
+     
       finalPrompt = `
-        
+         Context: ${context}
         Question: ${query}
-        Please provide a comprehensive and detailed answer and solve the problem in a step-by-step manner.
+        Please provide a comprehensive and detailed answer based on the provided context and cite the book name at the end of the response.
+        
       `;
     } else {
       // Use general knowledge
       finalPrompt = `
         Question: ${query}
-        keep the response friendly tone and short.`;
+        keep the response friendly tone and short`;
     }
 
     // Generate the response using Groq
@@ -155,11 +160,12 @@ export async function POST(req: Request): Promise<Response> {
           2. **Task**: Answer user questions indetail and explain it clearly answer each question for 15 marks .
           3. **Output Format**:
              - Start with a indetailed explation of the answer.
-             -Return the answers in the Markdown format.
+             - Use markdown formatting for headings and bullet points.
              - Use bullet points for sub-points.
              - Use headings for sections and sub-headings for sub-points.
              - Use sub-headings for even more detailed explanations.
              - Use paragraphs for detailed explanations.
+             -don't provide any model name
              write a summary
              - Use headings and bullet points for clarity.
              - Provide step-by-step explanations where applicable.
@@ -170,6 +176,8 @@ export async function POST(req: Request): Promise<Response> {
              - Avoid overly technical jargon unless requested.
           6. **Error Handling**:
              - If the query is unclear, ask for clarification before answering.
+         7. **Citations**:
+             - Always cite the source of your information at the end of your response, if applicable.
           8. **Question Generation**:
              - if the user requests you to generate a question, create only a thought-provoking and contextually appropriate question without providing any answers.
 

@@ -10,7 +10,7 @@ export async function POST(req: Request): Promise<Response> {
     interface RequestBody {
       messages: ConvertibleMessage[];
     }
-    
+
     const body = await req.json() as RequestBody;
 
     // Validate the request body
@@ -41,33 +41,43 @@ export async function POST(req: Request): Promise<Response> {
     const searchTool = new DuckDuckGoSearch();
     const searchResults = (await searchTool.invoke(query)) as string;
 
-    console.log("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")    
+    console.log("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
     console.log("the web result is: ", searchResults)
-    console.log("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")    
+    console.log("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
 
     try {
       const result = await generateText({
         model: groq('llama3-70b-8192'),
         system: `
-        You are an expert assistant summarizing web search results:
-        - Provide a concise, accurate summary
-        - Focus on most relevant information
-        - Use clear, structured presentation
-        - also provide the link of the sources
-        - If results are insufficient, clearly state limitations and write the message SOS
+System Prompt: Web Search Summarization Expert
+You are an expert assistant specializing in summarizing web search results. Your goal is to provide users with the most relevant, accurate, and structured information from the web. Follow these principles:
+
+1. Detailed Explanation
+Provide a well-structured and comprehensive summary of search results.
+Extract key insights while maintaining clarity and relevance.
+If applicable, include context, background information, and implications.
+2. Focus on Relevance
+Prioritize the most authoritative and up-to-date sources.
+Eliminate redundant, vague, or low-quality information.
+Summarize only the most critical aspects based on the user's intent.
+3. Clear and Structured Presentation
+Use headings, bullet points, and formatting for readability.
+Present information in a logical order (e.g., general overview → details → implications).
+If multiple perspectives exist, highlight them fairly.
+
       `,
         prompt: `Summarize search results for: ${query}\n\nResults:\n${searchResults}`,
         //experimental_transform: smoothStream(),
       });
 
       // Ensure the result is properly formatted as JSON
-    const responseData: { results: string } = { results: result.text };
+      const responseData: { results: string } = { results: result.text };
       console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
       console.log("respond is: ", responseData)
       console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
       // Assuming result is already in the desired format
       return NextResponse.json(responseData);
-      
+
     } catch (error) {
       console.error('Error during streamText:', error);
       return NextResponse.json(

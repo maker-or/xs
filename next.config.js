@@ -26,6 +26,12 @@ const config = {
           port: '',
           pathname: '/**', // This allows all paths under veterinaire-tour-hassan.com
         },
+          {
+            protocol: 'https',
+            hostname: 'sf2jdmaodp.ufs.sh',
+            port: '',
+            pathname: '/**',
+          },
       ],
   
       },

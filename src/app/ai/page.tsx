@@ -625,7 +625,7 @@ export default function Page() {
         </div>
 
         <div
-          className={`fixed bottom-0 flex-row gap-3 items-center justify-center ${
+          className={`flex sticky bottom-0 z-10 flex-row gap-3 items-center justify-center ${
             showWhiteboard ? "right-[33.333%]" : "right-0"
           } left-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c80] to-transparent p-4 transition-all duration-300`}
         >
@@ -645,6 +645,7 @@ export default function Page() {
                   }}
                   onKeyDown={handleKeyDown}
                   className="max-h-[120px] min-h-[70px] flex-1 resize-none bg-transparent font-serif px-2 py-2 text-sm text-[#f7eee3] outline-none transition-all duration-200 placeholder:text-[#f7eee380] md:text-base"
+                  rows={1}
                 />
                 <div className="absolute right-2 bottom-2 flex gap-3 items-center justify-center">
                   <button className="flex gap-2 bg-gradient-to-tr from-[#0c0c0c] to-[#0c0c0c] text-[#f7eee380] hover:text-[#f7eee3] p-2 rounded-lg" onClick={() => setShowWhiteboard(true)}>Canvas<Paintbrush /></button>

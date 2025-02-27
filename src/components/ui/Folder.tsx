@@ -22,7 +22,7 @@ const Folder: React.FC<FolderProps> = ({ folderName, folderId }) => {
           <div className="folder-top text-md p-1 font-medium">{folderName}</div>
           <div className="folder-body p-1">
             <Image
-              src="https://utfs.io/f/orc4evzyNtrgG0LJbanCWISJF71dBgAOkMqtNpGcUfix6uL2"
+              src="https://sf2jdmaodp.ufs.sh/f/orc4evzyNtrgnPEKfJ6vPpmuLvY28NyWe5RKqhtQnl6JrfHX"
               alt="folder-img"
               width={200}
               height={200}

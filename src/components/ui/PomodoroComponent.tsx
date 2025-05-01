@@ -1,6 +1,6 @@
-import React, {  useContext } from "react";
+import React, { useContext, useState } from "react";
 // import { Button } from "~/components/ui/button";
-import { Play, Pause, RotateCcw } from "lucide-react";
+import { Play, Pause, RotateCcw, Maximize2, Minimize2 } from "lucide-react";
 import { timeContext } from "~/providers/TimerProvider";
 
 const PomodoroTimer = () => {
@@ -12,6 +12,8 @@ const PomodoroTimer = () => {
     duration,
     setDuration,
   } = useContext(timeContext);
+  
+  const [isMinimized, setIsMinimized] = useState(false);
 
   // const [isMuted, setIsMuted] = useState(false);
   // const [progress, setProgress] = useState(100);
@@ -70,11 +72,37 @@ const PomodoroTimer = () => {
     // setProgress(100);
   };
 
+  const toggleMinimized = () => {
+    setIsMinimized(!isMinimized);
+  };
+
+  // Mini timer that shows in top right when minimized
+  if (isMinimized) {
+    return (
+      <div 
+        className="fixed top-4 right-4 flex items-center gap-2 p-2 rounded-lg bg-[#0c0c0c]/80 border border-[#f7eee3]/20 shadow-lg cursor-pointer text-[#f7eee3] backdrop-blur-md z-50"
+        onClick={toggleMinimized}
+      >
+        <div className="text-xl font-medium">{formatTime(timeLeft)}</div>
+        {isRunning ? (
+          <Pause className="h-4 w-4" strokeWidth={1.5} />
+        ) : (
+          <Play className="h-4 w-4" strokeWidth={1.5} />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex max-h-[500px] w-1/2 flex-col overflow-hidden rounded-3xl border border-[#f7eee3]/20 bg-[#0c0c0c]/60 p-6 text-[#f7eee3] shadow-2xl backdrop-blur-2xl">
-      {/* Progress bar */}
-      {/* <Progress value={progress} className="h-2" /> */}
-
+      {/* Minimize button */}
+      <button 
+        className="absolute top-4 right-4 p-1.5 rounded-md hover:bg-[#f7eee3]/10"
+        onClick={toggleMinimized}
+      >
+        <Minimize2 className="h-5 w-5" strokeWidth={1.5} />
+      </button>
+      
       {/* Timer display */}
       <div className="m-2 space-y-6 rounded-2xl bg-[#f7eee316] text-center">
         <div className="font-sans text-[10em] tracking-tight">
@@ -86,12 +114,8 @@ const PomodoroTimer = () => {
         {/* Duration slider */}
         <div className="flex justify-center gap-2 rounded-lg bg-[#f7eee316] p-2">
           {presetDurations.map(({ label, minutes }) => (
-            // <button></button>
-
             <button
               key={label}
-              // variant={duration === minutes ? "default" : "secondary"}
-              // size="sm"
               onClick={() => setPresetDuration(minutes)}
               className="text-md h-12 w-12 bg-[#f7eee3]/80 text-[#0c0c0c] rounded-md hover:scale-105 hover:bg-[#f7eee3]"
             >
@@ -103,9 +127,8 @@ const PomodoroTimer = () => {
         {/* Control buttons */}
         <div className="flex justify-center gap-2 rounded-lg bg-[#f7eee316] p-2">
           <button
-            // size="icon"
             onClick={toggleTimer}
-            className="h-12 w-12 bg-[#f7eee3]/80 text-[#0c0c0c]  transition-transform hover:scale-105 flex items-center justify-center rounded-md hover:bg-[#f7eee3]"
+            className="h-12 w-12 bg-[#f7eee3]/80 text-[#0c0c0c] transition-transform hover:scale-105 flex items-center justify-center rounded-md hover:bg-[#f7eee3]"
           >
             {isRunning ? (
               <Pause className="h-6 w-6" strokeWidth={1}/>
@@ -114,9 +137,8 @@ const PomodoroTimer = () => {
             )}
           </button>
           <button
-            // size="icon"
             onClick={resetTimer}
-            className="h-12 w-12 bg-[#f7eee3]/80 text-[#0c0c0c]  transition-transform hover:scale-105 flex items-center justify-center rounded-md hover:bg-[#f7eee3]"
+            className="h-12 w-12 bg-[#f7eee3]/80 text-[#0c0c0c] transition-transform hover:scale-105 flex items-center justify-center rounded-md hover:bg-[#f7eee3]"
           >
             <RotateCcw className="h-6 w-6" />
           </button>

@@ -5,6 +5,7 @@ import TaskComponent from '~/components/ui/TaskComponent';
 import PomodoroComponent from '~/components/ui/PomodoroComponent'; 
 import ChatComponent from '~/components/ui/ChatComponent'; 
 import Filesearch from './Filesearch';
+import Link from 'next/link';
 import "~/styles/globals.css";
 
 
@@ -18,7 +19,7 @@ const CommandPlate = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [activeView, setActiveView] = useState<'commands' | 'task' | 'timer' | 'Sphere Intelligence' | 'logout' | 'Filesearch'>('commands');
+  const [activeView, setActiveView] = useState<'commands' | 'task' | 'timer' | 'Sphere Intelligence' | 'logout' | 'Filesearch'|'Test'>('commands');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const commands = [
@@ -27,6 +28,7 @@ const CommandPlate = () => {
     { name: 'Sphere Intelligence', shortcut: '⌘ S', icon: 'globe', handler: () => setActiveView('Sphere Intelligence') },
     { name: 'Logout', shortcut: '⌘ ,', icon: 'settings', handler: () => setActiveView('logout') },
     { name: 'File Search', shortcut: '⌘ ,', icon: 'File Searh', handler: () => setActiveView('Filesearch') },
+    { name: 'Test', shortcut: '⌘ ,', icon: 'Test', handler: () => setActiveView('Test') },
   ];
 
   // Focus management and keyboard shortcuts [unchanged]
@@ -124,6 +126,10 @@ const CommandPlate = () => {
         <Logout/>
       );
     }
+
+
+
+
 
     return (
       <div className="bg-[#0c0c0ce0] backdrop-blur-3xl text-[#e1ddd6] rounded-xl py-3 w-1/2 shadow-2xl border border-[#f7eee338] inner  overflow-hidden ">

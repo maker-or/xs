@@ -65,7 +65,7 @@ const _path = usePathname();
     
   };
 
-const { data, isLoading, error, mutate }: SWRResponse<ResponseType, Error> =
+const { data }: SWRResponse<ResponseType, Error> =
     useSWR<ResponseType, Error>(
       `/api/repo/year/${year}/${branch}/${subject}`,
       fetcher,

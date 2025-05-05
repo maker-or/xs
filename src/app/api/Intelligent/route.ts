@@ -1,5 +1,5 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { getEmbedding } from '~/utils/embeddings';
+// import { getEmbedding } from '~/utils/embeddings';
 import { type ConvertibleMessage } from '~/utils/types';
 import { streamText } from "ai";
 // import { Pinecone } from '@pinecone-database/pinecone';
@@ -40,7 +40,7 @@ export async function POST(req: Request): Promise<Response> {
     // });
 
     // Get embeddings for the query
-    const queryEmbedding = await getEmbedding(query);
+    // const queryEmbedding = await getEmbedding(query);
     //console.log(queryEmbedding);
 
     // Query Pinecone

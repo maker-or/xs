@@ -5,7 +5,6 @@ import TaskComponent from '~/components/ui/TaskComponent';
 import PomodoroComponent from '~/components/ui/PomodoroComponent'; 
 import ChatComponent from '~/components/ui/ChatComponent'; 
 import Filesearch from './Filesearch';
-import Link from 'next/link';
 import "~/styles/globals.css";
 
 
@@ -150,7 +149,7 @@ const CommandPlate = () => {
             }}
             
             placeholder="Search Anything..."
-            className="w-full pl-2 p-4 border-none bg-[#F7EEE3] m-3 backdrop-blur-3xl text-[#3d3c3a] rounded-xl border border-[#f7eee3]/20 focus:outline-none placeholder:text-[#f7eee3] i1 i2"
+            className="w-full pl-2 p-4 border-none bg-[#f7eee3] m-3 backdrop-blur-3xl text-[#3d3c3a] rounded-xl border border-[#f7eee3]/20 focus:outline-none placeholder:text-[#f7eee3] i1 i2"
           />
         </div>
 

@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '~/server/db';
 import { chats } from '~/server/db/schema';
-import { eq } from 'drizzle-orm';
 import { auth } from "@clerk/nextjs/server";
 
 export async function POST(request: Request) {

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import { repo } from "~/server/db/schema";
@@ -6,21 +6,19 @@ import { repo } from "~/server/db/schema";
 //const years = ['1','2','3','4'];
 
 export async function GET(
-  req: NextRequest,
-  {
-    params,
-  }: { params: Promise<{ year: string; branch: string; subject: string }> },
+  request: NextRequest,
+  context: { params: { year: string; branch: string; subject: string } }
 ) {
+  const { year, branch, subject } = context.params;
+  // now year, branch, subject are typed strings
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const category = searchParams.get("category") as
     | "notes"
     | "questionPapers";
     console.log("helloo  searchParams:", category);
 
-    const year = (await params).year;
-    const branch = (await params).branch;
-    const subject = (await params).subject;
+    // year, branch, subject already available
 
     console.log({ year, branch, subject, category });
     //  if(!years.includes(year)) throw new Error('Year not defined');
@@ -40,14 +38,25 @@ export async function GET(
 
     console.log("all files:", files);
 
-    let data = files.map((el) => JSON.parse(el?.tags));
-    data = data.flat();
-    data = [...new Set(data)];
+    const data = files
+      .filter(el => el?.tags && typeof el.tags === 'string')
+      .map((el) => {
+        try {
+          // Each tag field is likely an array of strings in JSON format
+          return JSON.parse(el.tags) as string[];
+        } catch (error) {
+          console.error(`Failed to parse tags: ${el.tags}`, error);
+          return [] as string[];
+        }
+      });
+    // At this point, data is string[][] (array of arrays of strings)
+    const flattenedData = data.flat();
+    const uniqueTags = [...new Set(flattenedData)];
     
     console.log("tags:");
     // const url = new URL(req.url);
     // console.log(url.searchParams);
-    return NextResponse.json({ files, tags:  data});
+    return NextResponse.json({ files, tags: uniqueTags });
   } catch (error) {
     console.log(error);
     return NextResponse.json({ error });

@@ -9,7 +9,8 @@ const Navbar = () => {
   const pathName = usePathname();
 
   // Function to check if the current path matches the link's path
-  const isActive = (path: string) => pathName.split('/').includes('repo');
+  const isActive = (_path: string) => pathName.split('/').includes('repo');
+
 
   return (
     <nav className=" font-serif">

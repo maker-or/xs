@@ -3,15 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "~/server/db";
 import { repo } from "~/server/db/schema";
 
-interface FileResponse {
-  doId: number;
-  filename: string;
-  subject: string;
-  tags: string[];
-  fileurl: string;
-  year: string;
-  branch: string;
-}
+// interface FileResponse {
+//   doId: number;
+//   filename: string;
+//   subject: string;
+//   tags: string[];
+//   fileurl: string;
+//   year: string;
+//   branch: string;
+// }
 
 interface DbFile {
   doId: number;

@@ -24,7 +24,8 @@ const { subject: _subject } = React.use(params);
   const [selectedBranch, setSelectedBranch] = React.useState<string | null>(
     null,
   );
-  const [selectedSubject, setSelectedSubject] = React.useState<string | null>(
+  const [_selectedSubject, setSelectedSubject] = React.useState<string | null>(
+    
     null,
   );
 
@@ -47,7 +48,7 @@ const { subject: _subject } = React.use(params);
     if (!selectedBranch) return [];
     const response = await fetch(`/api/repo/year/${year}/${selectedBranch}`);
     if (!response.ok) throw new Error("Failed to fetch subjects");
-    return response.json();
+    return response.json() as Promise<SubjectsType[]>;
   };
 
   const { data: subjects = [] }: SWRResponse<SubjectsType[], Error> = useSWR<

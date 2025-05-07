@@ -1,4 +1,6 @@
 "use client";
+
+// /repo/year/[year]/page.tsx
 import React from "react";
 import Navyear from "~/components/ui/Navyear";
 import useSWR, { type SWRResponse } from "swr";
@@ -15,17 +17,14 @@ interface SubjectsType {
 const Page = ({
   params,
 }: {
-  params: Promise<{ year: string; branch: string; subject: string }>;
+  params: { year: string; branch?: string; subject?: string }
 }) => {
-  const { year } = React.use(params);
-const { branch: _paramBranch } = React.use(params);
-const { subject: _subject } = React.use(params);
+  const { year } = params;
 
   const [selectedBranch, setSelectedBranch] = React.useState<string | null>(
     null,
   );
   const [_selectedSubject, setSelectedSubject] = React.useState<string | null>(
-    
     null,
   );
 
@@ -73,7 +72,7 @@ const { subject: _subject } = React.use(params);
     ) {
       setSelectedBranch(branch[0].branch);
     }
-}, [branch, selectedBranch]);
+  }, [branch, selectedBranch]);
 
   return (
     <>

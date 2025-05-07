@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+// import { GeistSans } from "geist/font/sans";
+// import { GeistMono } from "geist/font/mono";
 import "./styles.css"; // Import the new AI-specific styles
 import { ThemeProvider } from "~/utils/theme-provider";
 import Script from "next/script";

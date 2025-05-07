@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect, useState, Suspense, useCallback } from 'react';
+import React, { useRef, useEffect, useState, Suspense } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ShaderGradientCanvas, ShaderGradient } from '@shadergradient/react';
@@ -25,13 +25,16 @@ const LazyShaderGradient = () => {
             threshold: 0.01,
         });
         
-        if (shaderRef.current) {
-            observer.observe(shaderRef.current);
+        // Store the current ref value to avoid closure issues
+        const currentRef = shaderRef.current;
+        
+        if (currentRef) {
+            observer.observe(currentRef);
         }
         
         return () => {
-            if (shaderRef.current) {
-                observer.unobserve(shaderRef.current);
+            if (currentRef) {
+                observer.unobserve(currentRef);
             }
         };
     }, []);

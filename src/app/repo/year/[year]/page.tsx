@@ -1,4 +1,6 @@
 "use client";
+
+// /repo/year/[year]/page.tsx
 import React from "react";
 import Navyear from "~/components/ui/Navyear";
 import useSWR, { type SWRResponse } from "swr";
@@ -12,19 +14,15 @@ interface SubjectsType {
   subject: string;
 }
 
-const Page = ({
-  params,
-}: {
-  params: Promise<{ year: string; branch: string; subject: string }>;
-}) => {
-  const { year } = React.use(params);
-const { branch: _paramBranch } = React.use(params);
-const { subject: _subject } = React.use(params);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Page = (props: any) => {
+  const params = props.params || {};
+  const year = params.year || "";
 
   const [selectedBranch, setSelectedBranch] = React.useState<string | null>(
     null,
   );
-  const [selectedSubject, setSelectedSubject] = React.useState<string | null>(
+  const [_selectedSubject, setSelectedSubject] = React.useState<string | null>(
     null,
   );
 
@@ -47,7 +45,7 @@ const { subject: _subject } = React.use(params);
     if (!selectedBranch) return [];
     const response = await fetch(`/api/repo/year/${year}/${selectedBranch}`);
     if (!response.ok) throw new Error("Failed to fetch subjects");
-    return response.json();
+    return response.json() as Promise<SubjectsType[]>;
   };
 
   const { data: subjects = [] }: SWRResponse<SubjectsType[], Error> = useSWR<
@@ -72,7 +70,7 @@ const { subject: _subject } = React.use(params);
     ) {
       setSelectedBranch(branch[0].branch);
     }
-}, [branch, selectedBranch]);
+  }, [branch, selectedBranch]);
 
   return (
     <>

@@ -1,55 +1,79 @@
+// src/app/api/repo/year/[year]/[branch]/[subject]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import { repo } from "~/server/db/schema";
 
-//const years = ['1','2','3','4'];
+const years = ["1", "2", "3", "4"];
 
 export async function GET(
-  req: NextRequest,
-  {
-    params,
-  }: { params: Promise<{ year: string; branch: string; subject: string }> },
+  request: NextRequest,
+  context: unknown
 ) {
   try {
-    const { searchParams } = new URL(req.url);
-    const category = searchParams.get("category") as
-    | "notes"
-    | "questionPapers";
-    console.log("helloo  searchParams:", category);
+    // Safely extract params with type checking
+    const params = context && typeof context === 'object' && 'params' in context
+      ? (context as { params: { year: string; branch: string; subject: string } }).params
+      : null;
 
-    const year = (await params).year;
-    const branch = (await params).branch;
-    const subject = (await params).subject;
+    if (!params) {
+      return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
+    }
 
-    console.log({ year, branch, subject, category });
-    //  if(!years.includes(year)) throw new Error('Year not defined');
+    const { year, branch, subject } = params;
+    const searchParams = request.nextUrl.searchParams;
+    const category = searchParams.get("category") || "notes";
+
+    if (!years.includes(year)) {
+      throw new Error("Year not defined");
+    }
 
     const files = await db
-      .select()
+      .select({
+        doId: repo.doId, // Changed from repo.id to repo.doId
+        filename: repo.filename,
+        subject: repo.subject,
+        tags: repo.tags,
+        fileurl: repo.fileurl,
+        year: repo.year,
+        branch: repo.branch,
+      })
       .from(repo)
       .where(
         and(
           eq(repo.year, year),
           eq(repo.branch, branch),
-          eq(repo.subject, subject),
-          eq(repo.type, category || "notes"),
-
-        ),
+          eq(repo.subject, subject)
+          // Removed category filter since it doesn't exist in schema
+          // We can add it back once the column is added to the schema
+        )
       );
 
-    console.log("all files:", files);
+    // Filter by category client-side until schema is updated
+    // This is a temporary solution
+    const categoryFilteredFiles =
+      category === "notes"
+        ? files.filter(
+            (file) =>
+              file.filename.toLowerCase().includes("note") ||
+              !file.filename.toLowerCase().includes("question")
+          )
+        : files.filter((file) => file.filename.toLowerCase().includes("question"));
 
-    let data = files.map((el) => JSON.parse(el?.tags));
-    data = data.flat();
-    data = [...new Set(data)];
-    
-    console.log("tags:");
-    // const url = new URL(req.url);
-    // console.log(url.searchParams);
-    return NextResponse.json({ files, tags:  data});
+    // Extract all unique tags from the files
+    const allTags = new Set<string>();
+    categoryFilteredFiles.forEach((file) => {
+      if (Array.isArray(file.tags)) {
+        file.tags.forEach((tag) => allTags.add(tag));
+      }
+    });
+
+    return NextResponse.json({
+      files: categoryFilteredFiles,
+      tags: Array.from(allTags),
+    });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json({ error });
+    console.error(error);
+    return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
   }
 }

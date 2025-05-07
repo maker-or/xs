@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, CheckCircle ,PanelLeft,MoveLeft,MoveRight} from 'lucide-react';
+import {CheckCircle ,PanelLeft,MoveLeft,MoveRight} from 'lucide-react';
 
 // Define types for our data structures
 interface Question {

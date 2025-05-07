@@ -1,14 +1,116 @@
 'use client'
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, Suspense } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ShaderGradientCanvas, ShaderGradient } from '@shadergradient/react';
 
-import Header from "~/components/ui/Header";
+// Create a lazy loaded version of the shader component
+const LazyShaderGradient = () => {
+    const [isVisible, setIsVisible] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const shaderRef = useRef(null);
+    
+    useEffect(() => {
+        // Create an Intersection Observer to detect when component is in viewport
+        const observer = new IntersectionObserver((entries) => {
+            // Fixed TypeScript error by checking each entry directly
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                }
+            });
+        }, {
+            rootMargin: '200px 0px', // Load earlier when approaching viewport
+            threshold: 0.01,
+        });
+        
+        // Store the current ref value to avoid closure issues
+        const currentRef = shaderRef.current;
+        
+        if (currentRef) {
+            observer.observe(currentRef);
+        }
+        
+        return () => {
+            if (currentRef) {
+                observer.unobserve(currentRef);
+            }
+        };
+    }, []);
+    
+    // Set loaded state after a delay to simulate loading completion
+    useEffect(() => {
+        if (isVisible) {
+            const timer = setTimeout(() => {
+                setIsLoaded(true);
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [isVisible]);
+    
+    return (
+        <div ref={shaderRef} className="absolute inset-0 z-0">
+            {/* Show loading placeholder while shader is initializing */}
+            {!isLoaded && (
+                <div className="absolute inset-0 bg-gradient-to-br from-[#73bfc4]/30 to-[#ff810a]/30 flex items-center justify-center">
+                    <div className="animate-pulse text-white/50">Loading visual...</div>
+                </div>
+            )}
+            
+            {/* Only render the shader when visible */}
+            {isVisible && (
+                <ShaderGradientCanvas
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        opacity: isLoaded ? 1 : 0,
+                        transition: 'opacity 0.5s ease-in',
+                    }}
+                    pixelDensity={0.8} // Reduced for better performance
+                    pointerEvents='none'
+                >
+                    <ShaderGradient
+                        animate='off'
+                        type='sphere'
+                        wireframe={false}
+                        shader='defaults'
+                        uTime={0}
+                        uSpeed={0.3}
+                        uStrength={0.3}
+                        uDensity={0.8}
+                        uFrequency={5.5}
+                        uAmplitude={3.2}
+                        positionX={-0.1}
+                        positionY={0}
+                        positionZ={0}
+                        rotationX={0}
+                        rotationY={130}
+                        rotationZ={70}
+                        color1='#73bfc4'
+                        color2='#ff810a'
+                        color3='#8da0ce'
+                        reflection={0.4}
+                        cAzimuthAngle={270}
+                        cPolarAngle={180}
+                        cDistance={0.5}
+                        cameraZoom={15.1}
+                        lightType='env'
+                        brightness={0.8}
+                        envPreset='city'
+                        grain='on'
+                        toggleAxis={false}
+                        zoomOut={false}
+                        enableTransition={true}
+                    />
+                </ShaderGradientCanvas>
+            )}
+        </div>
+    );
+};
 
 const First = () => {
-    // Explicitly type the ref as an array of HTMLSpanElement (or null)
-    const boxRef = useRef<(HTMLSpanElement | null)[]>([null, null]);
+    const boxRef = useRef<(HTMLSpanElement | null)[]>([null]);
 
     useEffect(() => {
         gsap.registerPlugin(ScrollTrigger);
@@ -31,8 +133,8 @@ const First = () => {
                     ease: "back.out(1.7)",
                     scrollTrigger: {
                         trigger: box,
-                        start: "top 80%", // starts when the box hits 80% of the viewport height
-                        end: "top 20%",   // ends when the box reaches 20%
+                        start: "top 80%",
+                        end: "top 20%",
                         markers: false,
                     },
                 }
@@ -53,33 +155,18 @@ const First = () => {
     }, []);
 
     return (
-        <div className="min-w-[100svw] min-h-[100svh] relative flex  items-center justify-center  bg-[#0c0c0c]">
-           
-            <h1 className="text-center text-[#f7eee3] font-serif text-[8em] leading-[1]">
-                Your College
-                <span
-                    ref={(el) => {
-                        if (el) {
-                            boxRef.current[0] = el;
-                        }
-                    }}
-                    className="absolute -translate-x-[5rem] -translate-y-[5rem] rotate-[6deg]"
-                >
-                    👍
-                </span>
-                <br />
-                <span
-                    ref={(el) => {
-                        if (el) {
-                            boxRef.current[1] = el;
-                        }
-                    }}
-                    className="absolute -translate-x-[3rem] translate-y-[7rem] "
-                >
-                    ❤️
-                </span>
-                Your AI
-            </h1>
+        <div className="min-w-[100svw] min-h-[100svh] relative flex flex-col items-start justify-end bg-[#0c0c0c] p-8">
+            {/* Shader with lazy loading and persistence */}
+            <Suspense fallback={
+                <div className="absolute inset-0 bg-gradient-to-br from-[#73bfc4]/30 to-[#ff810a]/30" />
+            }>
+                <LazyShaderGradient />
+            </Suspense>
+            
+            {/* Content - with z-index to appear above the gradient */}
+            <div className="text-[#ffffff] text-[15em] font-bold flex items-center relative z-10">
+                Sphere <span className='text-[#FF5E00]'>.</span>
+            </div>
         </div>
     );
 }

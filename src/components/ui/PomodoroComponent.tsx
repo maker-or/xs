@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 // import { Button } from "~/components/ui/button";
-import { Play, Pause, RotateCcw, Maximize2, Minimize2 } from "lucide-react";
+import { Play, Pause, RotateCcw, Minimize2 } from "lucide-react";
 import { timeContext } from "~/providers/TimerProvider";
 
 const PomodoroTimer = () => {

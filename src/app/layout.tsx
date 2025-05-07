@@ -1,5 +1,5 @@
 import "~/styles/globals.css";
-import { ClerkProvider, SignIn, SignedIn, SignedOut } from "@clerk/nextjs";
+import { ClerkProvider, SignedIn, SignedOut } from "@clerk/nextjs";
 import { type Metadata } from "next";
 import { FolderProvider } from "../components/ui/FolderContext";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
@@ -10,12 +10,10 @@ import { CSPostHogProvider } from "~/app/_analytics/providers";
 import CommandPlate from "~/components/ui/CommandPlate";
 import { TimeProvider } from "~/providers/TimerProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import Script from "next/script";
-import { Monitoring } from "react-scan/monitoring/next";
 import Head from "next/head";
-import First from "~/components/ui/First";
-import Para from "~/components/ui/Para";
-import Header from "~/components/ui/Header";
+import RoleRedirect from "~/components/ui/RoleRedirect";
+import SpecialRoutes from "~/components/ui/SpecialRoutes";
+import ThemeScript from "~/components/ui/ThemeScript";
 
 export const metadata: Metadata = {
   title: "Sphere",
@@ -29,30 +27,21 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <CSPostHogProvider>
-        <html lang="en" className={`font-sans`}>
+        <html lang="en" className={`font-sans`} suppressHydrationWarning>
           <Head>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
             <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           </Head>
           <body>
-            {/* Move the Script component here */}
+            {/* Theme script moved to a client component to avoid hydration issues */}
+            <ThemeScript />
 
             <SignedOut>
-              <div className=" h-[100svh] w-[100svw] text-red-700 flex-col items-center justify-center ">
-              <Header />
-                <First />
-                <Para />
-                {/* <SignIn routing="hash"  /> */}
-              </div>
+              <SpecialRoutes>{children}</SpecialRoutes>
             </SignedOut>
 
             <SignedIn>
-              <Monitoring
-                apiKey="6P6upcBmNTmn9O2OSBdG_UrxIJiW87dI" // Safe to expose publically
-                url="https://monitoring.react-scan.com/api/v1/ingest"
-                commit={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA} // optional but recommended
-                branch={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF} // optional but recommended
-              />
+              <RoleRedirect />
               <Analytics />
               <SpeedInsights />
 

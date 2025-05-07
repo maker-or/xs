@@ -2,11 +2,11 @@
 import React,{useState} from 'react';
 
 // import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+// import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 const Navyear = ({yearprop}:{yearprop ?: string}) => {
-  const pathName = usePathname();
+  // const pathName = usePathname();
   const [year, setYear] = useState<number>(yearprop ? Number(yearprop) : 1);
 
   const YEARS = [

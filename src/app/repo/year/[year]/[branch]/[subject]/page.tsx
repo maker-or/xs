@@ -1,5 +1,5 @@
 "use client";
-
+//// /repo/year/[year]/[branch]/[subject]/page.tsx
 import React, { useState } from "react";
 import PdfViewer from "~/components/ui/PDFViewer";
 import { X } from "lucide-react";
@@ -24,7 +24,7 @@ interface ResponseType {
 }
 
 const SubjectPage = () => {
-const _path = usePathname();
+  const _path = usePathname();
   const router = useRouter();
   const params = useParams();
   const year = params?.year?.toString();
@@ -34,10 +34,7 @@ const _path = usePathname();
   const category = url.searchParams.get("category") as
     | "notes"
     | "questionPapers";
-  // console.log(category);
-  // const year = path.split('/')[3];
-  //const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-
+  
   const [selectedType, setSelectedType] = useState<"notes" | "questionPapers">(
     category || "notes",
   );
@@ -65,9 +62,9 @@ const _path = usePathname();
     
   };
 
-const { data, isLoading, error, mutate }: SWRResponse<ResponseType, Error> =
+  const { data }: SWRResponse<ResponseType, Error> =
     useSWR<ResponseType, Error>(
-      `/api/repo/year/${year}/${branch}/${subject}`,
+      `/api/repo/year/${year}/${branch}/${subject}?category=${selectedType}`,
       fetcher,
       {
         revalidateOnFocus: false,
@@ -76,17 +73,11 @@ const { data, isLoading, error, mutate }: SWRResponse<ResponseType, Error> =
       }
     );
 
-// Remove this line as it causes infinite re-renders
-// mutate();
-
-const files = data?.files;
-const tags = data?.tags;
+  const files = data?.files;
+  const tags = data?.tags;
 
   console.log("check:", tags);
-
   
-  // useEffect(() => console.log(files), [files]);
-
   if (!year) {
     return <div>Year not found</div>;
   }
@@ -125,7 +116,6 @@ const tags = data?.tags;
         <div className="flex items-center justify-between p-2">
           <Link href={`/repo/year/${year}`}>
             <button
-              //onClick={() => setSelectedSubject(null)}
               className="mb-4 flex rounded-full py-2 text-sm text-[#f7eee3] hover:text-[#FF5E00] lg:text-lg"
             >
               <ChevronLeft />
@@ -154,11 +144,6 @@ const tags = data?.tags;
           </div>
         </div>
 
-        <div>
-        
-        </div>
-
-        {/* {selectedType === "notes" ? ( */}
         <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start">
           {filteredFiles?.map((file) => (
             <div
@@ -172,11 +157,6 @@ const tags = data?.tags;
             </div>
           ))}
         </div>
-        {/* ) : ( */}
-        {/* <div className="flex flex-wrap items-start justify-center gap-6 overflow-x-auto lg:justify-start"> */}
-        {/* Render question papers here if needed */}
-        {/* </div> */}
-        {/* )} */}
       </div>
 
       {selectedPdfUrl && (

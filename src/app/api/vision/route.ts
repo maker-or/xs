@@ -1,7 +1,5 @@
-import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { streamText,generateText } from "ai";
-import Groq from "groq-sdk";
+import {generateText } from "ai";
 import fs from "fs";
 import path from "path";
 
@@ -24,10 +22,10 @@ export async function POST(req: Request) {
     const image = fs.readFileSync(imagePath);
 
   
-    const groq = createOpenAI({
-      baseURL: "https://api.groq.com/openai/v1",
-      apiKey: process.env.GROQ_API_KEY ?? "",
-    });
+    // const groq = createOpenAI({
+    //   baseURL: "https://api.groq.com/openai/v1",
+    //   apiKey: process.env.GROQ_API_KEY ?? "",
+    // });
 
     const openrouter = createOpenRouter({
       apiKey: process.env.OPENROUTE_API_KEY ?? "",

@@ -11,7 +11,7 @@ const Greeting: React.FC = () => {
 
   return (
     <div className="flex justify-center items-center m-3">
-      <h1 className="text-5xl  text-[#F7EEE3]  font-serif italic">{getGreeting()}</h1>
+      <h1 className="text-5xl  text-[#f7eee3]  font-serif italic">{getGreeting()}</h1>
     </div>
   );
 };

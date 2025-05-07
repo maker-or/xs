@@ -1,22 +1,14 @@
-import ServerComponent from '~/components/ui/ServerComponent';
-import { FolderProvider } from '~/components/ui/FolderContext';
-import Greeting from '~/components/ui/Greeting';
-import Navbar from '~/components/ui/Navbar';
+import { redirect } from 'next/navigation';
 
-interface PageProps {
-  params: Promise<{
-    folderId: number;
-  }>;
-}
-export default async function FolderPage(props: PageProps) {
-  const params = await props.params;
-  const folderId = parseInt(params.folderId.toString());
-
-  return (
-    <FolderProvider>
-            <Greeting/>
-            <Navbar/>
-      <ServerComponent folderId={folderId} />
-    </FolderProvider>
-  );
+// Remove all type annotations and let Next.js infer the types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function RedirectPage(props: any) {
+  const folderId = props.params?.folderId;
+  
+  if (typeof folderId === 'string') {
+    redirect(`/student/folder/${folderId}`);
+  } else {
+    // Fallback if folderId is missing or not a string
+    redirect('/student');
+  }
 }

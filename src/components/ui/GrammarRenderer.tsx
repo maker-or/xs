@@ -16,7 +16,9 @@ const GrammarRenderer: React.FC<GrammarRendererProps> = ({ grammar }) => {
   const processedRules = rules.map((rule) => {
     // Handle rules with explicit left and right sides
     if (rule.includes("→")) {
-      const [left, right] = rule.split("→").map((part) => part.trim());
+      const parts = rule.split("→").map((part) => part.trim());
+      const left = parts[0] || "";
+      const right = parts[1] || "";
 
       // Process the right side to separate alternatives
       const alternatives = right.split("|").map((alt) => alt.trim());

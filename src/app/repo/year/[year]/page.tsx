@@ -14,12 +14,10 @@ interface SubjectsType {
   subject: string;
 }
 
-const Page = ({
-  params,
-}: {
-  params: { year: string; branch?: string; subject?: string }
-}) => {
-  const { year } = params;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Page = (props: any) => {
+  const params = props.params || {};
+  const year = params.year || "";
 
   const [selectedBranch, setSelectedBranch] = React.useState<string | null>(
     null,

@@ -38,12 +38,12 @@ const AutomataRenderer: React.FC<AutomataRendererProps> = ({ automata }) => {
       if (line.startsWith("state")) {
         // Format: state <id> <label> <x> <y> [initial] [final]
         const parts = line.split(/\s+/);
-        if (parts.length >= 5) {
+        if (parts.length >= 5 && parts[1] && parts[2] && parts[3] && parts[4]) {
           const state: State = {
             id: parts[1],
             label: parts[2],
-            x: parseInt(parts[3]),
-            y: parseInt(parts[4]),
+            x: parseInt(parts[3] || "0"),
+            y: parseInt(parts[4] || "0"),
             isInitial: parts.includes("initial"),
             isFinal: parts.includes("final"),
           };
@@ -54,7 +54,7 @@ const AutomataRenderer: React.FC<AutomataRendererProps> = ({ automata }) => {
       else if (line.startsWith("transition")) {
         // Format: transition <from> <to> <label>
         const parts = line.split(/\s+/);
-        if (parts.length >= 4) {
+        if (parts.length >= 4 && parts[1] && parts[2]) {
           transitions.push({
             from: parts[1],
             to: parts[2],

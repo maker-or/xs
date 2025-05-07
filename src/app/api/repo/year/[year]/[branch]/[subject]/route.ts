@@ -4,47 +4,76 @@ import { and, eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import { repo } from "~/server/db/schema";
 
+const years = ["1", "2", "3", "4"];
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { year: string; branch: string; subject: string } }
+  context: unknown
 ) {
-  const { year, branch, subject } = params;
-
   try {
-    const { searchParams } = new URL(request.url);
-    const category = searchParams.get("category") as
-      | "notes"
-      | "questionPapers";
+    // Safely extract params with type checking
+    const params = context && typeof context === 'object' && 'params' in context
+      ? (context as { params: { year: string; branch: string; subject: string } }).params
+      : null;
+
+    if (!params) {
+      return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
+    }
+
+    const { year, branch, subject } = params;
+    const searchParams = request.nextUrl.searchParams;
+    const category = searchParams.get("category") || "notes";
+
+    if (!years.includes(year)) {
+      throw new Error("Year not defined");
+    }
 
     const files = await db
-      .select()
+      .select({
+        doId: repo.doId, // Changed from repo.id to repo.doId
+        filename: repo.filename,
+        subject: repo.subject,
+        tags: repo.tags,
+        fileurl: repo.fileurl,
+        year: repo.year,
+        branch: repo.branch,
+      })
       .from(repo)
       .where(
         and(
           eq(repo.year, year),
           eq(repo.branch, branch),
-          eq(repo.subject, subject),
-          eq(repo.type, category || "notes"),
+          eq(repo.subject, subject)
+          // Removed category filter since it doesn't exist in schema
+          // We can add it back once the column is added to the schema
         )
       );
 
-    const data = files
-      .filter(el => el?.tags && typeof el.tags === "string")
-      .map((el) => {
-        try {
-          return JSON.parse(el.tags) as string[];
-        } catch (error) {
-          console.error(`Failed to parse tags: ${el.tags}`, error);
-          return [] as string[];
-        }
-      });
+    // Filter by category client-side until schema is updated
+    // This is a temporary solution
+    const categoryFilteredFiles =
+      category === "notes"
+        ? files.filter(
+            (file) =>
+              file.filename.toLowerCase().includes("note") ||
+              !file.filename.toLowerCase().includes("question")
+          )
+        : files.filter((file) => file.filename.toLowerCase().includes("question"));
 
-    const flattenedData = data.flat();
-    const uniqueTags = [...new Set(flattenedData)];
+    // Extract all unique tags from the files
+    const allTags = new Set<string>();
+    categoryFilteredFiles.forEach((file) => {
+      if (Array.isArray(file.tags)) {
+        file.tags.forEach((tag) => allTags.add(tag));
+      }
+    });
 
-    return NextResponse.json({ files, tags: uniqueTags });
+    return NextResponse.json({
+      files: categoryFilteredFiles,
+      tags: Array.from(allTags),
+    });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json({ error });
+    console.error(error);
+    return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
   }
 }

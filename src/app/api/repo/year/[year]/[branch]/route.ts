@@ -8,9 +8,18 @@ const years = ['1','2','3','4'];
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { year: string; branch: string } }
+  context: unknown
 ) {
     try {
+        // Safely extract params with type checking
+        const params = context && typeof context === 'object' && 'params' in context
+          ? (context as { params: { year: string; branch: string } }).params
+          : null;
+
+        if (!params) {
+          return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
+        }
+
         const { year, branch } = params;
         
         if(!years.includes(year)) throw new Error('Year not defined');

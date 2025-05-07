@@ -1,7 +1,7 @@
 import { DuckDuckGoSearch } from '@langchain/community/tools/duckduckgo_search';
 import { groq } from '@ai-sdk/groq';
 import { generateText } from 'ai';
-import { type ConvertibleMessage } from '../../../../utils/types';
+import { type ConvertibleMessage } from '~/utils/types';
 import { NextResponse } from 'next/server';
 
 // Define types for structured search results
@@ -152,7 +152,7 @@ function extractSourcesFromResults(rawResults: string): SearchResult[] {
     let match;
     
     while ((match = resultRegex.exec(rawResults)) !== null) {
-      if (match.length >= 4) {
+      if (match.length >= 4 && match[1] && match[2] && match[3]) {
         sources.push({
           title: match[1].trim(),
           url: match[2].trim(),
@@ -168,12 +168,14 @@ function extractSourcesFromResults(rawResults: string): SearchResult[] {
       let index = 0;
       
       while ((urlMatch = urlRegex.exec(rawResults)) !== null) {
-        sources.push({
-          title: `Source ${index + 1}`,
-          url: urlMatch[1],
-          snippet: extractSnippetAroundUrl(rawResults, urlMatch[1], 100)
-        });
-        index++;
+        if (urlMatch[1]) {
+          sources.push({
+            title: `Source ${index + 1}`,
+            url: urlMatch[1],
+            snippet: extractSnippetAroundUrl(rawResults, urlMatch[1], 100)
+          });
+          index++;
+        }
       }
     }
     

@@ -18,30 +18,32 @@ export async function POST(request: Request) {
     
     // Parse the request body
     const requestBody = await request.json();
-    const { email, organisationId } = requestBody;
+    const { email, organisationId,role } = requestBody;
     
     // Use the organisationId from the request if available, otherwise try to get it from sessionClaims
-    const finalOrgId = organisationId || sessionClaims?.org_id || '';
+    const finalOrgId = organisationId  || 'orgid missing from /api/onboarding';
+   
+
     
-    console.log('Organization ID from request:', organisationId);
-    console.log('Organization ID from session claims:', sessionClaims?.org_id);
-    console.log('Final organization ID to be used:', finalOrgId);
+     console.log('Organization ID from request:', organisationId);
+    // console.log('Organization ID from session claims:', sessionClaims?.org_id);
+    // console.log('Final organization ID to be used:', finalOrgId);
     
-    console.log('Received onboarding request:', {
-      requestBody,
-      authUserId,
-      sessionClaimsExcerpt: {
-        org_id: sessionClaims?.org_id,
-        org_role: sessionClaims?.org_role
-      },
-      resolvedOrgId: finalOrgId
-    });
+    // console.log('Received onboarding request:', {
+    //   requestBody,
+    //   authUserId,
+    //   sessionClaimsExcerpt: {
+    //     org_id: sessionClaims?.org_id,
+    //     org_role: sessionClaims?.org_role
+    //   },
+    //   resolvedOrgId: finalOrgId
+    // });
     
     // Automatically determine role from session claims
     // If user has admin role in Clerk org, they are admin, otherwise member/student
     // You can customize this logic based on your Clerk organization setup
-    const role = sessionClaims?.org_role === 'admin' ? 'admin' : 'member';
-    console.log('Determined role from session claims:', role, sessionClaims);
+    // const role = sessionClaims?.org_role === 'admin' ? 'admin' : 'member';
+    // console.log('Determined role from session claims:', role, sessionClaims);
     
     // Validate required fields - only authUserId is truly required as we can work around the others
     if (!authUserId) {
@@ -99,9 +101,9 @@ export async function POST(request: Request) {
       }
       
       // If we still couldn't extract email, try to get it from sessionClaims
-      if (!emailValue && sessionClaims && typeof sessionClaims.email === 'string') {
-        emailValue = sessionClaims.email;
-      }
+      // if (!emailValue && sessionClaims && typeof sessionClaims.email === 'string') {
+      //   emailValue = sessionClaims.email;
+      // }
       
       // If we still don't have an email, use the Clerk userId as the email (last resort)
       if (!emailValue) {

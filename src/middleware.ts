@@ -5,7 +5,16 @@ import { NextResponse } from "next/server";
 const isPublicRoute = createRouteMatcher(["/", "/role-selection", "/loading", "/auth/redirect"]);
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId, redirectToSignIn } = await auth();
+  const { userId, redirectToSignIn, sessionClaims } = await auth();
+  
+  // Check for invitation link parameters (Clerk adds a __clerk_ticket param)
+  const isInvitationLink = req.nextUrl.searchParams.has('__clerk_ticket');
+  
+  // Special handling for invitation links - let Clerk handle these without interference
+  if (isInvitationLink) {
+    console.log('Detected invitation link access - allowing Clerk to handle it');
+    return NextResponse.next();
+  }
 
   // Unauthenticated user trying to access a protected route → redirect to sign-in
   if (!userId && !isPublicRoute(req)) {
@@ -23,6 +32,27 @@ export default clerkMiddleware(async (auth, req) => {
   // Handle any requests to the old onbording path - permanently redirect to loading
   if (req.nextUrl.pathname === '/onbording') {
     return NextResponse.redirect(new URL('/loading', req.url), 301);
+  }
+  
+  // If a user tries to access the loading page directly, redirect them to auth/redirect
+  // so proper onboarding status checks can be performed
+  if (userId && req.nextUrl.pathname === '/loading') {
+    // Only redirect if they're coming from somewhere other than auth/redirect
+    const referer = req.headers.get('referer') || '';
+    if (!referer.includes('/auth/redirect')) {
+      return NextResponse.redirect(new URL('/auth/redirect', req.url));
+    }
+  }
+  
+  // Log helpful information about the session for debugging invitation flows
+  if (userId && (req.nextUrl.pathname === '/loading' || req.nextUrl.pathname === '/auth/redirect')) {
+    console.log('Auth debug info:', {
+      path: req.nextUrl.pathname,
+      userId,
+      hasSessionClaims: !!sessionClaims,
+      org_id: sessionClaims?.org_id,
+      org_role: sessionClaims?.org_role
+    });
   }
 
   // Allow access

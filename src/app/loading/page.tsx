@@ -12,7 +12,6 @@ export default function LoadingPage() {
   const [status, setStatus] = useState('Setting up your account...');
   const [isProcessing, setIsProcessing] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [isFirstTimeUser, setIsFirstTimeUser] = useState(true); // Track if this is a first-time user
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -22,35 +21,12 @@ export default function LoadingPage() {
       return;
     }
     
-    // Check if user is already onboarded (this page should only be shown for first-time users)
-    const checkOnboardingStatus = async () => {
-      try {
-        const response = await fetch('/api/auth/onboarding-status');
-        const data = await response.json();
-        
-        if (data.isOnboarded) {
-          // User is already onboarded, redirect to appropriate page
-          console.log('User already onboarded, redirecting...');
-          setIsFirstTimeUser(false);
-          
-          if (data.role === 'admin') {
-            router.replace('/teacher');
-          } else {
-            router.replace('/student');
-          }
-          return false; // Skip the onboarding process
-        }
-        
-        return true; // Continue with onboarding
-      } catch (error) {
-        console.error('Error checking onboarding status:', error);
-        return true; // Continue with onboarding as fallback
-      }
-    };
+    // This page should only handle users who need to be onboarded
+    // The redirect page handles checking if users are already onboarded
     
     console.log('Starting onboarding process with user:', {
-      userId: user.id,
-      emailAddresses: user.emailAddresses,
+      userId: user?.id,
+      emailAddresses: user?.emailAddresses,
       organizationId: orgId
     });
 
@@ -64,14 +40,8 @@ export default function LoadingPage() {
 
     const doOnboarding = async () => {
       try {
-        // First check if we should proceed with onboarding
-        const shouldProceed = await checkOnboardingStatus();
-        if (!shouldProceed) {
-          // User is already onboarded, skip the process
-          clearInterval(interval);
-          return;
-        }
-        
+        // Since we're receiving users directly from auth/redirect,
+        // we assume this user needs onboarding
         setStatus('Setting up your account...');
         
         // First check role from session claims
@@ -92,7 +62,7 @@ export default function LoadingPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: user.emailAddresses,
+            email: user?.emailAddresses || [], // Add null check with fallback
             organisationId: orgId || '',
             // No need to pass role - it will be determined from sessionClaims in the API
           }),
@@ -104,11 +74,12 @@ export default function LoadingPage() {
           setStatus('Account setup complete!');
           
           // Redirect based on role from the API response
+          // Use router.replace to prevent users from going back to the loading page
           setTimeout(() => {
             if (data.role === 'admin') {
-              router.push('/teacher');
+              router.replace('/teacher');
             } else {
-              router.push('/student');
+              router.replace('/student');
             }
           }, 1500);
         } else {
@@ -124,7 +95,7 @@ export default function LoadingPage() {
           }
           setIsProcessing(false);
         }
-      } catch (error) {
+      }      catch (error) {
         console.error('Onboarding error:', error);
         // Show detailed error for debugging
         if (error instanceof Error) {
@@ -135,6 +106,8 @@ export default function LoadingPage() {
           console.error('Unhandled error type:', typeof error);
         }
         setIsProcessing(false);
+        
+        // Add retry button to UI when processing fails
       } finally {
         clearInterval(interval);
       }
@@ -160,7 +133,7 @@ export default function LoadingPage() {
       <h1 className="text-3xl font-serif mb-4">Welcome aboard!</h1>
       <p className="text-xl mb-6">{status}</p>
       
-      {isProcessing && (
+      {isProcessing ? (
         <>
           <div className="w-64 h-2 bg-gray-700 rounded-full mb-4">
             <div 
@@ -169,6 +142,28 @@ export default function LoadingPage() {
             ></div>
           </div>
           <p className="text-sm text-gray-400">{Math.round(progress)}%</p>
+        </>
+      ) : (
+        // Show retry button if there was an error
+        <>
+          <button 
+            onClick={() => {
+              setIsProcessing(true);
+              setProgress(0);
+              setStatus('Retrying account setup...');
+              // Force reload the page to restart the onboarding process
+              window.location.reload();
+            }}
+            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
+          <a 
+            href="/auth/redirect" 
+            className="mt-2 text-sm text-blue-400 hover:text-blue-300"
+          >
+            Return to dashboard
+          </a>
         </>
       )}
     </div>

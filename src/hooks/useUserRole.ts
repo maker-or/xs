@@ -5,7 +5,6 @@ import { useUser, useAuth } from '@clerk/nextjs';
 
 export type RoleInfo = {
   userId?: string | null;
-  orgRole?: string | null;
   appRole?: 'admin' | 'member' | null;
   isLoading: boolean;
   error: string | null;
@@ -25,7 +24,7 @@ export function useUserRole(): RoleInfo {
   const { isLoaded, isSignedIn } = useUser();
   const [roleInfo, setRoleInfo] = useState<RoleInfo>({
     userId: null,
-    orgRole: null,
+
     appRole: null,
     isLoading: true,
     error: null,
@@ -40,7 +39,7 @@ export function useUserRole(): RoleInfo {
       if (!isSignedIn) {
         setRoleInfo({
           userId: null,
-          orgRole: null,
+
           appRole: null,
           isLoading: false,
           error: null,
@@ -59,7 +58,7 @@ export function useUserRole(): RoleInfo {
         
         setRoleInfo({
           userId: data.userId,
-          orgRole: data.orgRole,
+ 
           appRole: data.appRole,
           isLoading: false,
           error: null,

@@ -58,17 +58,17 @@ export default function LoadingPage() {
         setStatus('Setting up your account...');
         
         // First check role from session claims
-        const roleCheck = await fetch('/api/auth/role', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
+        // const roleCheck = await fetch('/api/auth/role', {
+        //   method: 'GET',
+        //   headers: { 'Content-Type': 'application/json' },
+        // });
         
-        if (!roleCheck.ok) {
-          throw new Error('Failed to retrieve role information');
-        }
+        // if (!roleCheck.ok) {
+        //   throw new Error('Failed to retrieve role information');
+        // }
         
-        const roleData = await roleCheck.json();
-        console.log('Role information:', roleData);
+        // const roleData = await roleCheck.json();
+        // console.log('Role information:', roleData);
         
         // Now proceed with onboarding using role from session claims
         // Get organization ID from URL if available (passed from auth/redirect)
@@ -77,10 +77,16 @@ export default function LoadingPage() {
         
         // Get organization ID directly from publicMetadata as specified in the format:
         // publicMetadata: { organizationId, role }
-        const metadataOrgId = user.publicMetadata?.organizationId as string || '';
+        const metadataOrgId = user.publicMetadata?.organizationId as string ;
+        console.log(metadataOrgId)
+
+
+        const role = user.publicMetadata?.role as string || 'no role from /loading';
+        console.log(role)
         
         // Only use organizationId from URL or from publicMetadata - these are the correct sources
-        const effectiveOrgId =  metadataOrgId || 'unknown';
+        const effectiveOrgId =  metadataOrgId || 'no orgid from /loading';
+        console.log(effectiveOrgId)
         
         // console.log('Using organization ID for onboarding:', effectiveOrgId, 
         //   urlOrgId ? '(from URL)' : metadataOrgId ? '(from user publicMetadata.organizationId)' : '(empty)',
@@ -92,7 +98,8 @@ export default function LoadingPage() {
           body: JSON.stringify({
             email: user?.emailAddresses || [], // Add null check with fallback
             organisationId: effectiveOrgId,
-            // No need to pass role - it will be determined from sessionClaims in the API
+            role: role.toLowerCase() ,
+           
           }),
         });
 

@@ -53,6 +53,9 @@ export default function CalendarTimeline() {
   const [events, setEvents] = useState<Event[]>([]);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [editText, setEditText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const datePickerRef = useRef<HTMLDivElement>(null);
   const activeDateRef = useRef<HTMLButtonElement | null>(null);
@@ -73,11 +76,22 @@ export default function CalendarTimeline() {
   };
 
   const fetchTasks = async () => {
+    setIsLoading(true);
+    setFetchError(null);
     try {
-      const response = await fetch("/api/task");
+      const response = await fetch("/api/task", {
+        // Add timeout and credentials
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+        // Signal for timeout
+        signal: AbortSignal.timeout(5000)
+      });
+      
       if (!response.ok) {
-        throw new Error("Failed to fetch tasks");
+        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
       }
+      
       const data = (await response.json()) as {
         taskId: number;
         month: string;
@@ -97,10 +111,14 @@ export default function CalendarTimeline() {
 
       // Combine user events with special events
       setEvents([...SPECIAL_EVENTS, ...formattedEvents]);
+      setFetchError(null);
     } catch (error) {
       console.error("Error fetching tasks:", error);
+      setFetchError(error instanceof Error ? error.message : "Failed to fetch tasks");
       // Still show special events even if fetch fails
       setEvents(SPECIAL_EVENTS);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -163,7 +181,11 @@ export default function CalendarTimeline() {
     fetchTasks().catch((error) =>
       console.log("Failed to fetch tasks:", error)
     );
-  }, []);
+  }, [retryCount]);
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+  };
 
   useEffect(() => {
     if (activeDateRef.current && datePickerRef.current) {
@@ -208,11 +230,20 @@ export default function CalendarTimeline() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="font-serif text-3xl">{monthNames[currentMonth]}</h1>
         <div className="flex items-center space-x-2">
+          {fetchError && (
+            <button 
+              onClick={handleRetry}
+              className="border-2 flex px-4 py-1 rounded-md border-red-500 font-serif hover:bg-red-500 text-xs"
+            >
+              Retry
+            </button>
+          )}
           <button
             onClick={handleNewEvent}
             className="border-2 flex px-4 py-1 rounded-md border-[#f7eee323] font-serif hover:border-none justify-center items-end hover:bg-[#FF5E00]"
+            disabled={isLoading}
           >
-            Add
+            {isLoading ? "Loading..." : "Add"}
           </button>
         </div>
       </div>
@@ -238,6 +269,16 @@ export default function CalendarTimeline() {
       </div>
 
       <div className="relative h-40 overflow-y-auto" id="box">
+        {isLoading && events.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-gray-400">Loading events...</span>
+          </div>
+        )}
+        {!isLoading && fetchError && events.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-red-400">Error: {fetchError}</span>
+          </div>
+        )}
         {filteredEvents.map((event, index) => (
           <div
             key={event.id || index}

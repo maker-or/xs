@@ -6,6 +6,7 @@ import {
   text,
   varchar,
   integer,
+  pgTable,
 } from "drizzle-orm/pg-core";
 
 // Create table function
@@ -140,4 +141,14 @@ export const chats = createTable(
 );
 
 
-
+export const users = pgTable("users", {
+  userid: varchar("id", { length: 128 }).primaryKey(),
+  email: varchar("email", { length: 256 }).notNull(),
+  role: varchar("role", { length: 50 }).notNull(), // "student", "teacher", etc.
+  organisation_id: varchar("organisation_id", { length: 128 }).notNull(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+}
+  , (users) => ({
+    emailIndex: index("users_idx").on(users.userid), // Index on email for faster lookups
+  })
+);

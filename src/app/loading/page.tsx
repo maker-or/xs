@@ -80,7 +80,7 @@ export default function LoadingPage() {
         const metadataOrgId = user.publicMetadata?.organizationId as string || '';
         
         // Only use organizationId from URL or from publicMetadata - these are the correct sources
-        const effectiveOrgId =  metadataOrgId || 'fuck you';
+        const effectiveOrgId =  metadataOrgId || 'unknown';
         
         // console.log('Using organization ID for onboarding:', effectiveOrgId, 
         //   urlOrgId ? '(from URL)' : metadataOrgId ? '(from user publicMetadata.organizationId)' : '(empty)',

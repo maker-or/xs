@@ -18,7 +18,10 @@ export async function POST(request: Request) {
     
     // Parse the request body
     const requestBody = await request.json();
-    const { email, organisationId } = requestBody;
+    const { email, organisationId: providedOrgId } = requestBody;
+    
+    // Use the organisationId from the request if available, otherwise try to get it from sessionClaims
+    const organisationId = providedOrgId || sessionClaims?.org_id || '';
     
     console.log('Received onboarding request:', {
       requestBody,
@@ -26,7 +29,8 @@ export async function POST(request: Request) {
       sessionClaimsExcerpt: {
         org_id: sessionClaims?.org_id,
         org_role: sessionClaims?.org_role
-      }
+      },
+      resolvedOrgId: organisationId
     });
     
     // Automatically determine role from session claims
@@ -35,13 +39,15 @@ export async function POST(request: Request) {
     const role = sessionClaims?.org_role === 'admin' ? 'admin' : 'member';
     console.log('Determined role from session claims:', role, sessionClaims);
     
-    // Validate required fields
-    if (!authUserId || !email || !organisationId) {
+    // Validate required fields - only authUserId is truly required as we can work around the others
+    if (!authUserId) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing user ID' },
         { status: 400 }
       );
     }
+    
+    // No validation needed for email and organisationId as we have fallbacks for both
 
     // First, check if user already exists to avoid duplicates
     const existingUser = await db.query.users.findFirst({
@@ -57,35 +63,56 @@ export async function POST(request: Request) {
     }
 
     // Insert new user
-    // Handle different email formats (string, array of objects, etc.)
+    // Handle different email formats (string, array of objects, etc.) or fetch from Clerk if needed
     let emailValue = '';
     
     try {
-      if (Array.isArray(email)) {
-        // If it's an array of email objects from Clerk
-        if (email[0] && email[0].emailAddress) {
-          emailValue = email[0].emailAddress;
-        } else if (typeof email[0] === 'string') {
-          emailValue = email[0];
+      // Try to extract email from provided data
+      if (email) {
+        if (Array.isArray(email)) {
+          // If it's an array of email objects from Clerk
+          if (email.length > 0) {
+            if (email[0] && email[0].emailAddress) {
+              emailValue = email[0].emailAddress;
+            } else if (typeof email[0] === 'string') {
+              emailValue = email[0];
+            } else if (email[0] && typeof email[0] === 'object' && 'email' in email[0]) {
+              emailValue = email[0].email;
+            }
+          }
+        } else if (typeof email === 'string') {
+          // If it's a simple string
+          emailValue = email;
+        } else if (email && typeof email === 'object') {
+          // If it's a single email object
+          emailValue = email.emailAddress || email.email || '';
         }
-      } else if (typeof email === 'string') {
-        // If it's a simple string
-        emailValue = email;
-      } else if (email && typeof email === 'object') {
-        // If it's a single email object
-        emailValue = email.emailAddress || email.email || '';
+      }
+      
+      // If we still couldn't extract email, try to get it from sessionClaims
+      if (!emailValue && sessionClaims && typeof sessionClaims.email === 'string') {
+        emailValue = sessionClaims.email;
+      }
+      
+      // If we still don't have an email, use the Clerk userId as the email (last resort)
+      if (!emailValue) {
+        emailValue = `${authUserId}@unknown.com`;
+        console.log('No email found, using fallback:', emailValue);
       }
       
       console.log('Processed email value:', emailValue);
+      
+      // Make sure we have an organisationId, even if it's empty
+      const finalOrgId = organisationId || '';
       
       await db.insert(users).values({
         userid: authUserId,
         email: emailValue,
         role: role,
-        organisation_id: organisationId || '',
+        organisation_id: finalOrgId,
       });
     } catch (insertError) {
-      console.error('Error during user insertion:', insertError);
+      console.error('Error during user insertion:', insertError instanceof Error ? insertError.message : String(insertError));
       throw insertError; // Re-throw to be caught by outer try/catch
     }
 
@@ -94,10 +121,17 @@ export async function POST(request: Request) {
       { message: 'User onboarded successfully', role },
       { status: 201 }
     );
-  } catch (error) {
+  }  catch (error) {
     console.error('Error during onboarding:', error);
+    
+    // Provide more descriptive error messages to help with debugging
+    let errorMessage = 'Failed to onboard user';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to onboard user' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

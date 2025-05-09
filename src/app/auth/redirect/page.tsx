@@ -31,7 +31,8 @@ export default function AuthRedirect() {
         } else {
           // First-time user needs to go through onboarding
           setStatus('Setting up your account...');
-          router.replace('/loading');
+          // Pass any organization ID we received back from the API to ensure it's consistently used
+          router.replace(`/loading${data.organisationId ? `?orgId=${encodeURIComponent(data.organisationId)}` : ''}`);
         }
       } catch (error) {
         console.error('Error checking onboarding status:', error);

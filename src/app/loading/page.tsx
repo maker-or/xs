@@ -24,10 +24,18 @@ export default function LoadingPage() {
     // This page should only handle users who need to be onboarded
     // The redirect page handles checking if users are already onboarded
     
+    // Check if we have an orgId in the URL (passed from auth/redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlOrgId = urlParams.get('orgId');
+    
+    // Use organization ID from URL if available, otherwise use the one from Clerk
+    const effectiveOrgId = urlOrgId || orgId || '';
+    
     console.log('Starting onboarding process with user:', {
       userId: user?.id,
       emailAddresses: user?.emailAddresses,
-      organizationId: orgId
+      organizationId: effectiveOrgId,
+      orgIdSource: urlOrgId ? 'URL parameter' : (orgId ? 'Clerk session' : 'Not available')
     });
 
     // Simulate progress
@@ -58,12 +66,22 @@ export default function LoadingPage() {
         console.log('Role information:', roleData);
         
         // Now proceed with onboarding using role from session claims
+        // Get organization ID from URL if available (passed from auth/redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlOrgId = urlParams.get('orgId');
+        
+        // Use organization ID from URL if available, otherwise use the one from Clerk
+        const effectiveOrgId = urlOrgId || orgId || '';
+        
+        console.log('Using organization ID for onboarding:', effectiveOrgId, 
+          urlOrgId ? '(from URL)' : orgId ? '(from Clerk session)' : '(empty)');
+        
         const res = await fetch('/api/onboarding', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email: user?.emailAddresses || [], // Add null check with fallback
-            organisationId: orgId || '',
+            organisationId: effectiveOrgId,
             // No need to pass role - it will be determined from sessionClaims in the API
           }),
         });

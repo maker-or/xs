@@ -25,18 +25,23 @@ export default function LoadingPage() {
     // The redirect page handles checking if users are already onboarded
     
     // Check if we have an orgId in the URL (passed from auth/redirect)
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlOrgId = urlParams.get('orgId');
+    // const urlParams = new URLSearchParams(window.location.search);
+    // const urlOrgId = urlParams.get('orgId');
     
-    // Use organization ID from URL if available, otherwise use the one from Clerk
-    const effectiveOrgId = urlOrgId || orgId || '';
+    // Get organization ID directly from publicMetadata as specified in the format:
+    // publicMetadata: { organizationId, role }
+    // const metadataOrgId = user.publicMetadata?.organizationId as string || '';
     
-    console.log('Starting onboarding process with user:', {
-      userId: user?.id,
-      emailAddresses: user?.emailAddresses,
-      organizationId: effectiveOrgId,
-      orgIdSource: urlOrgId ? 'URL parameter' : (orgId ? 'Clerk session' : 'Not available')
-    });
+    // Only use organizationId from URL or from publicMetadata - these are the correct sources
+    // const effectiveOrgId =  metadataOrgId || 'fuck you';
+    
+    // console.log('Starting onboarding process with user:', {
+    //   userId: user?.id,
+    //   emailAddresses: user?.emailAddresses,
+    //   organizationId: effectiveOrgId,
+    //   orgIdSource: urlOrgId ? 'URL parameter' : (metadataOrgId ? 'publicMetadata.organizationId' : 'Not available'),
+    //   publicMetadata: user.publicMetadata
+    // });
 
     // Simulate progress
     const interval = setInterval(() => {
@@ -67,14 +72,19 @@ export default function LoadingPage() {
         
         // Now proceed with onboarding using role from session claims
         // Get organization ID from URL if available (passed from auth/redirect)
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlOrgId = urlParams.get('orgId');
+        // const urlParams = new URLSearchParams(window.location.search);
+        // const urlOrgId = urlParams.get('orgId');
         
-        // Use organization ID from URL if available, otherwise use the one from Clerk
-        const effectiveOrgId = urlOrgId || orgId || '';
+        // Get organization ID directly from publicMetadata as specified in the format:
+        // publicMetadata: { organizationId, role }
+        const metadataOrgId = user.publicMetadata?.organizationId as string || '';
         
-        console.log('Using organization ID for onboarding:', effectiveOrgId, 
-          urlOrgId ? '(from URL)' : orgId ? '(from Clerk session)' : '(empty)');
+        // Only use organizationId from URL or from publicMetadata - these are the correct sources
+        const effectiveOrgId =  metadataOrgId || 'fuck you';
+        
+        // console.log('Using organization ID for onboarding:', effectiveOrgId, 
+        //   urlOrgId ? '(from URL)' : metadataOrgId ? '(from user publicMetadata.organizationId)' : '(empty)',
+        //   'Full publicMetadata:', user.publicMetadata);
         
         const res = await fetch('/api/onboarding', {
           method: 'POST',

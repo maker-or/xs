@@ -17,6 +17,7 @@ export default function RoleRedirect() {
       pathname.startsWith('/student') ||
       pathname.startsWith('/teacher') ||
       pathname.startsWith('/ai') ||
+      pathname.startsWith('/loading') ||
       pathname.startsWith('/repo')
     ) {
       return;
@@ -31,15 +32,8 @@ export default function RoleRedirect() {
       }
     }
 
-    const userRole = localStorage.getItem('userRole');
-
-    if (userRole === 'student') {
-      router.replace('/student');
-    } else if (userRole === 'teacher') {
-      router.replace('/teacher');
-    } else {
-      router.replace('/role-selection');
-    }
+    // Redirect to loading page which will handle role determination
+    router.replace('/loading');
   }, [isLoaded, isSignedIn, pathname, router]);
 
   return null;

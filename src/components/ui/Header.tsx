@@ -17,7 +17,7 @@ const Header = () => {
 
         </button>
         <div className="p-3 bg-[#FF5E00]   rounded-full flex items-center justify-center text-[#0c0c0c]">
-          <Link href="/role-selection">Sign In</Link>
+          <Link href="/sign-in">Sign In</Link>
         </div>
       </nav>
     </main>

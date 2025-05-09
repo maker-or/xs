@@ -18,10 +18,14 @@ export async function POST(request: Request) {
     
     // Parse the request body
     const requestBody = await request.json();
-    const { email, organisationId: providedOrgId } = requestBody;
+    const { email, organisationId } = requestBody;
     
     // Use the organisationId from the request if available, otherwise try to get it from sessionClaims
-    const organisationId = providedOrgId || sessionClaims?.org_id || '';
+    const finalOrgId = organisationId || sessionClaims?.org_id || '';
+    
+    console.log('Organization ID from request:', organisationId);
+    console.log('Organization ID from session claims:', sessionClaims?.org_id);
+    console.log('Final organization ID to be used:', finalOrgId);
     
     console.log('Received onboarding request:', {
       requestBody,
@@ -30,7 +34,7 @@ export async function POST(request: Request) {
         org_id: sessionClaims?.org_id,
         org_role: sessionClaims?.org_role
       },
-      resolvedOrgId: organisationId
+      resolvedOrgId: finalOrgId
     });
     
     // Automatically determine role from session claims
@@ -56,8 +60,13 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       // User already exists, no need to add again
+      console.log('User already exists with organization ID:', existingUser.organisation_id);
       return NextResponse.json(
-        { message: 'User already onboarded', role: existingUser.role },
+        { 
+          message: 'User already onboarded', 
+          role: existingUser.role,
+          organisationId: existingUser.organisation_id 
+        },
         { status: 200 }
       );
     }
@@ -102,8 +111,8 @@ export async function POST(request: Request) {
       
       console.log('Processed email value:', emailValue);
       
-      // Make sure we have an organisationId, even if it's empty
-      const finalOrgId = organisationId || '';
+      // We already have finalOrgId from above, no need to redefine
+      console.log('Inserting user with organization ID:', finalOrgId);
       
       await db.insert(users).values({
         userid: authUserId,
@@ -116,9 +125,13 @@ export async function POST(request: Request) {
       throw insertError; // Re-throw to be caught by outer try/catch
     }
 
-    // Return success response with role information
+    // Return success response with role and organization information
     return NextResponse.json(
-      { message: 'User onboarded successfully', role },
+      { 
+        message: 'User onboarded successfully', 
+        role,
+        organisationId: finalOrgId 
+      },
       { status: 201 }
     );
   }  catch (error) {

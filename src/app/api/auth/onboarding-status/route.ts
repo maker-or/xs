@@ -21,10 +21,11 @@ export async function GET() {
       where: eq(users.userid, authUserId),
     });
 
-    // Return onboarding status
+    // Return onboarding status with organization ID
     return NextResponse.json({
       isOnboarded: !!existingUser,
-      role: existingUser?.role || null
+      role: existingUser?.role || null,
+      organisationId: existingUser?.organisation_id || null
     });
     
   } catch (error) {

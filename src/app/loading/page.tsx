@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser, useAuth } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export default function LoadingPage() {
   const { user, isLoaded } = useUser();
-  const { orgId, orgRole } = useAuth();
+  // const { orgId, orgRole } = useAuth();
   const router = useRouter();
   const [status, setStatus] = useState('Setting up your account...');
   const [isProcessing, setIsProcessing] = useState(true);
@@ -151,7 +151,7 @@ export default function LoadingPage() {
     doOnboarding();
 
     return () => clearInterval(interval);
-  }, [user, isLoaded, orgId, router]);
+  }, [user, isLoaded, router]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen text-white bg-[#050A06] p-6">

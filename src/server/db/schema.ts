@@ -7,6 +7,9 @@ import {
   varchar,
   integer,
   pgTable,
+  uuid,
+  json,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 
 // Create table function
@@ -151,4 +154,63 @@ export const users = pgTable("users", {
   , (users) => ({
     emailIndex: index("users_idx").on(users.userid), // Index on email for faster lookups
   })
+);
+
+// Exam difficulty enum
+export const difficultyEnum = pgEnum('difficulty', ['easy', 'medium', 'hard']);
+
+// Exams table
+export const exams = createTable(
+  "exams",
+  {
+    id: uuid("id").defaultRandom().primaryKey(), // UUID as primary key
+    subject: varchar("subject", { length: 255 }).notNull(),
+    topic: varchar("topic", { length: 255 }),
+    num_questions: integer("num_questions").notNull(),
+    difficulty: difficultyEnum("difficulty").notNull(),
+    duration: integer("duration").notNull(), // in minutes
+    starts_at: timestamp("starts_at", { withTimezone: true }).notNull(),
+    ends_at: timestamp("ends_at", { withTimezone: true }).notNull(),
+    questions: json("questions").$type<Array<{
+      question: string;
+      options: string[];
+      correct_answer: string;
+    }>>(), // Store questions, options, and correct answers
+    allowed_users: text("allowed_users").array().notNull(), // Array of Clerk user IDs
+    created_by: varchar("created_by", { length: 128 }).notNull(), // Teacher's Clerk ID
+    organization_id: varchar("organization_id", { length: 128 }).notNull(),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (exams) => ({
+    orgIndex: index("exams_org_idx").on(exams.organization_id),
+    creatorIndex: index("exams_creator_idx").on(exams.created_by),
+    timeIndex: index("exams_time_idx").on(exams.starts_at, exams.ends_at),
+  }),
+);
+
+// Results table
+export const results = createTable(
+  "results",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    exam_id: uuid("exam_id")
+      .notNull()
+      .references(() => exams.id),
+    user_id: varchar("user_id", { length: 128 }).notNull(),
+    answers: json("answers").$type<Array<{
+      question_id: number;
+      selected_option: string;
+    }>>(), // Store user's answers
+    score: integer("score").notNull(),
+    submitted_at: timestamp("submitted_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (results) => ({
+    examIndex: index("results_exam_idx").on(results.exam_id),
+    userIndex: index("results_user_idx").on(results.user_id),
+    examUserIndex: index("results_exam_user_idx").on(results.exam_id, results.user_id),
+  }),
 );

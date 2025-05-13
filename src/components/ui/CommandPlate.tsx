@@ -1,10 +1,12 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react';
 import { SignOutButton } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 import TaskComponent from '~/components/ui/TaskComponent'; 
 import PomodoroComponent from '~/components/ui/PomodoroComponent'; 
 import ChatComponent from '~/components/ui/ChatComponent'; 
 import Filesearch from './Filesearch';
+import ExamStatus from './ExamStatus';
 import "~/styles/globals.css";
 
 
@@ -15,10 +17,11 @@ const Logout = () => {
 
 
 const CommandPlate = () => {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [activeView, setActiveView] = useState<'commands' | 'task' | 'timer' | 'Sphere Intelligence' | 'logout' | 'Filesearch'|'Test'>('commands');
+  const [activeView, setActiveView] = useState<'commands' | 'task' | 'timer' | 'Sphere Intelligence' | 'logout' | 'Filesearch' | 'examStatus'>('commands');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const commands = [
@@ -27,7 +30,11 @@ const CommandPlate = () => {
     { name: 'Sphere Intelligence', shortcut: '⌘ S', icon: 'globe', handler: () => setActiveView('Sphere Intelligence') },
     { name: 'Logout', shortcut: '⌘ ,', icon: 'settings', handler: () => setActiveView('logout') },
     { name: 'File Search', shortcut: '⌘ ,', icon: 'File Searh', handler: () => setActiveView('Filesearch') },
-    { name: 'Test', shortcut: '⌘ ,', icon: 'Test', handler: () => setActiveView('Test') },
+    { name: 'Exam Status', shortcut: '⌘ E', icon: 'exam', handler: () => setActiveView('examStatus') },
+    { name: 'Self Test', shortcut: '⌘ S', icon: 'test', handler: () => {
+      setIsOpen(false);
+      router.push('/test');
+    } },
   ];
 
   // Focus management and keyboard shortcuts [unchanged]
@@ -118,8 +125,25 @@ const CommandPlate = () => {
         />
       );
     }
-    
-
+    else if (activeView === 'examStatus') {
+      return (
+        <div className="bg-[#0c0c0ce0] backdrop-blur-3xl text-[#e1ddd6] rounded-xl p-6 w-2/3 max-w-3xl shadow-2xl border border-[#f7eee338] inner overflow-hidden">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Exam Status</h2>
+            <button 
+              onClick={() => {
+                setActiveView('commands');
+                setSearchQuery('');
+              }}
+              className="text-[#f7eee3] hover:text-[#FF5E00] transition-colors"
+            >
+              Close
+            </button>
+          </div>
+          <ExamStatus />
+        </div>
+      );
+    }
     else if (activeView === 'logout') {
       return (
         <Logout/>

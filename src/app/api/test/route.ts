@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { getEmbedding } from '~/utils/embeddings';
-import {  generateText } from 'ai';
+import { generateText } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 
 
@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     try {
         // Parse the form data from the request
         const formData = await request.json();
-        const { subject, topic, difficulty, numberOfQuestions ,time } = formData;
+        const { subject, topic, difficulty, numberOfQuestions, time } = formData;
         console.log(time)
 
         const pinecone = new Pinecone({
@@ -125,28 +125,28 @@ Ensure that the 'id' is unique and increments from 1 to {numberOfQuestions}.`
         try {
             // Clean up the response text to ensure it's valid JSON
             let cleanedText = result.text.trim();
-            
+
             // If the response starts with ``` or ends with ```, remove the markdown code block markers
             if (cleanedText.startsWith('```json')) {
                 cleanedText = cleanedText.substring(7);
             } else if (cleanedText.startsWith('```')) {
                 cleanedText = cleanedText.substring(3);
             }
-            
+
             if (cleanedText.endsWith('```')) {
                 cleanedText = cleanedText.substring(0, cleanedText.length - 3);
             }
-            
+
             cleanedText = cleanedText.trim();
-            
+
             // Parse the cleaned text as JSON
             questions = JSON.parse(cleanedText);
-            
+
             // Validate the result has the expected structure
             if (!Array.isArray(questions)) {
                 throw new Error('Response is not an array');
             }
-            
+
             // Ensure each question has the required properties
             questions = questions.map((q, index) => ({
                 id: q.id || index + 1,
@@ -154,23 +154,23 @@ Ensure that the 'id' is unique and increments from 1 to {numberOfQuestions}.`
                 options: Array.isArray(q.options) ? q.options : ["Option A", "Option B", "Option C", "Option D"],
                 correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0
             }));
-            
+
         } catch (parseError) {
             console.error('Failed to parse AI response as JSON:', parseError);
-            
+
             // Fallback: create a simple placeholder question set
             questions = Array.from({ length: numberOfQuestions }, (_, i) => ({
                 id: i + 1,
                 text: `${topic} question ${i + 1}? (Error occurred during question generation)`,
                 options: [
-                    "Option A", 
-                    "Option B", 
-                    "Option C", 
+                    "Option A",
+                    "Option B",
+                    "Option C",
                     "Option D"
                 ],
                 correctAnswer: 0
             }));
-            
+
             // You can also throw the error to the catch block instead of using a fallback
             // throw new Error(`Failed to parse AI response: ${parseError.message}`);
         }

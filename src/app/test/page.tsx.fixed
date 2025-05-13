@@ -1,7 +1,8 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
+import Navbar from '~/components/ui/Navbar';
 
 // Timer component for exam countdown
 const ExamTimer = ({ 
@@ -74,7 +75,7 @@ const Page = () => {
   } | null>(null);
 
   // Check if an exam is available
-  const checkExam = useCallback(async () => {
+  const checkExam = async () => {
     if (!isSignedIn) return;
     
     setLoading(true);
@@ -93,7 +94,7 @@ const Page = () => {
       if (data.available && data.exam) {
         setExam(data.exam);
         // Initialize answers array with empty selections
-        setAnswers(data.exam.questions.map((q: { question: string; options: string[] }, index: number) => ({
+        setAnswers(data.exam.questions.map((q, index) => ({
           question_id: index,
           selected_option: ''
         })));
@@ -102,15 +103,14 @@ const Page = () => {
         // Check if user has already submitted
         setHasSubmitted(!!data.hasSubmitted);
       }
-    } catch (err: Error | unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to check for available exams';
-      setError(errorMessage);
+    } catch (err: any) {
+      setError(err.message || 'Failed to check for available exams');
       setExam(null);
       setExamAvailable(false);
     } finally {
       setLoading(false);
     }
-  }, [isSignedIn]);
+  };
   
   // Handle answer selection
   const handleAnswerSelect = (questionId: number, option: string) => {
@@ -159,7 +159,7 @@ const Page = () => {
       setExamAvailable(false);
       setHasSubmitted(true);
       
-    } catch (err: Error | unknown) {
+    } catch (err) {
       setError('Failed to submit exam. Please try again.');
       console.error(err);
     } finally {
@@ -185,7 +185,7 @@ const Page = () => {
     if (isLoaded && isSignedIn) {
       checkExam();
     }
-  }, [isLoaded, isSignedIn, checkExam]);
+  }, [isLoaded, isSignedIn]);
   
   if (!isLoaded || !isSignedIn) {
     return <div className="flex min-h-screen items-center justify-center">Loading...</div>;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser, useAuth } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 
 export type RoleInfo = {
   userId?: string | null;

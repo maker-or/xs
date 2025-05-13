@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm';
 export async function POST(request: Request) {
   try {
     // Get authentication data from Clerk
-    const { userId: authUserId, sessionClaims } = await auth();
+    const { userId: authUserId, sessionClaims: _sessionClaims } = await auth();
     
     if (!authUserId) {
       return NextResponse.json(

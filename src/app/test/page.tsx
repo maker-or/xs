@@ -253,10 +253,13 @@ const Page = () => {
       
       {examAvailable && exam && (
         <div className="flex min-h-screen">
+          {/* Add ExamTimer when exam is active */}
+          {exam.duration && <ExamTimer duration={exam.duration * 60} onTimeout={handleTimeout} />}
+          
           {/* Question sidebar */}
           <div className="w-64 bg-gray-800 p-6">
             <div>
-              <h3 className="text-xl font-bold mb-4">Question's</h3>
+              <h3 className="text-xl font-bold mb-4">Questions</h3>
               <div className="grid grid-cols-3 gap-2">
                 {exam.questions.map((_, index) => (
                   <button

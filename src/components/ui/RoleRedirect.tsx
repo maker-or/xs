@@ -18,7 +18,8 @@ export default function RoleRedirect() {
       pathname.startsWith('/teacher') ||
       pathname.startsWith('/ai') ||
       pathname.startsWith('/loading') ||
-      pathname.startsWith('/repo')
+      pathname.startsWith('/repo')||
+       pathname.startsWith('/test')
     ) {
       return;
     }

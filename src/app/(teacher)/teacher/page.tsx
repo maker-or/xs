@@ -73,7 +73,7 @@ export default function HomePage() {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           {/* Exam Management Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-[#0c0c0c] rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold mb-4">Exam Management</h2>
             <p className="mb-4 text-gray-600 dark:text-gray-300">
               Create and manage online exams for your students. View results and export data.
@@ -95,7 +95,7 @@ export default function HomePage() {
           </div>
           
           {/* Original resource upload section can go here */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-[#0c0c0c] rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold mb-4">Resource Upload</h2>
             <form
               onSubmit={handleSubmit}
@@ -111,7 +111,7 @@ export default function HomePage() {
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Enter filename"
-                    className="mt-8 w-[90%] border-b border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none "
+                    className="mt-8 w-[90%] border-b placeholder:text-[#595959] border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none "
                   />
                 </div>
                 <div>
@@ -141,7 +141,7 @@ export default function HomePage() {
                     value={formData.branch}
                     onChange={handleInputChange}
                     placeholder="Enter branch"
-                    className="mt-8 w-[90%] border-b border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none"
+                    className="mt-8 w-[90%] border-b  placeholder:text-[#595959] border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none"
                   />
                 </div>
                 <div>
@@ -152,7 +152,7 @@ export default function HomePage() {
                     value={formData.subject}
                     onChange={handleInputChange}
                     placeholder="Enter subject"
-                    className="mt-8 w-[90%] border-b border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none"
+                    className="mt-8 w-[90%] border-b placeholder:text-[#595959] border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none"
                   />
                 </div>
                 <div>

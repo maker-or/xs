@@ -21,7 +21,7 @@ const ExamStatusPage = () => {
         View your current exam availability and status below.
       </p>
       
-      <div className="bg-gray-900/50 rounded-lg border border-gray-800 p-6">
+      <div className="bg-[#0c0c0c] rounded-lg border border-gray-800 p-6">
         <ExamStatus />
       </div>
     </div>

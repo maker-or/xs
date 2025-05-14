@@ -235,6 +235,50 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               return <MermaidRenderer chart={codeString} data-oid="tji:5pw" />;
             }
 
+            // Falstad circuit diagram rendering
+            if (language === "cct") {
+              const circuitData = encodeURIComponent(codeString);
+              const falstadUrl = `https://www.falstad.com/circuit/circuitjs.html?cct=${circuitData}`;
+              return (
+                <div className="relative my-6" data-oid="falstad-container">
+                  <div
+                    className="px-3 py-1.5 bg-gray-800 text-xs text-gray-300 rounded-t-md border-b border-gray-700 flex justify-between items-center"
+                    data-oid="falstad-header"
+                  >
+                    <span data-oid="falstad-title">Electrical Circuit Diagram (Falstad)</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(codeString);
+                        setCopiedCode(codeString);
+                        setTimeout(() => setCopiedCode(null), 2000);
+                      }}
+                      className="p-1 rounded hover:bg-gray-700 transition-colors"
+                      aria-label="Copy CCT string"
+                      data-oid="falstad-copy-button"
+                    >
+                      {copiedCode === codeString ? (
+                        <Check
+                          className="h-3.5 w-3.5 text-green-500"
+                          data-oid="falstad-check-icon"
+                        />
+                      ) : (
+                        <Copy
+                          className="h-3.5 w-3.5 text-gray-400"
+                          data-oid="falstad-copy-icon"
+                        />
+                      )}
+                    </button>
+                  </div>
+                  <iframe
+                    src={falstadUrl}
+                    title="Falstad Circuit Simulator"
+                    className="w-full h-96 border border-gray-700 rounded-b-md"
+                    data-oid="falstad-iframe"
+                  ></iframe>
+                </div>
+              );
+            }
+
             // Enhanced ASCII FSM/automata diagram detection
             if (!language && isAutomataAscii(codeString)) {
               return (

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '~/components/ui/Navbar';
+import { DownloadSimple } from "@phosphor-icons/react";
 
 interface ExamResult {
   id: string;
@@ -34,17 +35,17 @@ export default function ExamResultsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [csvDownloadUrl, setCsvDownloadUrl] = useState<string | null>(null);
-  
+
   // Fetch all exams created by the teacher
   useEffect(() => {
     const fetchExams = async () => {
       try {
         const response = await fetch('/api/exams');
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch exams');
         }
-        
+
         const data = await response.json();
         setExams(data.exams || []);
       } catch (err: Error | unknown) {
@@ -54,10 +55,10 @@ export default function ExamResultsPage() {
         setLoading(false);
       }
     };
-    
+
     fetchExams();
   }, []);
-  
+
   // Fetch results when an exam is selected
   useEffect(() => {
     if (!selectedExam) {
@@ -65,21 +66,21 @@ export default function ExamResultsPage() {
       setCsvDownloadUrl(null);
       return;
     }
-    
+
     const fetchResults = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const response = await fetch(`/api/exams/results?exam_id=${selectedExam}`);
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch exam results');
         }
-        
+
         const data = await response.json();
         setResults(data.results || []);
-        
+
         // Set the CSV download URL
         setCsvDownloadUrl(`/api/exams/results/csv?exam_id=${selectedExam}`);
       } catch (err: Error | unknown) {
@@ -91,46 +92,46 @@ export default function ExamResultsPage() {
         setLoading(false);
       }
     };
-    
+
     fetchResults();
   }, [selectedExam]);
-  
+
   // Format date for display
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'long', 
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
-  
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c]">
       <Navbar />
-      
+
       <div className="container mx-auto py-8 px-4">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Exam Results</h1>
-          
+          <h1 className="text-2xl font-serif  mb-6 text-gray-800 dark:text-white">Exam Results</h1>
+
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
               {error}
             </div>
           )}
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+
+          <div className="rounded-lg shadow  mb-8">
             <div className="mb-6">
-              <label htmlFor="exam-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {/* <label htmlFor="exam-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Select an exam
-              </label>
+              </label> */}
               <select
                 id="exam-select"
                 value={selectedExam}
                 onChange={(e) => setSelectedExam(e.target.value)}
-                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
+                className="w-full p-3  border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-[#1f1f1f]"
                 disabled={loading && exams.length === 0}
               >
                 <option value="">-- Select an exam --</option>
@@ -141,70 +142,69 @@ export default function ExamResultsPage() {
                 ))}
               </select>
             </div>
-            
+
             {loading && <p className="text-gray-600 dark:text-gray-400">Loading...</p>}
-            
+
             {!loading && selectedExam && results.length === 0 && (
               <p className="text-gray-600 dark:text-gray-400">No results found for this exam.</p>
             )}
-            
+
             {!loading && selectedExam && results.length > 0 && (
               <>
                 <div className="mb-4 flex justify-between items-center">
                   <h3 className="text-lg font-semibold">
                     {results.length} {results.length === 1 ? 'Student' : 'Students'} Submitted
                   </h3>
-                  
+
                   {csvDownloadUrl && (
                     <a
                       href={csvDownloadUrl}
                       download
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                      className="px-4 py-2  text-white rounded-md underline hover:text-[#FF5E00] transition-colors"
                     >
-                      Download CSV
+                     <DownloadSimple size={32} />
                     </a>
                   )}
                 </div>
-                
-                <div className="overflow-x-auto">
+
+                <div className="overflow-x-auto rounded-xl shadow-sm border border-gray-200 dark:border-[#3e3e3e]">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
+                    <thead className="bg-gray-100 dark:bg-[#1f1f1f]">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">
                           Student
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">
                           Score
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">
                           Percentage
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">
                           Submission Time
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody className="bg-white dark:bg-[#0c0c0c] divide-y divide-gray-200 dark:divide-gray-700">
                       {results.map((result) => (
-                        <tr key={result.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                            {result.email}
+                        <tr key={result.id} className="  transition-colors cursor-pointer">
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                            {result.email.split('@')[0]}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          <td className="px-6 py-4 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap">
                             {result.score} / {result.total}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                result.percentage >= 75 ? 'bg-green-100 text-green-800' :
-                                result.percentage >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${result.percentage >= 75
+                                ? 'bg-green-100 text-green-700 dark:bg-green-200 dark:text-green-900'
+                                : result.percentage >= 60
+                                  ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-200 dark:text-yellow-900'
+                                  : 'bg-red-100 text-red-700 dark:bg-red-200 dark:text-red-900'
                               }`}>
-                                {result.percentage}%
-                              </span>
-                            </div>
+                              {result.percentage}%
+                            </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                             {formatDate(result.submitted_at)}
                           </td>
                         </tr>
@@ -212,22 +212,23 @@ export default function ExamResultsPage() {
                     </tbody>
                   </table>
                 </div>
+
               </>
             )}
           </div>
-          
+
           {/* Navigation buttons */}
           <div className="flex justify-between">
             <button
               onClick={() => router.push('/teacher')}
-              className="px-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+              className="px-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm text-gray-700 dark:text-gray-200  hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               Back to Dashboard
             </button>
-            
+
             <button
               onClick={() => router.push('/teacher/exams')}
-              className="px-4 py-2 text-sm bg-blue-600 border border-transparent rounded-md shadow-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-4 py-2 text-sm bg-[#FF5E00] border border-transparent rounded-md shadow-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Create New Exam
             </button>

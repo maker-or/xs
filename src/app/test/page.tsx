@@ -37,9 +37,8 @@ const ExamTimer = ({
   const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   
   return (
-    <div className="fixed top-5 right-5 bg-black/80 text-white py-2 px-4 rounded-md shadow-md">
-      <div className="text-lg font-bold">Time Remaining</div>
-      <div className="text-2xl text-center">{formattedTime}</div>
+    <div className="fixed top-5 right-5 text-white py-2 px-4 rounded-md">
+      <div className="text-right">{formattedTime}</div>
     </div>
   );
 };
@@ -66,6 +65,7 @@ const Page = () => {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [answers, setAnswers] = useState<{ question_id: number, selected_option: string }[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submissionResult, setSubmissionResult] = useState<{
     message: string;
     score?: number;
@@ -119,6 +119,25 @@ const Page = () => {
         a.question_id === questionId ? { ...a, selected_option: option } : a
       )
     );
+  };
+
+  // Navigation functions
+  const goToNextQuestion = () => {
+    if (exam && currentQuestionIndex < exam.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  const goToPrevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  const goToQuestion = (index: number) => {
+    if (exam && index >= 0 && index < exam.questions.length) {
+      setCurrentQuestionIndex(index);
+    }
   };
   
   // Submit the exam
@@ -192,107 +211,157 @@ const Page = () => {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 md:p-8 bg-[#0c0c0c] text-white">
-      <h1 className="text-3xl font-bold mb-8">Exams</h1>
-      
+    <main className="min-h-screen bg-[#0c0c0c] text-white">
       {!examAvailable && !hasSubmitted && (
-        <div className="w-full max-w-2xl text-center">
-          <p className="text-lg mb-4">
-            Check if you have any exams available today.
-          </p>
-          <button 
-            onClick={checkExam}
-            disabled={loading}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-md font-medium disabled:opacity-50"
-          >
-            {loading ? 'Checking...' : 'Refresh'}
-          </button>
-          
-          {error && (
-            <div className="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-md text-red-200">
-              {error}
-            </div>
-          )}
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="w-full max-w-2xl text-center">
+            <p className="text-lg mb-4">
+              Check if you have any exams available today.
+            </p>
+            <button 
+              onClick={checkExam}
+              disabled={loading}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-md font-medium disabled:opacity-50"
+            >
+              {loading ? 'Checking...' : 'Refresh'}
+            </button>
+            
+            {error && (
+              <div className="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-md text-red-200">
+                {error}
+              </div>
+            )}
+          </div>
         </div>
       )}
       
       {!examAvailable && hasSubmitted && (
-        <div className="w-full max-w-2xl bg-gray-800 rounded-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Exam Already Submitted</h2>
-          {submissionResult ? (
-            <div className="text-center">
-              <p className="text-2xl font-bold mb-2">{submissionResult.message}</p>
-              <p>Thank you for completing the exam.</p>
-            </div>
-          ) : (
-            <p>You have already submitted this exam. You cannot retake it.</p>
-          )}
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="w-full max-w-2xl bg-gray-800 rounded-md p-6">
+            <h2 className="text-xl font-semibold mb-4">Exam Already Submitted</h2>
+            {submissionResult ? (
+              <div className="text-center">
+                <p className="text-2xl font-bold mb-2">{submissionResult.message}</p>
+                <p>Thank you for completing the exam.</p>
+              </div>
+            ) : (
+              <p>You have already submitted this exam. You cannot retake it.</p>
+            )}
+          </div>
         </div>
       )}
       
       {examAvailable && exam && (
-        <div className="w-full max-w-3xl">
-          <div className="bg-gray-800 rounded-lg p-6 mb-6">
-            <h2 className="text-2xl font-bold mb-2">{exam.subject}</h2>
-            {exam.topic && <p className="text-gray-300 mb-4">Topic: {exam.topic}</p>}
-            <div className="flex flex-wrap gap-4 text-sm">
-              <div className="bg-gray-700 px-3 py-1 rounded-full">
-                {exam.num_questions} Questions
-              </div>
-              <div className="bg-gray-700 px-3 py-1 rounded-full capitalize">
-                {exam.difficulty} Difficulty
-              </div>
-              <div className="bg-gray-700 px-3 py-1 rounded-full">
-                {exam.duration} Minutes
+        <div className="flex min-h-screen">
+          {/* Add ExamTimer when exam is active */}
+          {exam.duration && <ExamTimer duration={exam.duration * 60} onTimeout={handleTimeout} />}
+          
+          {/* Question sidebar */}
+          <div className="w-64 bg-gray-800 p-6">
+            <div>
+              <h3 className="text-xl font-bold mb-4">Questions</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {exam.questions.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToQuestion(index)}
+                    className={`h-10 w-10 flex items-center justify-center rounded-md font-medium ${
+                      index === currentQuestionIndex
+                        ? 'bg-orange-500'
+                        : answers[index]?.selected_option
+                        ? 'bg-green-600'
+                        : 'bg-green-500'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
           
-          <ExamTimer 
-            duration={exam.duration * 60} // convert minutes to seconds
-            onTimeout={handleTimeout} 
-          />
-          
-          <form onSubmit={(e) => { e.preventDefault(); submitExam(); }}>
-            {exam.questions.map((question, qIndex) => (
-              <div key={qIndex} className="bg-gray-800 rounded-lg p-6 mb-6">
-                <h3 className="text-xl font-semibold mb-4">
-                  {qIndex + 1}. {question.question}
-                </h3>
-                <div className="space-y-3">
-                  {question.options.map((option, oIndex) => (
-                    <label key={oIndex} className="flex items-start p-3 bg-gray-700/50 rounded-md cursor-pointer hover:bg-gray-700">
-                      <input
-                        type="radio"
-                        name={`question-${qIndex}`}
-                        value={option}
-                        checked={answers[qIndex]?.selected_option === option}
-                        onChange={() => handleAnswerSelect(qIndex, option)}
-                        className="mt-1 mr-3"
-                      />
-                      <span>{option}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            ))}
-            
-            <div className="flex justify-center mt-8 mb-16">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-8 py-3 bg-green-600 hover:bg-green-700 rounded-md font-semibold text-lg disabled:opacity-50"
-              >
-                {isSubmitting ? 'Submitting...' : 'Submit Exam'}
-              </button>
+          {/* Main content */}
+          <div className="flex-1 p-8">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold">{exam.subject}</h1>
+              {exam.topic && <p className="text-gray-300">Topic: {exam.topic}</p>}
             </div>
-          </form>
+            
+            <form onSubmit={(e) => { e.preventDefault(); submitExam(); }} className="max-w-3xl mx-auto">
+              {/* Display only the current question */}
+              {exam.questions[currentQuestionIndex] && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-8">
+                    {exam.questions[currentQuestionIndex].question}
+                  </h2>
+                  <div className="space-y-3">
+                    {exam.questions[currentQuestionIndex].options.map((option, oIndex) => (
+                      <label 
+                        key={oIndex} 
+                        className={`block p-4 border rounded-md cursor-pointer ${
+                          answers[currentQuestionIndex]?.selected_option === option
+                            ? 'bg-orange-800 border-orange-500'
+                            : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 flex items-center justify-center mr-3 rounded-md border font-medium">
+                            {String.fromCharCode(65 + oIndex)}
+                          </div>
+                          <input
+                            type="radio"
+                            name={`question-${currentQuestionIndex}`}
+                            value={option}
+                            checked={answers[currentQuestionIndex]?.selected_option === option}
+                            onChange={() => handleAnswerSelect(currentQuestionIndex, option)}
+                            className="hidden"
+                          />
+                          <span>{option}</span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  
+                  <div className="flex justify-between mt-8">
+                    <button
+                      type="button"
+                      onClick={goToPrevQuestion}
+                      disabled={currentQuestionIndex === 0}
+                      className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-md font-medium disabled:opacity-50"
+                    >
+                      ← Previous
+                    </button>
+                    
+                    {currentQuestionIndex === exam.questions.length - 1 ? (
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="px-8 py-3 bg-green-600 hover:bg-green-700 rounded-md font-semibold text-lg disabled:opacity-50"
+                      >
+                        {isSubmitting ? 'Submitting...' : 'Submit Exam'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={goToNextQuestion}
+                        className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-md font-medium"
+                      >
+                        Next →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </form>
+          </div>
         </div>
       )}
       
       {!examAvailable && !hasSubmitted && !loading && (
-        <div className="mt-8 text-gray-400 italic">
-          No exam is currently available. Check back later or contact your teacher.
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-gray-400 italic">
+            No exam is currently available. Check back later or contact your teacher.
+          </div>
         </div>
       )}
     </main>

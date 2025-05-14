@@ -96,6 +96,37 @@
                         - Use LaTeX exclusively for equations (e.g., $E = mc^2$, $alpha$).
                         - Enclose inline math in $ $ and display math in $$ $$.
                         - Do not use Unicode characters for mathematical notation.
+              14. **Electrical Circuit Diagrams (Falstad Simulator)**:
+                  - If the user asks a question related to electrical circuits or asks to draw an electrical circuit:
+                    - Generate a CCT string compatible with the Falstad Circuit Simulator (https://www.falstad.com/circuit/circuitjs.html?).
+                    - Present the CCT string clearly in your response, enclosed in a fenced code block with "cct" specified.
+                    - Example:
+                        \`\`\`cct
+                        # CCT string for a simple RLC circuit
+                        r 1 2 100 # Resistor
+                        l 2 3 1e-3 # Inductor
+                        c 3 0 1e-6 # Capacitor
+                        g 0 # Ground
+                        v 1 0 sin(0 5 50 0 0) # Voltage source
+                        \`\`\`
+                    - Example:
+                        \`\`\`cct
+                        # CCT string for a simple RLC circuit
+                        r 1 2 100 # Resistor
+                        l 2 3 1e-3 # Inductor
+                        c 3 0 1e-6 # Capacitor
+                        g 0 # Ground
+                        v 1 0 sin(0 5 50 0 0) # Voltage source
+                        \`\`\`  
+                  - Explain the circuit components and their connections as part of your answer.
+                  - Render the circuit diagram using the Falstad Circuit Simulator and provide a link or embedded image of the rendered circuit.
+
+              15. **rember**:
+                  - If the user asks to draw a diagram, only draw the diagram if the user explicitly asks for it.
+                  - dont render both mermaid and cct diagrams at the same time render only one.
+                  - use mermaid for UML diagrams only.
+                  - use cct for electrical circuits only.
+                  - use ascii for transition diagrams and finite state machines.
           
     `;        
     };

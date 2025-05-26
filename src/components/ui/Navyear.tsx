@@ -26,7 +26,7 @@ const Navyear = ({yearprop}:{yearprop ?: string}) => {
                 <button 
                   onClick={() => setYear(index+1)}
                   className={`rounded-full px-3 md:px-4 py-2 md:py-3 transition-all duration-300 whitespace-nowrap ${
-                    year === el.year ? 'bg-[#FF5E00] text-[#0c0c0c]' : 'hover:bg-[#2a2a2a]'
+                    year === el.year ? 'bg-[#FF5E00] text-[#000000]' : 'hover:bg-[#2a2a2a]'
                   }`}
                 >
                   {el.year} year

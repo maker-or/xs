@@ -43,15 +43,15 @@ input.trim() ? `search-${input}` : null,
   return (
     <>
       {/* Command Palette View */}
-      <div className="bg-[#0c0c0c]/60 backdrop-blur-2xl text-[#f7eee3] rounded-3xl p-6 w-1/2 max-h-[600px] flex flex-col shadow-2xl border font-sans border-[#f7eee3]/20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0c0c0c]/10 to-[#0c0c0c]/5 opacity-50 -z-10 blur-3xl"></div>
+      <div className="bg-[#000000]/60 backdrop-blur-2xl text-[#f7eee3] rounded-3xl p-6 w-1/2 max-h-[600px] flex flex-col shadow-2xl border font-sans border-[#f7eee3]/20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#000000]/10 to-[#000000]/5 opacity-50 -z-10 blur-3xl"></div>
 
         <div className="flex gap-3 items-center mb-6">
           <div className="mt-4 w-full flex gap-2">
-            <div className="relative mb-6 flex gap-2 w-full text-[#0c0c0c]">
+            <div className="relative mb-6 flex gap-2 w-full text-[#000000]">
               <button
                 onClick={onClose}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#f7eee3] p-2 bg-[#0c0c0c] z-10 rounded-full"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#f7eee3] p-2 bg-[#000000] z-10 rounded-full"
               >
                 <ChevronLeft size={24} />
               </button>
@@ -61,7 +61,7 @@ input.trim() ? `search-${input}` : null,
                 value={input}
                 onChange={handleInputChange}
                 placeholder="Search File..."
-                className="w-full pl-16 p-4 bg-gradient-to-r from-[#f7eee3] to-[#ABABAB] backdrop-blur-md text-[#0c0c0c] rounded-xl font-sans border-[#f7eee3]/20 focus:outline-none placeholder:text-[#0c0c0c]"
+                className="w-full pl-16 p-4 bg-gradient-to-r from-[#f7eee3] to-[#ABABAB] backdrop-blur-md text-[#000000] rounded-xl font-sans border-[#f7eee3]/20 focus:outline-none placeholder:text-[#000000]"
               />
             </div>
           </div>
@@ -90,7 +90,7 @@ input.trim() ? `search-${input}` : null,
 
       {/* Full Screen PDF Viewer */}
       {selectedPdfUrl && (
-        <div className="fixed inset-0 w-screen h-screen bg-[#0c0c0c] z-50">
+        <div className="fixed inset-0 w-screen h-screen bg-[#000000] z-50">
           <div className="relative w-full h-full">
             <button
               onClick={() => setSelectedPdfUrl(null)}

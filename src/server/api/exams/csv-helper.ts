@@ -72,6 +72,7 @@ export async function resolveUserIds(
   try {
     // Convert all identifiers to emails
     const emailIdentifiers = await convertRollNumbersToEmails(identifiers, organizationId);
+    console.log(emailIdentifiers)
    // const userEmails = emailIdentifiers.map(i => i.identifier);
     
     // Query the database to get user IDs for the given emails within the organization

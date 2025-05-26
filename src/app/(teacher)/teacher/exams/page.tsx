@@ -12,6 +12,7 @@ const examFormSchema = z.object({
   num_questions: z.number().int().min(1, "Number of questions must be at least 1").max(50, "Maximum 50 questions"),
   difficulty: z.enum(['easy', 'medium', 'hard'] as const),
   duration: z.number().int().min(5, "Duration must be at least 5 minutes").max(180, "Maximum 3 hours"),
+  question_time_limit: z.number().int().min(10, "Question time limit must be at least 10 seconds").max(300, "Maximum 5 minutes per question"),
   starts_at: z.string().min(1, "Start date and time is required"),
   ends_at: z.string().min(1, "End date and time is required"),
 });
@@ -26,6 +27,7 @@ export default function ExamCreationPage() {
     num_questions: 10,
     difficulty: "medium",
     duration: 60,
+    question_time_limit: 30,
     starts_at: "",
     ends_at: "",
   });
@@ -35,12 +37,12 @@ export default function ExamCreationPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     // Handle numeric inputs
-    if (name === 'num_questions' || name === 'duration') {
+    if (name === 'num_questions' || name === 'duration' || name === 'question_time_limit') {
       setFormData((prev) => ({
         ...prev,
         [name]: parseInt(value) || 0,
@@ -51,7 +53,7 @@ export default function ExamCreationPage() {
         [name]: value,
       }));
     }
-    
+
     // Clear error for this field when user starts typing
     if (formErrors[name]) {
       setFormErrors((prev) => {
@@ -61,25 +63,25 @@ export default function ExamCreationPage() {
       });
     }
   };
-  
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      
+
       // Validate file type (must be CSV)
       if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
         setCsvError('Please upload a CSV file');
         setCsvFile(null);
         return;
       }
-      
+
       setCsvFile(file);
       setCsvError(null);
     } else {
       setCsvFile(null);
     }
   };
-  
+
   const validateForm = (): boolean => {
     try {
       // Convert date strings to Date objects for validation
@@ -88,13 +90,13 @@ export default function ExamCreationPage() {
         starts_at: formData.starts_at || '',
         ends_at: formData.ends_at || ''
       };
-      
+
       examFormSchema.parse(formDataForValidation);
-      
+
       // Additional validation for start/end dates
       const startDate = new Date(formData.starts_at || '');
       const endDate = new Date(formData.ends_at || '');
-      
+
       if (endDate <= startDate) {
         setFormErrors((prev) => ({
           ...prev,
@@ -102,13 +104,13 @@ export default function ExamCreationPage() {
         }));
         return false;
       }
-      
+
       // CSV file validation
       if (!csvFile) {
         setCsvError('Please upload a CSV file with student identifiers');
         return false;
       }
-      
+
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -123,13 +125,13 @@ export default function ExamCreationPage() {
       return false;
     }
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setSuccess(null);
     setError(null);
-    
+
     if (!validateForm()) {
       setIsLoading(false);
       return;
@@ -137,33 +139,33 @@ export default function ExamCreationPage() {
 
     try {
       const data = new FormData();
-      
+
       // Append form fields to FormData
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           data.append(key, value.toString());
         }
       });
-      
+
       // Append CSV file
       if (csvFile) {
         data.append('students_csv', csvFile);
       }
-      
+
       // Submit the form data
       const response = await fetch('/api/exams/create', {
         method: 'POST',
         body: data,
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(result.error || 'Failed to create exam');
       }
-      
+
       setSuccess(`Exam created successfully! ${result.num_questions} questions were generated for ${result.num_students} students.`);
-      
+
       // Optionally redirect after a delay
       setTimeout(() => {
         router.push('/teacher'); // Or redirect to a dashboard or exam list page
@@ -177,30 +179,30 @@ export default function ExamCreationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c]">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#000000]">
       <Navbar />
-      
+
       <div className="container mx-auto py-8 px-4">
-        <div className="max-w-2xl mx-auto bg-white dark:bg-[#0c0c0c] rounded-lg shadow p-6">
+        <div className="max-w-2xl mx-auto bg-white dark:bg-[#000000] rounded-lg shadow p-6">
           <h1 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Create New Exam</h1>
-          
+
           {success && (
             <div className="mb-4 p-3 bg-green-100      -green-400 text-green-700 rounded">
               {success}
             </div>
           )}
-          
+
           {error && (
             <div className="mb-4 p-3 bg-red-100      -red-400 text-green-700 rounded">
               {error}
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Subject  
+                  Subject
                 </label>
                 <input
                   type="text"
@@ -214,7 +216,7 @@ export default function ExamCreationPage() {
                   <p className="text-red-500 text-xs mt-1">{formErrors.subject}</p>
                 )}
               </div>
-              
+
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Topic (Optional)
@@ -228,10 +230,10 @@ export default function ExamCreationPage() {
                   placeholder="e.g., Calculus, Machine Learning, Quantum Mechanics"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Number of Questions  
+                  Number of Questions
                 </label>
                 <input
                   type="number"
@@ -246,10 +248,10 @@ export default function ExamCreationPage() {
                   <p className="text-red-500 text-xs mt-1">{formErrors.num_questions}</p>
                 )}
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Difficulty Level  
+                  Difficulty Level
                 </label>
                 <select
                   name="difficulty"
@@ -265,10 +267,10 @@ export default function ExamCreationPage() {
                   <p className="text-red-500 text-xs mt-1">{formErrors.difficulty}</p>
                 )}
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Duration (minutes)  
+                  Duration (minutes)
                 </label>
                 <input
                   type="number"
@@ -283,10 +285,31 @@ export default function ExamCreationPage() {
                   <p className="text-red-500 text-xs mt-1">{formErrors.duration}</p>
                 )}
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Start Date & Time  
+                  Time per Question (seconds)
+                </label>
+                <input
+                  type="number"
+                  name="question_time_limit"
+                  value={formData.question_time_limit}
+                  onChange={handleInputChange}
+                  min="10"
+                  max="300"
+                  className={`w-full p-2    rounded-md ${formErrors.question_time_limit ? '  -red-500' : '  -gray-300   '} dark:bg-[#181818]`}
+                />
+                {formErrors.question_time_limit && (
+                  <p className="text-red-500 text-xs mt-1">{formErrors.question_time_limit}</p>
+                )}
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Each question will auto-advance after this time limit
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Start Date & Time
                 </label>
                 <input
                   type="datetime-local"
@@ -299,10 +322,10 @@ export default function ExamCreationPage() {
                   <p className="text-red-500 text-xs mt-1">{formErrors.starts_at}</p>
                 )}
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  End Date & Time  
+                  End Date & Time
                 </label>
                 <input
                   type="datetime-local"
@@ -315,10 +338,10 @@ export default function ExamCreationPage() {
                   <p className="text-red-500 text-xs mt-1">{formErrors.ends_at}</p>
                 )}
               </div>
-              
+
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Student List (CSV)  
+                  Student List (CSV)
                 </label>
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 bg-[#181818] rounded-lg  ">
                   <div className="space-y-1 text-center">
@@ -372,7 +395,7 @@ export default function ExamCreationPage() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
@@ -392,21 +415,21 @@ export default function ExamCreationPage() {
             </div>
           </form>
         </div>
-        
+
         <div className="max-w-2xl mx-auto mt-8 bg-white dark:bg-[#464646] rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">CSV Format Help</h2>
-          
+
           <div className="mb-4">
             <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">Email Format Example:</h3>
             <pre className="bg-gray-100 dark:bg-[#181818] p-3 rounded mt-2 overflow-x-auto">
               <code>email<br/>student1@example.com<br/>student2@example.com<br/>student3@example.com</code>
             </pre>
           </div>
-          
+
           <div>
             <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">Roll Number Format Example:</h3>
             <pre className="bg-gray-100 dark:bg-[#181818] p-3 rounded mt-2 overflow-x-auto">
-              <code>roll_number<br/>CS2023001<br/>CS2023002<br/>CS2023003</code>
+              <code>roll_number<br/>22bq1a05g6<br/>22bq1a05xx<br/>22bq1a05xx</code>
             </pre>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               The system will automatically detect the format and convert roll numbers to emails

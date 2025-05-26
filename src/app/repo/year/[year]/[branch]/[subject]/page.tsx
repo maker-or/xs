@@ -104,8 +104,8 @@ const SubjectPage = () => {
                 key={`tag-${el}`}
                 className={`whitespace-nowrap rounded-xl px-4 py-2 transition-colors ${
                   selectedTags.includes(el)
-                    ? "bg-[#f7eee3] text-[#0c0c0c]"
-                    : "bg-[#454545] text-[#f7eee3] hover:bg-[#a3a1a0] hover:text-[#0c0c0c]"
+                    ? "bg-[#f7eee3] text-[#000000]"
+                    : "bg-[#454545] text-[#f7eee3] hover:bg-[#a3a1a0] hover:text-[#000000]"
                 }`}
                 onClick={() => handleTagClick(el)}
               >
@@ -128,7 +128,7 @@ const SubjectPage = () => {
                 setSelectedType("notes");
                 paramsUpdate("notes");
               }}
-              className={`rounded-xl px-3 py-2 text-sm lg:px-4 ${selectedType === "notes" ? "bg-[#f7eee3] text-[#0c0c0c]" : "bg-[#454545] text-[#f7eee3]"}`}
+              className={`rounded-xl px-3 py-2 text-sm lg:px-4 ${selectedType === "notes" ? "bg-[#f7eee3] text-[#000000]" : "bg-[#454545] text-[#f7eee3]"}`}
             >
               Notes
             </button>
@@ -137,7 +137,7 @@ const SubjectPage = () => {
                 setSelectedType("questionPapers");
                 paramsUpdate("questionPapers");
               }}
-              className={`rounded-xl px-4 py-2 ${selectedType === "questionPapers" ? "bg-[#f7eee3] text-[#0c0c0c]" : "bg-[#454545] text-[#f7eee3]"}`}
+              className={`rounded-xl px-4 py-2 ${selectedType === "questionPapers" ? "bg-[#f7eee3] text-[#000000]" : "bg-[#454545] text-[#f7eee3]"}`}
             >
               Question Papers
             </button>
@@ -151,7 +151,7 @@ const SubjectPage = () => {
               className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
               onClick={() => openPdfViewer(file.fileurl)}
             >
-              <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+              <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#000000]">
                 {file.filename}
               </div>
             </div>
@@ -161,7 +161,7 @@ const SubjectPage = () => {
 
       {selectedPdfUrl && (
         <div className="bg-[#FF5E00]-700 fixed inset-0 flex w-[100svw] bg-opacity-50">
-          <div className="relative w-[100svw] items-start justify-center rounded-lg bg-[#0c0c0c]">
+          <div className="relative w-[100svw] items-start justify-center rounded-lg bg-[#000000]">
             <button
               onClick={() => setSelectedPdfUrl(null)}
               className="absolute right-2 top-2 z-10 rounded-full bg-[#f7eee3] p-1 text-[#ff5e00]"

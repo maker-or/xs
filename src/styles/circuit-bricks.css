@@ -1,0 +1,93 @@
+/* Circuit-Bricks custom styling */
+
+.circuit-bricks-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dark mode overrides for Circuit-Bricks elements */
+[data-theme="dark"] .circuit-bricks-container svg text {
+  fill: #e0e0e0 !important;
+}
+
+[data-theme="dark"] .circuit-bricks-container svg path.component-outline {
+  stroke: #e0e0e0 !important;
+}
+
+[data-theme="dark"] .circuit-bricks-container svg line.wire {
+  stroke: #f0f0f0 !important;
+}
+
+/* Loading indicator styles */
+.circuit-bricks-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.dark .circuit-bricks-loading {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Error message styles */
+.circuit-bricks-error {
+  padding: 1rem;
+  border-radius: 0.375rem;
+  color: #b91c1c;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  margin-top: 0.5rem;
+}
+
+.dark .circuit-bricks-error {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Component details panel */
+.circuit-bricks-details {
+  margin-top: 0.75rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Highlight selected components */
+.circuit-bricks-container svg .selected-component {
+  stroke-width: 2px;
+  stroke: #3b82f6 !important;
+}
+
+.dark .circuit-bricks-container svg .selected-component {
+  stroke: #60a5fa !important;
+}
+
+/* Component catalog styling */
+.circuit-component-catalog {
+  margin-top: 1rem;
+  animation: slideUp 0.3s ease-in-out;
+}
+
+.circuit-component-catalog h3 {
+  font-weight: 600;
+}
+
+.circuit-component-catalog pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

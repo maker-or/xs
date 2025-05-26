@@ -104,8 +104,8 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
   }
 
   return (
-    <div className="relative flex max-h-[500px] w-1/2 flex-col overflow-hidden rounded-3xl border border-[#f7eee3]/20 bg-[#0c0c0c]/60 p-6 text-[#f7eee3] shadow-2xl backdrop-blur-xl">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#0c0c0c]/10 to-[#0c0c0c]/5 opacity-50 blur-3xl"></div>
+    <div className="relative flex max-h-[500px] w-1/2 flex-col overflow-hidden rounded-3xl border border-[#f7eee3]/20 bg-[#000000]/60 p-6 text-[#f7eee3] shadow-2xl backdrop-blur-xl">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#000000]/10 to-[#000000]/5 opacity-50 blur-3xl"></div>
 
       <div className="mb-6 flex items-center justify-between">
         <button
@@ -127,7 +127,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
                 ? "scale-90 opacity-0"
                 : task.completed
                 ? "border-b-2 border-[#f7eee323] text-green-600 line-through"
-                : "border-b-2 border-[#f7eee323] bg-[#0c0c0c]/0"
+                : "border-b-2 border-[#f7eee323] bg-[#000000]/0"
             }`}
           >
             <div className="flex items-center space-x-3">

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import TagInput from "~/components/ui/TagInput";
 import Navbar from "~/components/ui/Navbar";
-import Link from "next/link";
+
 
 
 export default function HomePage() {
@@ -70,10 +70,10 @@ export default function HomePage() {
     <div className="min-h-screen bg-white dark:bg-black">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+      <main className="container p-3">
+        <div className="flex flex-col gap-6 ">
           {/* Exam Management Section */}
-          <div className="bg-white dark:bg-[#0c0c0c] rounded-lg shadow-md p-6">
+          {/* <div className="bg-white dark:bg-[#000000] rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold mb-4">Exam Management</h2>
             <p className="mb-4 text-gray-600 dark:text-gray-300">
               Create and manage online exams for your students. View results and export data.
@@ -92,17 +92,17 @@ export default function HomePage() {
                 View Exam Results
               </Link>
             </div>
-          </div>
+          </div> */}
           
           {/* Original resource upload section can go here */}
-          <div className="bg-white dark:bg-[#0c0c0c] rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-[#000000] rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold mb-4">Resource Upload</h2>
             <form
               onSubmit={handleSubmit}
               className="grid h-full w-full grid-cols-1  rounded-lg px-2 py-8 md:grid-cols-2"
             >
               {/* Left Column: Text Inputs */}
-              <div className="flex h-full flex-col gap-10">
+               <div className="flex h-full flex-col gap-10 font-serif">
                 <div>
                   <input
                     type="text"
@@ -203,7 +203,7 @@ export default function HomePage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`flex w-full items-center justify-center rounded-lg bg-[#E8E8E6] py-3 font-semibold text-[#0c0c0c] transition-all ${
+                  className={`flex w-full items-center justify-center rounded-lg bg-[#E8E8E6] py-3 font-semibold text-[#000000] transition-all ${
                     isLoading
                       ? "cursor-not-allowed opacity-50"
                       : "hover:shadow-[inset_0_-4px_8px_rgba(255,94,0,0.6),0_4px_6px_rgba(0,0,0,0.2)] focus:shadow-[inset_0_-4px_8px_rgba(255,94,0,0.6),0_4px_6px_rgba(0,0,0,0.2)]"
@@ -222,11 +222,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Rest of the original content */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold mb-4">Resource Upload</h2>
-          {/* Original form can go here */}
-        </div>
+
       </main>
     </div>
   );

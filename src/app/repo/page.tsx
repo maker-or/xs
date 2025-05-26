@@ -154,7 +154,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
               onClick={() => setSelectedSubject(subject)}
               className="relative flex w-full cursor-pointer flex-col border-b-2 border-[#f7eee334] p-3 text-3xl text-[#f7eee3] hover:text-[#FF5E00]"
             >
-              {/* <div className="absolute bottom-0 right-0 w-full rounded-b-xl bg-[] px-3 py-1 text-center text-lg font-medium text-[#0c0c0c]">
+              {/* <div className="absolute bottom-0 right-0 w-full rounded-b-xl bg-[] px-3 py-1 text-center text-lg font-medium text-[#000000]">
                 {subject}
               </div> */}
               {subject}
@@ -174,13 +174,13 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
             <div className="mb-4 flex gap-4">
               <button
                 onClick={() => setSelectedType("notes")}
-                className={`rounded-xl px-3 py-2 text-sm lg:px-4 ${selectedType === "notes" ? "bg-[#f7eee3] text-[#0c0c0c]" : "bg-[#454545] text-[#f7eee3]"}`}
+                className={`rounded-xl px-3 py-2 text-sm lg:px-4 ${selectedType === "notes" ? "bg-[#f7eee3] text-[#000000]" : "bg-[#454545] text-[#f7eee3]"}`}
               >
                 Notes
               </button>
               <button
                 onClick={() => setSelectedType("questionPapers")}
-                className={`rounded-xl px-4 py-2 ${selectedType === "questionPapers" ? "bg-[#f7eee3] text-[#0c0c0c]" : "bg-[#454545] text-[#f7eee3]"}`}
+                className={`rounded-xl px-4 py-2 ${selectedType === "questionPapers" ? "bg-[#f7eee3] text-[#000000]" : "bg-[#454545] text-[#f7eee3]"}`}
               >
                 Question Papers
               </button>
@@ -199,7 +199,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
                       className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
                       onClick={() => openPdfViewer(link)}
                     >
-                      <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+                      <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#000000]">
                         {chapter}
                       </div>
                     </div>
@@ -217,7 +217,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
             //       className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
             //       onClick={() => openPdfViewer("#")}
             //     >
-            //       <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+            //       <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#000000]">
             //         {" "}
             //         Question paper1
             //       </div>
@@ -244,7 +244,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
                     className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
                     onClick={() => openPdfViewer(link)}
                   >
-                    <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+                    <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#000000]">
                       {paper}
                     </div>
                   </div>
@@ -255,7 +255,7 @@ const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
       )}
       {selectedPdfUrl && (
         <div className="fixed inset-0 flex w-[100svw] bg-[#FF5E00]-700 bg-opacity-50">
-          <div className="relative w-[100svw] items-start justify-center rounded-lg bg-[#0c0c0c]">
+          <div className="relative w-[100svw] items-start justify-center rounded-lg bg-[#000000]">
             <button
               onClick={() => setSelectedPdfUrl(null)}
               className="absolute right-2 top-2 z-10 rounded-full bg-[#f7eee3] p-1 text-[#ff5e00]"

@@ -1084,7 +1084,7 @@ export default function Page() {
 
     return (
       <div
-        className={`inline-block max-w-[95vw] bg-[#1d1c1c] sm:max-w-[85vw] rounded-t-3xl rounded-br-3xl dark:text-[#c8c861] text-[#0c0c0c] overflow-hidden md:max-w-3xl ${expanded ? "text-2xl" : "text-5xl md:text-5xl"} tracking-tight p-3 md:p-4 font-mono`}
+        className={`inline-block max-w-[95vw] bg-[#1d1c1c] sm:max-w-[85vw] rounded-t-3xl rounded-br-3xl dark:text-[#e7e7d6] text-[#000000] overflow-hidden md:max-w-3xl ${expanded ? "text-2xl" : "text-xl md:text-xl"} tracking-tight p-3 md:p-4 font-mono`}
         data-oid=":87oz.z"
       >
         <MarkdownRenderer content={displayed} data-oid=":vh-uhy" />
@@ -1235,7 +1235,7 @@ export default function Page() {
                         adjustTextareaHeight();
                       }}
                       onKeyDown={handleKeyDown}
-                      className="max-h-[120px] min-h-[60px] flex-1 resize-none bg-transparent font-serif px-4 py-2 text-base md:text-lg dark:text-[#0c0c0c] text-[#0c0c0c] outline-none transition-all duration-200 dark:placeholder:text-[#0c0c0c] placeholder:text-[#606060] "
+                      className="max-h-[120px] min-h-[60px] flex-1 resize-none bg-transparent font-serif px-4 py-2 text-base md:text-lg dark:text-[#000000] text-[#000000] outline-none transition-all duration-200 dark:placeholder:text-[#000000] placeholder:text-[#606060] "
                       rows={1}
                       data-oid="ih3p6--"
                     />
@@ -1267,7 +1267,7 @@ export default function Page() {
                         </div>
                         {transcribedText && (
                           <div
-                            className="max-w-full overflow-x-auto dark:text-[#f7eee3] text-[#0c0c0c] text-base py-2"
+                            className="max-w-full overflow-x-auto dark:text-[#f7eee3] text-[#000000] text-base py-2"
                             data-oid="4m2w6h5"
                           >
                             {transcribedText}
@@ -1420,7 +1420,7 @@ export default function Page() {
                     <button
                       type="button"
                       onClick={() => setShowModelSelector(!showModelSelector)}
-                      className="flex items-center justify-between gap-2 px-3 py-2 text-base sm:px-4 sm:py-2 sm:text-lg rounded-lg dark:bg-[#252525] bg-[#e2e2e2] dark:text-[#f7eee3] text-[#0c0c0c] transition-colors dark:hover:bg-[#323232] hover:bg-[#d0d0d0]"
+                      className="flex items-center justify-between gap-2 px-3 py-2 text-base sm:px-4 sm:py-2 sm:text-lg rounded-lg dark:bg-[#252525] bg-[#e2e2e2] dark:text-[#f7eee3] text-[#000000] transition-colors dark:hover:bg-[#323232] hover:bg-[#d0d0d0]"
                       data-oid="q5onphf"
                     >
                       <div
@@ -1453,7 +1453,7 @@ export default function Page() {
                   </div>
                   <button
                     type="button"
-                    className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#0c0c0c] p-2 rounded-lg transition-colors duration-200"
+                    className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#000000] p-2 rounded-lg transition-colors duration-200"
                     onClick={toggleWhiteboard}
                     data-oid="p2fuslx"
                   >
@@ -1461,7 +1461,7 @@ export default function Page() {
                   </button>
                   <button
                     type="button"
-                    className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#0c0c0c] p-2 rounded-lg transition-colors duration-200"
+                    className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#000000] p-2 rounded-lg transition-colors duration-200"
                     title="sphere Voice Assistant"
                     aria-label={
                       isVoiceMode
@@ -1561,7 +1561,7 @@ export default function Page() {
                 >
                   {isDesignMode ? (
                     <div
-                      className="max-w-[100vw] sm:max-w-[85vw] overflow-hidden md:max-w-xl rounded-t-3xl rounded-br-3xl dark:bg-[#1F2937] bg-[#e0e6f0] dark:text-[#E8E8E6] text-[#0c0c0c] p-4"
+                      className="max-w-[100vw] sm:max-w-[85vw] overflow-hidden md:max-w-xl rounded-t-3xl rounded-br-3xl dark:bg-[#1F2937] bg-[#e0e6f0] dark:text-[#E8E8E6] text-[#000000] p-4"
                       data-oid="imzmhl1"
                     >
                       <textarea
@@ -1586,7 +1586,7 @@ export default function Page() {
                   >
                     <button
                       onClick={() => copyMessage(m.content, m.id)}
-                      className="p-1 rounded-full dark:text-white text-[#0c0c0c] hover:bg-[#646464] hover:text-[#48AAFF]"
+                      className="p-1 rounded-full dark:text-white text-[#000000] hover:bg-[#646464] hover:text-[#48AAFF]"
                       data-oid="efva4nq"
                     >
                       {copiedMessageId === m.id ? (
@@ -1622,7 +1622,7 @@ export default function Page() {
                     // Regular message display (non-design mode)
                     // the actual area in whivh the response is displayed
                     <div
-                      className="relative max-w-[95vw] sm:max-w-[90vw] overflow-x-hidden rounded-xl p-1 text-[1.1rem] sm:text-[1.2rem] tracking-tight dark:text-[#E8E8E6] text-[#0c0c0c] md:max-w-2xl md:p-2 md:text-[1.4rem] "
+                      className="relative max-w-[95vw] sm:max-w-[90vw] overflow-x-hidden rounded-xl p-1 text-[1.1rem] sm:text-[1.2rem] tracking-tight dark:text-[#E8E8E6] text-[#000000] md:max-w-2xl md:p-2 md:text-[1.4rem] "
                       data-oid="qvz08gm"
                     >
                       <div
@@ -1634,7 +1634,7 @@ export default function Page() {
                           data-oid="r2v9a7a"
                         >
                           <div
-                            className="flex items-center     sm:p-3 dark:text-white text-[#0c0c0c] transition-colors   "
+                            className="flex items-center     sm:p-3 dark:text-white text-[#000000] transition-colors   "
                             data-oid="h-qwzs6"
                           >
                             <button
@@ -1650,7 +1650,7 @@ export default function Page() {
                             </button>
                           </div>
                           <div
-                            className="flex  gap-2  items-center     sm:p-3 dark:text-[#6d6c6c] text-[#0c0c0c] transition-colors  dark:hover:text-[#e0e0e0] "
+                            className="flex  gap-2  items-center     sm:p-3 dark:text-[#6d6c6c] text-[#000000] transition-colors  dark:hover:text-[#e0e0e0] "
                             onClick={() => handleSearchYouTube(lastQuery)}
                             data-oid="fd4i8t5"
                           >
@@ -1685,18 +1685,18 @@ export default function Page() {
                         className="mb-14 flex flex-wrap gap-1 sm:gap-2"
                         data-oid="ds7fme7"
                       >
-                        {/* <div className="flex items-center justify-center rounded-full  p-2 sm:p-3 dark:text-white text-[#0c0c0c] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
+                        {/* <div className="flex items-center justify-center rounded-full  p-2 sm:p-3 dark:text-white text-[#000000] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
                     <button onClick={handleSearchWeb} className="text-base md:text-lg">
                     <Globe className="h-5 w-5" />
                     </button>
                     </div> */}
-                        {/* <div className="flex items-center justify-center rounded-full  p-2 sm:p-3 dark:text-white text-[#0c0c0c] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
+                        {/* <div className="flex items-center justify-center rounded-full  p-2 sm:p-3 dark:text-white text-[#000000] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
                     <button onClick={() => handleSearchYouTube(lastQuery)} className="text-base md:text-lg">
                     <Play className="h-5 w-5" />
                     </button>
                     </div> */}
                         {/* {previousUserMessage && (
-                    <div className="flex items-center justify-center rounded-full  p-2 sm:p-3 dark:text-white text-[#0c0c0c] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
+                    <div className="flex items-center justify-center rounded-full  p-2 sm:p-3 dark:text-white text-[#000000] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
                     <button
                     onClick={() => regenerateQuery(previousUserMessage, m.id)}
                     className="text-base md:text-lg"
@@ -1707,7 +1707,7 @@ export default function Page() {
                     </div>
                     )} */}
                         <div
-                          className="flex items-center justify-center rounded-full   p-2 sm:p-3 dark:text-white text-[#0c0c0c] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]"
+                          className="flex items-center justify-center rounded-full   p-2 sm:p-3 dark:text-white text-[#000000] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]"
                           data-oid="ylsym5i"
                         >
                           <button
@@ -1722,7 +1722,7 @@ export default function Page() {
                               />
                             ) : (
                               <Clipboard
-                                className="h-5 w-5 dark:text-[#f7eee3] text-[#0c0c0c] hover:text-[#48AAFF]"
+                                className="h-5 w-5 dark:text-[#f7eee3] text-[#000000] hover:text-[#48AAFF]"
                                 data-oid="gp4p:1y"
                               />
                             )}
@@ -1754,7 +1754,7 @@ export default function Page() {
                     />
 
                     <h3
-                      className="truncate text-lg font-medium dark:text-[#E8E8E6] text-[#0c0c0c] md:text-xl"
+                      className="truncate text-lg font-medium dark:text-[#E8E8E6] text-[#000000] md:text-xl"
                       data-oid="b6ne54s"
                     >
                       Web Search Results
@@ -1762,7 +1762,7 @@ export default function Page() {
                   </div>
                   <div className="group relative" data-oid="h4467a:">
                     <button
-                      className="flex items-center gap-2 rounded-full bg-[#4544449d] px-3 py-1.5 dark:text-white text-[#0c0c0c] transition-colors duration-200 dark:hover:bg-[#FF5E00] hover:bg-[#FF5E00]"
+                      className="flex items-center gap-2 rounded-full bg-[#4544449d] px-3 py-1.5 dark:text-white text-[#000000] transition-colors duration-200 dark:hover:bg-[#FF5E00] hover:bg-[#FF5E00]"
                       data-oid="h_wmq:v"
                     >
                       <span className="text-base" data-oid="65q0ont">
@@ -1777,7 +1777,7 @@ export default function Page() {
                   href={link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block truncate rounded-lg px-3 py-2 text-base dark:text-[#E8E8E6] text-[#0c0c0c] dark:hover:bg-[#252525] hover:bg-[#f0f0f0]"
+                  className="block truncate rounded-lg px-3 py-2 text-base dark:text-[#E8E8E6] text-[#000000] dark:hover:bg-[#252525] hover:bg-[#f0f0f0]"
                   >
                   {link}
                   </a>
@@ -1837,7 +1837,7 @@ export default function Page() {
                           adjustTextareaHeight();
                         }}
                         onKeyDown={handleKeyDown}
-                        className="max-h-[120px] min-h-[60px] flex-1 resize-none bg-transparent px-4 py-2 text-base md:text-lg dark:text-[#0c0c0c] text-[#0c0c0c] outline-none transition-all duration-200 dark:placeholder:text-[#0c0c0c] placeholder:text-[#606060] font-serif"
+                        className="max-h-[120px] min-h-[60px] flex-1 resize-none bg-transparent px-4 py-2 text-base md:text-lg dark:text-[#000000] text-[#000000] outline-none transition-all duration-200 dark:placeholder:text-[#000000] placeholder:text-[#606060] font-serif"
                         rows={1}
                         data-oid="t_m00wi"
                       />
@@ -1869,7 +1869,7 @@ export default function Page() {
                           </div>
                           {transcribedText && (
                             <div
-                              className="max-w-full overflow-x-auto dark:text-[#f7eee3] text-[#0c0c0c] text-base py-2"
+                              className="max-w-full overflow-x-auto dark:text-[#f7eee3] text-[#000000] text-base py-2"
                               data-oid="z7-w5uj"
                             >
                               {transcribedText}
@@ -2083,7 +2083,7 @@ export default function Page() {
                       <button
                         type="button"
                         onClick={() => setShowModelSelector(!showModelSelector)}
-                        className="flex items-center justify-between gap-2 px-3 py-1.5 text-base sm:px-4 sm:py-2 sm:text-lg rounded-lg  dark:bg-[#252525] bg-[#e2e2e2] dark:text-[#f7eee3] text-[#0c0c0c] transition-colors dark:hover:bg-[#323232] hover:bg-[#d0d0d0] border border-transparent hover:border-gray-300 dark:hover:border-gray-700"
+                        className="flex items-center justify-between gap-2 px-3 py-1.5 text-base sm:px-4 sm:py-2 sm:text-lg rounded-lg  dark:bg-[#252525] bg-[#e2e2e2] dark:text-[#f7eee3] text-[#000000] transition-colors dark:hover:bg-[#323232] hover:bg-[#d0d0d0] border border-transparent hover:border-gray-300 dark:hover:border-gray-700"
                         data-oid="xgxvnao"
                       >
                         <div
@@ -2121,7 +2121,7 @@ export default function Page() {
                     </div>
                     <button
                       type="button"
-                      className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#0c0c0c] p-2 rounded-lg transition-colors duration-200"
+                      className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#000000] p-2 rounded-lg transition-colors duration-200"
                       onClick={toggleWhiteboard}
                       data-oid="0rix:jz"
                     >
@@ -2129,7 +2129,7 @@ export default function Page() {
                     </button>
                     <button
                       type="button"
-                      className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#0c0c0c] p-2 rounded-lg transition-colors duration-200"
+                      className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#000000] p-2 rounded-lg transition-colors duration-200"
                       title="sphere Voice Assistant"
                       aria-label={
                         isVoiceMode
@@ -2225,7 +2225,7 @@ export default function Page() {
 
           <button
             onClick={() => setShowWhiteboard(false)}
-            className="absolute top-0 right-0 z-30 flex items-center justify-center gap-2 rounded-bl-xl dark:bg-[#1A1A1C] bg-[#e2e2e2] p-3 text-sm dark:text-[#f7eee3] text-[#0c0c0c] dark:hover:bg-[#575757] hover:bg-[#d0d0d0]"
+            className="absolute top-0 right-0 z-30 flex items-center justify-center gap-2 rounded-bl-xl dark:bg-[#1A1A1C] bg-[#e2e2e2] p-3 text-sm dark:text-[#f7eee3] text-[#000000] dark:hover:bg-[#575757] hover:bg-[#d0d0d0]"
             data-oid="s:y.u.n"
           >
             Close

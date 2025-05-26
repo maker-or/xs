@@ -69,7 +69,7 @@ const Timeline: React.FC<TimelineProps> = ({
                 <li
                   key={msg.id}
                   onClick={() => handleMessageClick(msg.id)}
-                  className={`cursor-pointer text-md font-medium hover:text-[#0c0c0c] hover:bg-gray-100 p-2 rounded ${isActive ? " dark:text-[#3c5fb0] font-bold" : "text-gray-500 "}`}
+                  className={`cursor-pointer text-md font-medium hover:text-[#000000] hover:bg-gray-100 p-2 rounded ${isActive ? " dark:text-[#3c5fb0] font-bold" : "text-gray-500 "}`}
                 >
                   {msg.content.length > 80
                     ? msg.content.substring(0, 80) + "..."

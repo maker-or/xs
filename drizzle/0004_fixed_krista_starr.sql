@@ -1,0 +1,1 @@
+ALTER TABLE "gallery_exams" ADD COLUMN "question_time_limit" integer DEFAULT 30;

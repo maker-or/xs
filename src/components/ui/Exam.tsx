@@ -129,7 +129,7 @@ export const Exam = ({ questions, duration, onComplete }: ExamProps) => {
   };
 
   return (
-    <div className="relative h-screen flex flex-col bg-[#0c0c0c] text-[#FFFFFF]">
+    <div className="relative h-screen flex flex-col bg-[#000000] text-[#FFFFFF]">
       {/* Header with timer and menu button */}
       <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-4">
         <button onClick={toggleSidebar} className="p-2">
@@ -221,7 +221,7 @@ export const Exam = ({ questions, duration, onComplete }: ExamProps) => {
       {/* Sidebar */}
       {examState.showSidebar && !examState.examCompleted && (
         <div className="absolute inset-0 z-10 flex">
-          <div className="w-72 h-[95svh] bg-[#0c0c0c] rounded-lg border-2 border-[#363636] shadow-lg overflow-auto">
+          <div className="w-72 h-[95svh] bg-[#000000] rounded-lg border-2 border-[#363636] shadow-lg overflow-auto">
             <div className="p-4 border-b border-[#1C2526]">
               <h3 className="font-bold text-[#f7eee3]">Question&#39;s</h3>
             </div>
@@ -244,7 +244,7 @@ export const Exam = ({ questions, duration, onComplete }: ExamProps) => {
             </div>
           </div>
           <div
-            className="bg-[#0c0c0c] bg-opacity-50 flex-1"
+            className="bg-[#000000] bg-opacity-50 flex-1"
             onClick={toggleSidebar}
           />
         </div>

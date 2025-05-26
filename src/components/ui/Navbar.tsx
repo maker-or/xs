@@ -39,7 +39,7 @@ const Navbar = () => {
           <li className="px-2">
             <Link href="/" prefetch={true} rel="preload">
               <button
-                className={`rounded-full px-4 py-3 ${isActive('/') && !isActive('repo') ? 'bg-[#FF5E00] text-[#0c0c0c]' : ''
+                className={`rounded-full px-4 py-3 ${isActive('/') && !isActive('repo') ? 'bg-[#FF5E00] text-[#000000]' : ''
                   }`}
               >
                 Space

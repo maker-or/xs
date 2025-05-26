@@ -192,7 +192,7 @@ const ExamPage = () => {
 
   // Submit exam function
   const submitExam = useCallback(async () => {
-    if (!exam || isSubmitting) return; // Prevent multiple submissions
+    if (!exam || isSubmitting || hasSubmitted) return; // Prevent multiple submissions
 
     setIsSubmitting(true);
     setError(null);
@@ -212,6 +212,17 @@ const ExamPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 409) {
+          // Duplicate submission - treat as success
+          setHasSubmitted(true);
+          setSubmissionResult({
+            message: 'Exam already submitted',
+            score: 0,
+            total: answers.length,
+            percentage: 0
+          });
+          return;
+        }
         throw new Error(data.error || 'Failed to submit exam');
       }
 
@@ -223,7 +234,7 @@ const ExamPage = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [exam, answers, isSubmitting]);
+  }, [exam, answers, isSubmitting, hasSubmitted]);
 
   // Navigation functions - updated for new behavior
   const goToNextQuestion = useCallback(() => {

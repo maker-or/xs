@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
     // Get current user
     //const user = await currentUser();
         const { userId } = await auth ();
+
     if (!userId) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -79,17 +80,29 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // Insert the result into the database
-    await db
-      .insert(results)
-      .values({
-        exam_id: exam_id,
-        user_id: userId,
-        answers: answers,
-        score: score,
-      })
-      .returning({ id: results.id, score: results.score })
-      .execute();
+    // Insert the result into the database with additional duplicate check
+    try {
+      await db
+        .insert(results)
+        .values({
+          exam_id: exam_id,
+          user_id: userId,
+          answers: answers,
+          score: score,
+        })
+        .returning({ id: results.id, score: results.score })
+        .execute();
+    } catch (dbError) {
+      // Check if this is a duplicate key error (race condition)
+      if (dbError instanceof Error && dbError.message.includes('duplicate')) {
+        return NextResponse.json({
+          error: 'You have already submitted this exam',
+        }, { status: 409 });
+      }
+
+      // Re-throw other database errors
+      throw dbError;
+    }
 
     // Calculate percentage score based on the number of questions the student actually answered
     const totalQuestions = answers.length; // Use the number of answers submitted, not total questions in pool

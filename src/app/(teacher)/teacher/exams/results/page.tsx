@@ -109,7 +109,7 @@ export default function ExamResultsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c]">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#000000]">
       <Navbar />
 
       <div className="container mx-auto py-8 px-4">
@@ -122,31 +122,44 @@ export default function ExamResultsPage() {
             </div>
           )}
 
-          <div className="rounded-lg shadow  mb-8">
+          <div className="rounded-lg shadow mb-8">
             <div className="mb-6">
-              {/* <label htmlFor="exam-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Select an exam
-              </label> */}
-              <select
-                id="exam-select"
-                value={selectedExam}
-                onChange={(e) => setSelectedExam(e.target.value)}
-                className="w-full p-3  border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-[#1f1f1f]"
-                disabled={loading && exams.length === 0}
-              >
-                <option value="">-- Select an exam --</option>
-                {exams.map((exam) => (
-                  <option key={exam.id} value={exam.id}>
-                    {exam.subject} {exam.topic ? `- ${exam.topic}` : ''} ({formatDate(exam.starts_at)})
+
+              <div className="relative">
+                <select
+                  id="exam-select"
+                  value={selectedExam}
+                  onChange={(e) => setSelectedExam(e.target.value)}
+                  className="w-full px-4 py-3 pr-12 text-gray-900 dark:text-gray-100 bg-white dark:bg-[#1a1a1a] border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-[#FF5E00]  font-medium text-base disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-400 dark:hover:border-gray-500"
+                  disabled={loading && exams.length === 0}
+                >
+                  <option value="" className="text-gray-500 dark:text-gray-400">
+                    -- Select an exam --
                   </option>
-                ))}
-              </select>
+                  {exams.map((exam) => (
+                    <option key={exam.id} value={exam.id} className="text-gray-900 dark:text-gray-100 bg-white dark:bg-[#1a1a1a]">
+                      {exam.subject} {exam.topic ? `- ${exam.topic}` : ''} ({formatDate(exam.starts_at)})
+                    </option>
+                  ))}
+                </select>
+                {/* Custom dropdown arrow */}
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg
+                    className="w-5 h-5 text-gray-400 dark:text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             {loading && <p className="text-gray-600 dark:text-gray-400">Loading...</p>}
 
             {!loading && selectedExam && results.length === 0 && (
-              <p className="text-gray-600 dark:text-gray-400">No results found for this exam.</p>
+              <p className="text-gray-600 dark:text-gray-400">None of the students have submitted the exam yet!!</p>
             )}
 
             {!loading && selectedExam && results.length > 0 && (
@@ -180,12 +193,12 @@ export default function ExamResultsPage() {
                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">
                           Percentage
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                        {/* <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">
                           Submission Time
-                        </th>
+                        </th> */}
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-[#0c0c0c] divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody className="bg-white dark:bg-[#000000] divide-y divide-gray-200 dark:divide-gray-700">
                       {results.map((result) => (
                         <tr key={result.id} className="  transition-colors cursor-pointer">
                           <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
@@ -204,9 +217,9 @@ export default function ExamResultsPage() {
                               {result.percentage}%
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                          {/* <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                             {formatDate(result.submitted_at)}
-                          </td>
+                          </td> */}
                         </tr>
                       ))}
                     </tbody>

@@ -8,6 +8,7 @@ export const examCreateSchema = z.object({
   num_questions: z.number().int().min(1, "Number of questions must be at least 1"),
   difficulty: z.enum(['easy', 'medium', 'hard'] as const),
   duration: z.number().int().min(1, "Duration must be at least 1 minute"),
+  question_time_limit: z.number().int().min(10, "Question time limit must be at least 10 seconds").max(300, "Maximum 5 minutes per question").default(30),
   starts_at: z.string().transform(str => new Date(str)),
   ends_at: z.string().transform(str => new Date(str)),
   allowed_users: z.array(z.string()).optional(),

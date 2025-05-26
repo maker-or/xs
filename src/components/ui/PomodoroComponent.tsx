@@ -80,7 +80,7 @@ const PomodoroTimer = () => {
   if (isMinimized) {
     return (
       <div 
-        className="fixed top-4 right-4 flex items-center gap-2 p-2 rounded-lg bg-[#0c0c0c]/80 border border-[#f7eee3]/20 shadow-lg cursor-pointer text-[#f7eee3] backdrop-blur-md z-50"
+        className="fixed top-4 right-4 flex items-center gap-2 p-2 rounded-lg bg-[#000000]/80 border border-[#f7eee3]/20 shadow-lg cursor-pointer text-[#f7eee3] backdrop-blur-md z-50"
         onClick={toggleMinimized}
       >
         <div className="text-xl font-medium">{formatTime(timeLeft)}</div>
@@ -94,7 +94,7 @@ const PomodoroTimer = () => {
   }
 
   return (
-    <div className="relative flex max-h-[500px] w-1/2 flex-col overflow-hidden rounded-3xl border border-[#f7eee3]/20 bg-[#0c0c0c]/60 p-6 text-[#f7eee3] shadow-2xl backdrop-blur-2xl">
+    <div className="relative flex max-h-[500px] w-1/2 flex-col overflow-hidden rounded-3xl border border-[#f7eee3]/20 bg-[#000000]/60 p-6 text-[#f7eee3] shadow-2xl backdrop-blur-2xl">
       {/* Minimize button */}
       <button 
         className="absolute top-4 right-4 p-1.5 rounded-md hover:bg-[#f7eee3]/10"
@@ -117,7 +117,7 @@ const PomodoroTimer = () => {
             <button
               key={label}
               onClick={() => setPresetDuration(minutes)}
-              className="text-md h-12 w-12 bg-[#f7eee3]/80 text-[#0c0c0c] rounded-md hover:scale-105 hover:bg-[#f7eee3]"
+              className="text-md h-12 w-12 bg-[#f7eee3]/80 text-[#000000] rounded-md hover:scale-105 hover:bg-[#f7eee3]"
             >
               {label}
             </button>
@@ -128,7 +128,7 @@ const PomodoroTimer = () => {
         <div className="flex justify-center gap-2 rounded-lg bg-[#f7eee316] p-2">
           <button
             onClick={toggleTimer}
-            className="h-12 w-12 bg-[#f7eee3]/80 text-[#0c0c0c] transition-transform hover:scale-105 flex items-center justify-center rounded-md hover:bg-[#f7eee3]"
+            className="h-12 w-12 bg-[#f7eee3]/80 text-[#000000] transition-transform hover:scale-105 flex items-center justify-center rounded-md hover:bg-[#f7eee3]"
           >
             {isRunning ? (
               <Pause className="h-6 w-6" strokeWidth={1}/>
@@ -138,7 +138,7 @@ const PomodoroTimer = () => {
           </button>
           <button
             onClick={resetTimer}
-            className="h-12 w-12 bg-[#f7eee3]/80 text-[#0c0c0c] transition-transform hover:scale-105 flex items-center justify-center rounded-md hover:bg-[#f7eee3]"
+            className="h-12 w-12 bg-[#f7eee3]/80 text-[#000000] transition-transform hover:scale-105 flex items-center justify-center rounded-md hover:bg-[#f7eee3]"
           >
             <RotateCcw className="h-6 w-6" />
           </button>

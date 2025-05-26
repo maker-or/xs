@@ -2,9 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SignOutButton } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import TaskComponent from '~/components/ui/TaskComponent'; 
-import PomodoroComponent from '~/components/ui/PomodoroComponent'; 
-import ChatComponent from '~/components/ui/ChatComponent'; 
+import TaskComponent from '~/components/ui/TaskComponent';
+import PomodoroComponent from '~/components/ui/PomodoroComponent';
+import ChatComponent from '~/components/ui/ChatComponent';
 import Filesearch from './Filesearch';
 import ExamStatus from './ExamStatus';
 import "~/styles/globals.css";
@@ -80,7 +80,7 @@ const CommandPlate = () => {
       const selectedCommand = filteredCommands[selectedIndex];
       selectedCommand?.handler();
     }
-    
+
     // Optional: clear search query after selection
     setSearchQuery('');
   };
@@ -130,7 +130,7 @@ const CommandPlate = () => {
         <div className="bg-[#0c0c0ce0] backdrop-blur-3xl text-[#e1ddd6] rounded-xl p-6 w-2/3 max-w-3xl shadow-2xl border border-[#f7eee338] inner overflow-hidden">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Exam Status</h2>
-            <button 
+            <button
               onClick={() => {
                 setActiveView('commands');
                 setSearchQuery('');
@@ -155,12 +155,9 @@ const CommandPlate = () => {
 
 
     return (
-      <div className="bg-[#0c0c0ce0] backdrop-blur-3xl text-[#e1ddd6] rounded-xl py-3 w-1/2 shadow-2xl border border-[#f7eee338] inner  overflow-hidden ">
-        <div className="flex gap-2 border-[#f7eee338] w-full text-[#0c0c0c] ">
-          {/* <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#f7eee3] p-2 bg-[#0c0c0c] z-10 rounded-sm"
-            size={38}
-          /> */}
+      <div className='bg-[#121212] rounded-3xl p-1 pb-12  border-[#5858583d] border-2' >
+      <div className="bg-[#2a2a2a] text-[#a0a0a0] rounded-2xl w-[600px] max-w-[90vw] shadow-2xl  overflow-hidden">
+        <div className="p-3">
           <input
             ref={searchInputRef}
             type="text"
@@ -171,38 +168,38 @@ const CommandPlate = () => {
               if (e.key === "ArrowUp") handleArrowNavigation("up");
               if (e.key === "Enter") handleCommandSelection();
             }}
-            
-            placeholder="Search Anything..."
-            className="w-full pl-2 p-4 border-none bg-[#f7eee3] m-3 backdrop-blur-3xl text-[#3d3c3a] rounded-xl border border-[#f7eee3]/20 focus:outline-none placeholder:text-[#f7eee3] i1 i2"
+            placeholder="type there..."
+            className="w-full px-2 py-3 bg-transparent border-none text-[#a0a0a0] text-lg focus:outline-none placeholder:text-[#666666] placeholder:text-lg"
           />
         </div>
 
-        <ul className="max-h-80 overflow-y-auto space-y-2 m-2">
-          {filteredCommands.length === 0 ? (
-            <li className="text-[#f7eee3]/50 text-center px-3 py-4">No commands found</li>
-          ) : (
-            filteredCommands.map((command, index) => (
-              <li
-                key={command.name}
-                className={`
-                  p-3 cursor-pointer transition-all duration-200
-                  ${index === selectedIndex
-                    ? 'text-[#FF5E00]-500 rounded-sm bg-[#f7eee3]/10'
-                    : 'hover:bg-[#f7eee3]/10'
-                  }
-                `}
-                // Add explicit mouse click handler for each command
-                onClick={() => handleCommandSelection(command)}
-                // Improved keyboard navigation
-                onMouseEnter={() => setSelectedIndex(index)}
-              >
-                <div className="flex justify-between items-center">
-                  <span>{command.name}</span>
-                </div>
-              </li>
-            ))
-          )}
-        </ul>
+        <div className="border-t border-[#404040]">
+          <ul className="max-h-80 overflow-y-auto">
+            {filteredCommands.length === 0 ? (
+              <li className="text-[#666666] text-center px-4 py-6">No commands found</li>
+            ) : (
+              filteredCommands.map((command, index) => (
+                <li
+                  key={command.name}
+                  className={`
+                    px-4 py-3 cursor-pointer transition-all duration-150 text-[#a0a0a0] text-lg
+                    ${index === selectedIndex
+                      ? 'bg-[#404040] text-[#ffffff]'
+                      : 'hover:bg-[#353535]'
+                    }
+                  `}
+                  onClick={() => handleCommandSelection(command)}
+                  onMouseEnter={() => setSelectedIndex(index)}
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{command.name}</span>
+                  </div>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      </div>
       </div>
     );
   };
@@ -210,8 +207,8 @@ const CommandPlate = () => {
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0c0c0c]/60"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={(e) => {
         // Close command plate when clicking outside the content
         if (e.target === e.currentTarget) {

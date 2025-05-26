@@ -14,11 +14,11 @@ export async function POST(req: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-    
+
     // Parse and validate request body
     const body = await req.json();
     const { exam_id, answers } = examSubmitSchema.parse(body);
-    
+
     // Check if the user has already submitted this exam
     const existingSubmission = await db
       .select()
@@ -30,42 +30,46 @@ export async function POST(req: NextRequest) {
         )
       )
       .execute();
-    
+
     if (existingSubmission.length > 0) {
       return NextResponse.json({
         error: 'You have already submitted this exam',
       }, { status: 409 });
     }
-    
+
     // Retrieve the exam by ID first
     const [exam] = await db
       .select()
       .from(exams)
       .where(eq(exams.id, exam_id))
       .execute();
-    
+
     // Check if exam exists and the user is authorized
     if (!exam || !exam.allowed_users.includes(userId)) {
       return NextResponse.json({
         error: 'Exam not found or you are not authorized to take this exam',
       }, { status: 404 });
     }
-    
+
     // Grade the exam
     let score = 0;
     const examQuestions = exam.questions;
-    
+
     if (!examQuestions) {
       return NextResponse.json({
         error: 'This exam has no questions',
       }, { status: 500 });
     }
-    
+
     // Score the exam by comparing user answers to correct answers
+    // Note: question_id now refers to the original index in the question pool
     answers.forEach(answer => {
       const question = examQuestions[answer.question_id];
-      if (!question) return;
-      
+      if (!question) {
+        console.warn(`Question with ID ${answer.question_id} not found in exam questions`);
+        return;
+      }
+
       // Check if the selected option matches the correct answer
       // The correct_answer is stored as a string (index), but the selected_option is the actual option text
       const correctIndex = parseInt(question.correct_answer, 10);
@@ -74,7 +78,7 @@ export async function POST(req: NextRequest) {
         score++;
       }
     });
-    
+
     // Insert the result into the database
     await db
       .insert(results)
@@ -86,11 +90,13 @@ export async function POST(req: NextRequest) {
       })
       .returning({ id: results.id, score: results.score })
       .execute();
-    
-    // Calculate percentage score
-    const totalQuestions = examQuestions.length;
-    const percentageScore = Math.round((score / totalQuestions) * 100);
-    
+
+    // Calculate percentage score based on the number of questions the student actually answered
+    const totalQuestions = answers.length; // Use the number of answers submitted, not total questions in pool
+    const percentageScore = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+
+    console.log(`Student ${userId} scored ${score}/${totalQuestions} (${percentageScore}%) on exam ${exam_id}`);
+
     // Return the result
     return NextResponse.json({
       message: `Exam submitted successfully. Your score: ${score}/${totalQuestions} (${percentageScore}%)`,
@@ -100,18 +106,18 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Error submitting exam:', error);
-    
+
     // Handle Zod validation errors
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Validation error', 
-        details: error.errors 
+      return NextResponse.json({
+        error: 'Validation error',
+        details: error.errors
       }, { status: 400 });
     }
-    
+
     // Handle other errors
-    return NextResponse.json({ 
-      error: 'Failed to submit exam' 
+    return NextResponse.json({
+      error: 'Failed to submit exam'
     }, { status: 500 });
   }
 }

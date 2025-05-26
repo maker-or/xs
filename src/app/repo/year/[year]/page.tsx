@@ -14,9 +14,12 @@ interface SubjectsType {
   subject: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Page = (props: any) => {
-  const params = props.params || {};
+interface PageProps {
+  params: Promise<{ year: string }>;
+}
+
+const Page = (props: PageProps) => {
+  const params = React.use(props.params);
   const year = params.year || "";
 
   const [selectedBranch, setSelectedBranch] = React.useState<string | null>(
@@ -85,9 +88,9 @@ const Page = (props: any) => {
                 key={`branch-${object.branch}`}
                 className={`whitespace-nowrap rounded-xl px-4 py-2 ${
                   selectedBranch === object.branch
-                    ? "bg-[#f7eee3] text-[#0c0c0c]"
+                    ? "bg-[#f7eee3] text-[#000000]"
                     : "bg-[#454545] text-[#f7eee3]"
-                } transition-colors hover:bg-[#a3a1a0] hover:text-[#0c0c0c]`}
+                } transition-colors hover:bg-[#a3a1a0] hover:text-[#000000]`}
                 onClick={() => setSelectedBranch(object.branch)}
               >
                 {object.branch}

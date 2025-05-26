@@ -181,7 +181,7 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
                 onClick={() => openPdfViewer(image.url)}
                 className="custom-inset relative h-[220px] w-[250px] cursor-pointer rounded-xl border-2 border-[#f7eee3] bg-[#FF5E00] backdrop-blur-lg"
               >
-                <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#0c0c0c]">
+                <div className="text-md absolute bottom-0 right-0 w-full text-nowrap rounded-b-xl bg-[#f7eee3] px-3 py-1 font-medium text-[#000000]">
                   {image.name}
                 </div>
               </div>
@@ -193,7 +193,7 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
       {/* PDF Viewer Modal */}
       {selectedPdfUrl && (
         <div className="fixed inset-0 flex w-[100svw] bg-[#FF5E00]-700 bg-opacity-50">
-          <div className="relative w-[100svw]  items-center justify-center rounded-lg bg-[#0c0c0c] ">
+          <div className="relative w-[100svw]  items-center justify-center rounded-lg bg-[#000000] ">
             <button
               onClick={() => setSelectedPdfUrl(null)}
               className="absolute right-2 top-2 z-10 rounded-full bg-[#f7eee3] p-1 text-[#ff5e00]"

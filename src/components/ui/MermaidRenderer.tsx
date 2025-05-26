@@ -229,7 +229,7 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
 
         {/* Fixed expand button */}
         <button
-          className="absolute top-6 right-6 p-1.5 rounded bg-[#0c0c0c] hover:bg-gray-700 text-gray-300 hover:text-white transition-colors z-10"
+          className="absolute top-6 right-6 p-1.5 rounded bg-[#000000] hover:bg-gray-700 text-gray-300 hover:text-white transition-colors z-10"
           onClick={() => setIsExpanded(true)}
           aria-label="Expand diagram"
           data-oid="31e2g4p"
@@ -241,7 +241,7 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
       {/* Modal for expanded view */}
       {isExpanded && (
         <div
-          className="fixed inset-0 bg-[#0c0c0c] flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-[#000000] flex items-center justify-center z-50 p-4"
           data-oid="ccg:u8q"
         >
           <div
@@ -275,7 +275,7 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
                   {Math.round(previewScale * 100)}%
                 </span>
                 <button
-                  className="p-1.5 rounded bg-[#0c0c0c] text-white hover:bg-gray-600 transition-colors"
+                  className="p-1.5 rounded bg-[#000000] text-white hover:bg-gray-600 transition-colors"
                   onClick={zoomOut}
                   aria-label="Zoom out"
                   disabled={previewScale <= 0.5}
@@ -284,7 +284,7 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
                   <ZoomOut size={18} data-oid="o6k6l_y" />
                 </button>
                 <button
-                  className="p-1.5 rounded bg-[#0c0c0c] text-white hover:bg-gray-600 transition-colors"
+                  className="p-1.5 rounded bg-[#000000] text-white hover:bg-gray-600 transition-colors"
                   onClick={zoomIn}
                   aria-label="Zoom in"
                   disabled={previewScale >= 3.0}
@@ -294,7 +294,7 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
                 </button>
 
                 <button
-                  className="p-1.5 rounded bg-[#0c0c0c] text-white hover:bg-gray-600 transition-colors"
+                  className="p-1.5 rounded bg-[#000000] text-white hover:bg-gray-600 transition-colors"
                   onClick={() => setIsExpanded(false)}
                   aria-label="Close expanded view"
                   data-oid="1lc_jpv"

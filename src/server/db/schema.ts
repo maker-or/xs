@@ -169,6 +169,7 @@ export const exams = createTable(
     num_questions: integer("num_questions").notNull(),
     difficulty: difficultyEnum("difficulty").notNull(),
     duration: integer("duration").notNull(), // in minutes
+    question_time_limit: integer("question_time_limit").default(30), // in seconds, default 30 seconds per question
     starts_at: timestamp("starts_at", { withTimezone: true }).notNull(),
     ends_at: timestamp("ends_at", { withTimezone: true }).notNull(),
     questions: json("questions").$type<Array<{

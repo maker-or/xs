@@ -1,4 +1,5 @@
 import "~/styles/globals.css";
+import "~/styles/circuit-bricks.css"; // Import Circuit-Bricks styles
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/nextjs";
 import { type Metadata } from "next";
 import { FolderProvider } from "../components/ui/FolderContext";
@@ -46,7 +47,7 @@ export default function RootLayout({
               <SpeedInsights />
 
               <TimeProvider>
-                <div className="m-1 p-6">
+                <div className="bg-[#000000] ">
                   <CommandPlate />
                   <FolderProvider>
                     <NextSSRPlugin

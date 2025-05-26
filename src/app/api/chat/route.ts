@@ -10,7 +10,7 @@ import { DuckDuckGoSearch } from '@langchain/community/tools/duckduckgo_search';
 import { getSystemInstructions } from '~/utils/systemPrompts';
 
 // Response timeout in milliseconds (15 seconds)
-const RESPONSE_TIMEOUT = 15000;
+const RESPONSE_TIMEOUT = 60000;
 
 // Define a type for the expected request body structure
 interface RequestBody {
@@ -89,9 +89,10 @@ export async function POST(req: Request): Promise<Response> {
     console.log('Query:', query);
     
     // NEW: Compute conversation context from previous messages, if any
-    const conversationContext = body.messages.length > 1 
-      ? `Previous conversation:\n${body.messages.slice(0, -1).map(msg => msg.content).join('\n\n')}\n`
-      : '';
+const last10Messages = body.messages.slice(Math.max(0, body.messages.length - 10), -1);
+const conversationContext = last10Messages.length > 0
+  ? `Previous conversation:\n${last10Messages.map(msg => msg.content).join('\n\n')}\n`
+  : '';
       
     // NEW: Check for attachments
     const attachments = body.experimental_attachments || [];
@@ -306,8 +307,10 @@ Analyze the following query: "${query}" and return the appropriate tag.
           });
           
           clearTimeout(timeoutId);
-          console.log("the answer your getiing^^^^^",result.toDataStreamResponse) // Clear the timeout if successful
+          console.log("the answer your getiing^^^^^",result.toDataStreamResponse) 
+          console.log("the result is",result);
           return result.toDataStreamResponse();
+
         } catch (streamError:  unknown) {
           console.error('Error during streamText:', streamError);
           

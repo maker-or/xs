@@ -117,12 +117,12 @@ export async function GET(req: NextRequest) {
     const csv = stringify(csvData, {
       header: true,
       columns: [
-        { key: 'id', header: 'Result ID' },
+
         { key: 'email', header: 'Student Email' },
         { key: 'score', header: 'Score' },
         { key: 'total', header: 'Total Questions' },
         { key: 'percentage', header: 'Percentage' },
-        { key: 'submitted_at', header: 'Submission Date' },
+
       ],
     });
 

@@ -1,16 +1,17 @@
 import React, { useState } from "react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import DOMPurify from "dompurify";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import remarkEmoji from "remark-emoji";
 import remarkBreaks from "remark-breaks";
-import rehypeRaw from "rehype-raw";
-import rehypeHighlight from "rehype-highlight";
+import remarkEmoji from "remark-emoji";
+import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
-// Remove unused import
+import rehypeHighlight from "rehype-highlight";
 import rehypeExternalLinks from "rehype-external-links";
-import DOMPurify from "dompurify";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import GrammarRenderer from "./GrammarRenderer";
@@ -19,7 +20,14 @@ import { Copy, Check } from "lucide-react";
 import MermaidRenderer from "./MermaidRenderer";
 import TypogramRenderer from "./TypogramRenderer";
 import AutomataRenderer from "./AutomataRenderer";
-// Import Next.js Image component
+
+// Dynamic import for CircuitBricksRenderer to avoid SSR issues
+const CircuitBricksRenderer = dynamic(
+  () => import("./CircuitBricksRenderer"),
+  { ssr: false }
+);
+
+
 
 // Fix interface to include className, width and height props
 interface MarkdownRendererProps {
@@ -279,6 +287,39 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               );
             }
 
+            // Circuit-Bricks circuit diagram rendering
+            if (language === "circuit-bricks" || language === "circuit") {
+              // Verify the circuit data is valid JSON before attempting to render
+              let isValidJSON = true;
+              try {
+                JSON.parse(codeString);
+              } catch (e) {
+                isValidJSON = false;
+              }
+
+              return (
+                <div className="relative my-6" data-oid="circuit-bricks-container">
+
+
+                  {isValidJSON ? (
+                    <div>
+                      <CircuitBricksRenderer circuitData={codeString} />
+                    </div>
+                  ) : (
+                    <div className="p-4 text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-b-md bg-red-50 dark:bg-red-900 dark:bg-opacity-20">
+                      <strong>Invalid Circuit JSON:</strong> Could not parse the circuit data.
+                      <div className="mt-2">
+                        Please ensure your circuit definition is valid JSON and includes proper component and wire definitions.
+                      </div>
+                      <pre className="mt-3 p-3 bg-gray-900 rounded text-gray-300 text-xs overflow-auto">
+                        {codeString}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             // Enhanced ASCII FSM/automata diagram detection
             if (!language && isAutomataAscii(codeString)) {
               return (
@@ -349,10 +390,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               return (
                 <div className="relative group my-6" data-oid="6b4n4bt">
                   <div
-                    className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-xs text-gray-500 rounded-t-md border-b border-gray-200 dark:border-gray-700 flex justify-between items-center"
-                    data-oid="_k3d_3a"
+                    className="px-3 py-1.5 bg-gray-800 text-xs text-gray-300 rounded-t-md border-b border-gray-700 flex justify-between items-center"
+                    data-oid="35l5yv6"
                   >
-                    <span data-oid="jd-i1wy">ASCII Diagram</span>
+                    <span data-oid="1ejpw7n">ASCII Diagram</span>
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(codeString);
@@ -361,26 +402,26 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                       }}
                       className="p-1 rounded hover:bg-gray-700 transition-colors"
                       aria-label="Copy diagram"
-                      data-oid="sin_7cb"
+                      data-oid="o3uy1i1"
                     >
                       {copiedCode === codeString ? (
                         <Check
                           className="h-3.5 w-3.5 text-green-500"
-                          data-oid="6sjm:ml"
+                          data-oid="o-uihc-"
                         />
                       ) : (
                         <Copy
                           className="h-3.5 w-3.5 text-gray-400"
-                          data-oid="j9jj6am"
+                          data-oid=":w1wdeg"
                         />
                       )}
                     </button>
                   </div>
                   <pre
-                    className="p-4 bg-gray-100 dark:bg-gray-800 font-mono text-sm overflow-x-auto rounded-b-md whitespace-pre leading-snug"
-                    data-oid="adm38kv"
+                    className="p-4 bg-gray-900 font-mono text-sm overflow-x-auto rounded-b-md whitespace-pre leading-snug text-gray-200 border border-gray-700"
+                    data-oid="d.yfjpc"
                   >
-                    <code data-oid="guy9a1-">{codeString}</code>
+                    <code data-oid="qn-uqv4">{codeString}</code>
                   </pre>
                 </div>
               );
@@ -388,22 +429,22 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 
             if (match) {
               return (
-                <div
-                  className="relative group my-4 overflow-hidden rounded-lg bg-[#1E1E1E] dark:bg-[#1E1E1E] shadow-lg"
-                  data-oid="55b3pr-"
-                >
-                  {/* Language display */}
+                <div className="relative group my-6" data-oid="ysa:q4e">
                   <div
-                    className="flex items-center justify-between px-4 py-1.5 bg-[#2D2D2D] dark:bg-[#2D2D2D] text-gray-300 border-b border-[#3E3E3E]"
-                    data-oid="fo.ghxm"
+                    className="px-3 py-1.5 bg-gray-800 text-xs text-gray-300 rounded-t-md border-b border-gray-700 flex justify-between items-center"
+                    data-oid="xgm02at"
                   >
-                    <span
-                      className="text-xs font-mono font-medium"
-                      data-oid="ln9uu5k"
-                    >
-                      {language}
+                    <span data-oid="s0xzq2k">
+                      {language
+                        ? language.charAt(0).toUpperCase() +
+                          language.slice(1) +
+                          (language.toLowerCase() === "typescript"
+                            ? " (TS)"
+                            : language.toLowerCase() === "javascript"
+                            ? " (JS)"
+                            : "")
+                        : "Code"}
                     </span>
-                    {/* Copy button */}
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(codeString);
@@ -412,151 +453,92 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                       }}
                       className="p-1 rounded hover:bg-gray-700 transition-colors"
                       aria-label="Copy code"
-                      data-oid="b-viu6e"
+                      data-oid="qjn7tun"
                     >
                       {copiedCode === codeString ? (
                         <Check
-                          className="h-4 w-4 text-green-500"
-                          data-oid="ph75ewx"
+                          className="h-3.5 w-3.5 text-green-500"
+                          data-oid="bjl8pir"
                         />
                       ) : (
                         <Copy
-                          className="h-4 w-4 text-gray-400"
-                          data-oid="s_7ntd6"
+                          className="h-3.5 w-3.5 text-gray-400"
+                          data-oid="3qe5x-0"
                         />
                       )}
                     </button>
                   </div>
-
-                  {/* Enhanced code syntax highlighting */}
-                  <div
-                    className="syntax-highlighting-wrapper font-mono text-[15px] p-4"
-                    data-oid=".l49u5k"
+                  <SyntaxHighlighter
+                    language={language || "text"}
+                    style={vscDarkPlus}
+                    className="rounded-t-none !mt-0 !bg-gray-900 rounded-b-md"
+                    customStyle={{
+                      marginTop: 0,
+                      border: "1px solid rgb(55, 65, 81)",
+                      borderTop: "none",
+                    }}
+                    data-oid="9.6yjrk"
                   >
-                    <SyntaxHighlighter
-                      style={{
-                        ...vscDarkPlus,
-                        "hljs-keyword": { color: "#C678DD", fontWeight: "600" },
-                        "hljs-built_in": { color: "#61AFEF" },
-                        "hljs-string": { color: "#98C379" },
-                        "hljs-literal": { color: "#56B6C2" },
-                        "hljs-number": { color: "#D19A66" },
-                        "hljs-comment": {
-                          color: "#5C6370",
-                          fontStyle: "italic",
-                        },
-                        "hljs-function": { color: "#E5C07B" },
-                        "hljs-params": { color: "#ABB2BF" },
-                        "hljs-variable": { color: "#E06C75" },
-                        "hljs-operator": { color: "#56B6C2" },
-                        "hljs-punctuation": { color: "#ABB2BF" },
-                        "hljs-property": { color: "#61AFEF" },
-                        "hljs-title": { color: "#E5C07B" },
-                      }}
-                      language={language}
-                      showLineNumbers={true}
-                      wrapLines={false}
-                      customStyle={{
-                        margin: 0,
-                        padding: 0,
-                        backgroundColor: "transparent",
-                        lineHeight: 1.5,
-                        fontSize: "0.95em",
-                        fontFamily:
-                          'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                      }}
-                      codeTagProps={{
-                        style: { fontSize: "inherit", lineHeight: "inherit" },
-                      }}
-                      lineNumberStyle={{
-                        minWidth: "2.5em",
-                        paddingRight: "1em",
-                        marginRight: "1em",
-                        textAlign: "right",
-                        borderRight: "1px solid #4B5563",
-                        color: "#0c0c0c",
-                        fontSize: "0.85em",
-                        userSelect: "none",
-                      }}
-                      lineProps={() => ({
-                        style: { display: "table-row", width: "100%" },
-                      })}
-                      wrapLongLines={true}
-                      data-oid="inshlvt"
-                    >
-                      {codeString}
-                    </SyntaxHighlighter>
-                  </div>
+                    {codeString}
+                  </SyntaxHighlighter>
                 </div>
               );
             }
             return (
-              <code
-                className={`${className} text-base md:text-lg`}
-                {...restProps}
-                data-oid="wunoen6"
-              >
+              <code className={className} {...restProps} data-oid="gj5ilnz">
                 {children}
               </code>
             );
           },
           pre({ children }) {
-            return <div data-oid="6ghyp8y">{children}</div>;
+            return <>{children}</>;
           },
           img({ src, alt, ...props }) {
             // Only handle string URLs (skip Blobs or undefined)
-            if (typeof src !== "string") return null;
+            if (typeof src !== "string" || !src) {
+              // For non-string sources or undefined, fall back to standard img tag
+              return (
+                <img
+                  src={src as string}
+                  alt={alt || ""}
+                  className="max-w-full h-auto rounded-md"
+                  {...props}
+                  data-oid="87b00d8"
+                />
+              );
+            }
 
+            // For string sources, use Next.js Image component
             // Destructure and omit potential width and height props to satisfy Next.js Image requirements
             const {
               width: _width,
               height: _height,
-             
+              ...restProps
             } = props as React.DetailedHTMLProps<
               React.ImgHTMLAttributes<HTMLImageElement>,
               HTMLImageElement
             >;
 
+            // Use div wrapper with standard img tag instead of Next Image to avoid type issues
             return (
-              <span
-                className="relative block w-full max-w-full my-4"
-                data-oid="ee-27pw"
+              <div
+                className="relative flex justify-center my-4"
+                data-oid="nfvv77z"
               >
-                <div
-                  className="relative w-full max-w-full"
-                  style={{ maxHeight: "500px" }}
-                  data-oid="x:cu-qm"
-                >
-                  {/* <Image
-                    src={src}
-                    alt={alt || ""}
-                    className="rounded-lg object-contain mx-auto"
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    style={{ objectFit: "contain" }}
-                    priority={false}
-                    {...restProps}
-                    data-oid="mvs_rgy"
-                  /> */}
-                </div>
-                {alt && (
-                  <span
-                    className="block text-center text-sm md:text-base text-gray-500 mt-1"
-                    data-oid="64bmpid"
-                  >
-                    {alt}
-                  </span>
-                )}
-              </span>
+                <img
+                  src={src}
+                  alt={alt || ""}
+                  className="max-w-full h-auto rounded-md"
+                  {...restProps}
+                  data-oid="fk34z3k"
+                />
+              </div>
             );
           },
           table({ children }) {
             return (
-              <div className="overflow-x-auto my-4" data-oid=".cc3p93">
-                <table
-                  className="border-collapse w-full border border-gray-700 text-base md:text-lg"
-                  data-oid="j4e6.77"
-                >
+              <div className="overflow-x-auto my-4" data-oid="f1d:qqk">
+                <table className="border-collapse w-full" data-oid="2tl4x:d">
                   {children}
                 </table>
               </div>
@@ -565,8 +547,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           th({ children }) {
             return (
               <th
-                className="border border-gray-700 bg-gray-800 px-4 py-2 text-left text-base md:text-lg"
-                data-oid="wdw04dy"
+                className="border border-gray-300 dark:border-gray-700 px-4 py-2 text-left bg-gray-100 dark:bg-gray-800"
+                data-oid="h81ue5i"
               >
                 {children}
               </th>
@@ -575,8 +557,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           td({ children }) {
             return (
               <td
-                className="border border-gray-700 px-4 py-2 text-base md:text-lg"
-                data-oid="wjskacf"
+                className="border border-gray-300 dark:border-gray-700 px-4 py-2"
+                data-oid="n.o38h0"
               >
                 {children}
               </td>
@@ -585,8 +567,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           blockquote({ children }) {
             return (
               <blockquote
-                className="border-l-4 pl-4 italic my-4 text-lg md:text-xl"
-                data-oid=".owqao-"
+                className="border-l-4 border-blue-500 pl-4 italic my-4"
+                data-oid="z4jrfzc"
               >
                 {children}
               </blockquote>
@@ -594,34 +576,34 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           },
           h1({ children }) {
             return (
-              <h1 className="text-3xl font-bold mt-6 mb-4" data-oid="9bs6rr3">
+              <h1
+                className="text-3xl font-bold mt-6 mb-4 pb-2 border-b border-gray-200 dark:border-gray-800"
+                data-oid="5mw00sa"
+              >
                 {children}
               </h1>
             );
           },
           h2({ children }) {
             return (
-              <h2 className="text-2xl font-bold mt-5 mb-3" data-oid="-zv0i8.">
+              <h2
+                className="text-2xl font-bold mt-5 mb-3 pb-1"
+                data-oid="19rjxuk"
+              >
                 {children}
               </h2>
             );
           },
           h3({ children }) {
             return (
-              <h3
-                className="text-xl font-semibold mt-4 mb-2"
-                data-oid="4crs1_7"
-              >
+              <h3 className="text-xl font-bold mt-4 mb-2" data-oid="k2n:wqm">
                 {children}
               </h3>
             );
           },
           ul({ children }) {
             return (
-              <ul
-                className="list-disc list-inside pl-4 my-4 space-y-1 text-base md:text-lg"
-                data-oid=":t-evn6"
-              >
+              <ul className="list-disc list-outside pl-6 my-4" data-oid="swyr7.k">
                 {children}
               </ul>
             );
@@ -629,8 +611,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           ol({ children }) {
             return (
               <ol
-                className="list-decimal list-inside pl-4 my-4 space-y-1 text-base md:text-lg"
-                data-oid="ekx21yb"
+                className="list-decimal list-outside pl-6 my-4"
+                data-oid="6yjdj89"
               >
                 {children}
               </ol>
@@ -638,19 +620,14 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           },
           li({ children }) {
             return (
-              <li className="text-base md:text-lg flex" data-oid="j3vlew5">
-                <span className="mr-2" data-oid="f3vwq.6">
-                  •
-                </span>
-                <span className="flex-1" data-oid=":u-up5-">
-                  {children}
-                </span>
+              <li className="my-1" data-oid="l8rvb-5">
+                {children}
               </li>
             );
           },
           p({ children }) {
             return (
-              <p className="text-base md:text-lg my-3" data-oid="9wwc_61">
+              <p className="my-4 leading-relaxed" data-oid="v06:sbi">
                 {children}
               </p>
             );
@@ -663,8 +640,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
     </div>
   );
 };
-
-import dynamic from "next/dynamic";
 
 // Export without SSR so DOMPurify and raw HTML parsing work only on client
 const MarkdownRendererNoSSR = dynamic(() => Promise.resolve(MarkdownRenderer), {

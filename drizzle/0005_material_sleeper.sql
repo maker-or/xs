@@ -1,0 +1,1 @@
+ALTER TABLE "gallery_results" ADD CONSTRAINT "results_exam_user_unique" UNIQUE("exam_id","user_id");

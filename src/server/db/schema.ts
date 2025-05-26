@@ -10,6 +10,7 @@ import {
   uuid,
   json,
   pgEnum,
+  unique,
 } from "drizzle-orm/pg-core";
 
 // Create table function
@@ -213,5 +214,7 @@ export const results = createTable(
     examIndex: index("results_exam_idx").on(results.exam_id),
     userIndex: index("results_user_idx").on(results.user_id),
     examUserIndex: index("results_exam_user_idx").on(results.exam_id, results.user_id),
+    // Add unique constraint to prevent duplicate submissions
+    examUserUnique: unique("results_exam_user_unique").on(results.exam_id, results.user_id),
   }),
 );

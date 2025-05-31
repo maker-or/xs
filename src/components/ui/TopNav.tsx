@@ -4,8 +4,6 @@ import {
   ArrowLeftRight,
   Trash,
   FileText,
-  Paintbrush,
-  Edit3,
 
 } from "lucide-react";
 // import { Button } from './ui/Button';
@@ -17,9 +15,6 @@ interface TopNavProps {
   openChatSwitcher(): void;
   clearHistory(): void;
   exportPDF(): void;
-  toggleWhiteboard(): void;
-  toggleDesignMode(): void;
-  isDesignMode: boolean;
   // saveEdits(): void;
   showNav: boolean;
   isMobile: boolean;
@@ -37,9 +32,6 @@ export const TopNav: React.FC<TopNavProps> = ({
   openChatSwitcher,
   clearHistory,
   exportPDF,
-  toggleWhiteboard,
-  toggleDesignMode,
-  isDesignMode,
   // saveEdits,
   showNav,
   isMobile,
@@ -84,20 +76,6 @@ export const TopNav: React.FC<TopNavProps> = ({
         >
           <FileText className="w-4 h-4" />
           <span>Export</span>
-        </button>
-        <button
-          onClick={toggleWhiteboard}
-          className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-[#575757]"
-        >
-          <Paintbrush className="w-4 h-4" />
-          <span>Canvas</span>
-        </button>
-        <button
-          onClick={toggleDesignMode}
-          className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-[#575757] ${isDesignMode ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" : ""}`}
-        >
-          <Edit3 className="w-4 h-4" />
-          <span>{isDesignMode ? "Exit Design" : "Design"}</span>
         </button>
         {/* {isDesignMode && (
           <button
@@ -172,18 +150,6 @@ export const TopNav: React.FC<TopNavProps> = ({
             className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg.gray-700"
           >
             Export PDF
-          </button>
-          <button
-            onClick={() => onMenuAction(toggleWhiteboard)}
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover.bg.gray-700"
-          >
-            Canvas
-          </button>
-          <button
-            onClick={() => onMenuAction(toggleDesignMode)}
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover.bg.gray-700"
-          >
-            {isDesignMode ? "Exit Design" : "Design"}
           </button>
           {/* {isDesignMode && (
             <button

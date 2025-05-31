@@ -10,47 +10,30 @@ import React, {
 
 // Import KaTeX CSS for math rendering
 import "katex/dist/katex.min.css";
-import { Video, Clipboard, BookOpenText } from "@phosphor-icons/react";
+import { Clipboard, BookOpenText } from "@phosphor-icons/react";
 // import { useChat } from "ai/react";
 import { useChat } from "@ai-sdk/react";
 import {
   Copy,
   Check,
-  Globe,
-  ArrowUp,
-  Info,
-  Paintbrush,
   X,
-  Trash,
-  ArrowLeftRight,
-  FileText,
-  Plus,
   ChevronDown,
-
-  Mic,
-  MicOff,
 } from "lucide-react";
-
-import { Editor, Tldraw, TLUiComponents } from "tldraw";
-import "tldraw/tldraw.css";
 
 
 import { v4 as uuidv4 } from "uuid";
-import { createPDF } from "~/utils/createPDF"; 
 
-import { ThemeToggle } from "~/components/ui/theme-toggle";
-
-import VoiceMode from "~/components/ui/VoiceMode";
-import { Button } from "~/components/ui/button";
 
 
 import MarkdownRenderer from "~/components/ui/MarkdownRenderer";
-import TopNav from "~/components/ui/TopNav";
 import { MODEL_OPTIONS } from "~/components/ui/modeloption";
 import { ModelSelector } from "~/components/ui/ModelSelector";
 
 
 import Timeline from "~/components/ui/Timeline";
+import SplitScreenLayout from "~/components/ui/SplitScreenLayout";
+import SubmitButton from "~/components/ui/SubmitButton";
+import ChatSwitcher from "~/components/ui/ChatSwitcher";
 
 interface ChatInfo {
   id: string;
@@ -69,27 +52,7 @@ interface Message {
   model?: string;
 }
 
-const components: TLUiComponents = {};
 
-
-
-interface VisionText {
-  text: {
-    text: string;
-    toolCalls: string[];
-    toolResults: string[];
-    finishReason: string;
-    usage: {
-      promptTokens: number;
-      completionTokens: number;
-      totalTokens: number;
-    };
-    warnings: string[];
-    request: {
-      body: string;
-    };
-  };
-}
 
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -98,9 +61,9 @@ const useIsMobile = () => {
     const checkMobile = () => {
       setIsMobile(
         window.innerWidth < 768 ||
-          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent,
-          ),
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent,
+        ),
       );
     };
 
@@ -118,20 +81,13 @@ const useIsMobile = () => {
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false); // New state to track token streaming
-  // const [isWebSearchLoading, setIsWebSearchLoading] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const [lastQuery, setLastQuery] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>(
     "google/gemini-2.0-flash-lite-preview-02-05:free",
   );
   const [showModelSelector, setShowModelSelector] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  // const [searchLinks, setSearchLinks] = useState<string[]>([]);
-  const [showWhiteboard, setShowWhiteboard] = useState(false);
-  // const [whiteboardData, setWhiteboardData] = useState<string | null>(null);
-  const whiteboardRef = useRef<HTMLDivElement>(null);
-  const tldrawEditor = useRef<Editor | null>(null);
+
   const [skipAutoScroll, setSkipAutoScroll] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenForMessageId, setRegenForMessageId] = useState<string | null>(
@@ -147,26 +103,26 @@ export default function Page() {
   // New state for chat management
   const [showChatSwitcher, setShowChatSwitcher] = useState(false);
   const [savedChats, setSavedChats] = useState<ChatInfo[]>([]);
-  const [showActionButtons, setShowActionButtons] = useState(false);
+  // const [showActionButtons, setShowActionButtons] = useState(false);
   const [hideTimeout, setHideTimeout] = useState<NodeJS.Timeout | null>(null);
   console.log(setHideTimeout);
 
-  // Voice mode states
-  const [isVoiceMode, setIsVoiceMode] = useState(false);
-  const [isFullScreenVoiceMode, setIsFullScreenVoiceMode] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [audioSrc, setAudioSrc] = useState<string | null>(null);
-  // const [isPlaying, setIsPlaying] = useState(false);
-  const [transcribedText, setTranscribedText] = useState("");
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+  // const [isVoiceMode, setIsVoiceMode] = useState(false);
+  // const [isFullScreenVoiceMode, setIsFullScreenVoiceMode] = useState(false);
+  // const [isRecording, setIsRecording] = useState(false);
+  // const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  // // const [isPlaying, setIsPlaying] = useState(false);
+  // const [transcribedText, setTranscribedText] = useState("");
+  // const audioRef = useRef<HTMLAudioElement | null>(null);
+  // const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   // const audioChunksRef = useRef<Blob[]>([]);
 
-  console.log(setAudioSrc);
-  console.log(setTranscribedText);
+  // console.log(setAudioSrc);
+  // console.log(setTranscribedText);
 
-  const [showDesktopOnlyModal, setShowDesktopOnlyModal] = useState(false);
-  console.log(showDesktopOnlyModal);
+  // const [showDesktopOnlyModal, setShowDesktopOnlyModal] = useState(false);
+  // console.log(showDesktopOnlyModal);
   const isMobile = useIsMobile();
 
   // Add state for timeline hover
@@ -470,7 +426,7 @@ export default function Page() {
       const firstUserMessage = chatMessages.find((msg) => msg.role === "user");
       const title = firstUserMessage
         ? firstUserMessage.content.slice(0, 30) +
-          (firstUserMessage.content.length > 30 ? "..." : "")
+        (firstUserMessage.content.length > 30 ? "..." : "")
         : updatedChats[chatIndex]?.title || "New Chat";
 
       // Ensure createdAt is preserved
@@ -494,105 +450,34 @@ export default function Page() {
   };
 
   // Clear current chat with specific handling for local storage
-  const handleClearHistory = () => {
-    if (chatId) {
-      // Remove current chat from localStorage
-      localStorage.removeItem(`chat_${chatId}`);
-      // Update saved chats list
-      const updatedChats = savedChats.filter((chat) => chat.id !== chatId);
-      localStorage.setItem("savedChats", JSON.stringify(updatedChats));
-      // Update current chat; if none, clear currentChatId
-      if (updatedChats.length > 0) {
-        const newCurrent = updatedChats.reduce((prev, cur) =>
-          cur.updatedAt > prev.updatedAt ? cur : prev,
-        );
-        localStorage.setItem("currentChatId", newCurrent.id);
-      } else {
-        localStorage.removeItem("currentChatId");
-      }
-      // Reload the page to reflect changes
-      window.location.reload();
-    } else {
-      localStorage.removeItem("chatMessages");
-      localStorage.removeItem("chatId");
-      window.location.reload();
-    }
-  };
+  // const handleClearHistory = () => {
+  //   if (chatId) {
+  //     // Remove current chat from localStorage
+  //     localStorage.removeItem(`chat_${chatId}`);
+  //     // Update saved chats list
+  //     const updatedChats = savedChats.filter((chat) => chat.id !== chatId);
+  //     localStorage.setItem("savedChats", JSON.stringify(updatedChats));
+  //     // Update current chat; if none, clear currentChatId
+  //     if (updatedChats.length > 0) {
+  //       const newCurrent = updatedChats.reduce((prev, cur) =>
+  //         cur.updatedAt > prev.updatedAt ? cur : prev,
+  //       );
+  //       localStorage.setItem("currentChatId", newCurrent.id);
+  //     } else {
+  //       localStorage.removeItem("currentChatId");
+  //     }
+  //     // Reload the page to reflect changes
+  //     window.location.reload();
+  //   } else {
+  //     localStorage.removeItem("chatMessages");
+  //     localStorage.removeItem("chatId");
+  //     window.location.reload();
+  //   }
+  // };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  };
 
-  // Submit message and track the response for TTS - simplified to avoid state loops
-  const submitMessage = async (messageText: string) => {
-    try {
-      // First update loading state
-      setIsLoading(true);
 
-      // Create a synthetic event
-      const syntheticEvent = {
-        preventDefault: () => {},
-      } as React.FormEvent;
 
-      // Set input and submit in the next tick
-      setInput(messageText);
-
-      setTimeout(() => {
-        handleSubmit(syntheticEvent);
-      }, 0);
-
-      return true;
-    } catch (error) {
-      console.error("Error submitting message:", error);
-      setIsLoading(false);
-      setError("Failed to get a response. Please try again.");
-      return false;
-    }
-  };
-
-  console.log(submitMessage);
-
-  // Add this function to toggle the full screen voice mode
-  const toggleFullScreenVoiceMode = () => {
-    setIsFullScreenVoiceMode((prev) => !prev);
-    if (!isVoiceMode) {
-      setIsVoiceMode(true);
-    }
-  };
-
-  // Handle exiting the voice mode
-  const exitVoiceMode = () => {
-    setIsVoiceMode(false);
-    setIsFullScreenVoiceMode(false);
-    if (isRecording) {
-      stopRecording();
-    }
-  };
-
-  // Function for handling voice commands
-  const handleVoiceCommand = async (text: string) => {
-    try {
-      // Set the full query in the input field
-      await submitMessage(text);
-
-      // Exit voice mode after submitting
-      setIsFullScreenVoiceMode(false);
-      setIsVoiceMode(false);
-
-      return Promise.resolve();
-    } catch (error) {
-      console.error("Error processing voice command:", error);
-      setError("Failed to process your request. Please try again.");
-      return Promise.reject(error);
-    }
-  };
-
-  // -----------------------------------------------------------------------
-  // PDF Export Function
-  // -----------------------------------------------------------------------
 
   // -----------------------------------------------------------------------
   // Handle model change
@@ -687,115 +572,25 @@ export default function Page() {
     }
   };
 
-  // const extractLinks = (content: string): string[] => {
-  //   const linkRegex = /https?:\/\/[^\s]+/g;
-  //   return content.match(linkRegex) ?? [];
-  // };
 
-  function extractText(data: string): string | null {
-    try {
-      const parsedData: VisionText = JSON.parse(data);
-      return parsedData.text.text;
-    } catch (error) {
-      console.error("Error extracting text:", error);
-      return null;
-    }
-  }
+
+
 
   // -----------------------------------------------------------------------
   // Form Submission Handler
   // -----------------------------------------------------------------------
-  
+
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!input.trim()) return;
     setSkipAutoScroll(false);
     setIsLoading(true);
     setIsStreaming(false); // Reset streaming state at beginning
-    setSearchResults(null);
-    setLastQuery(input);
     setError(null);
 
     try {
-      if (
-        input.toLowerCase().includes("@whiteboard") &&
-        showWhiteboard &&
-        tldrawEditor.current
-      ) {
-        setInput("analyzing...");
-        const shapeIds = tldrawEditor.current.getCurrentPageShapeIds();
-        if (shapeIds.size === 0) {
-          alert("No shapes on the canvas");
-          setIsLoading(false);
-          return;
-        }
-
-        try {
-          const { blob } = await tldrawEditor.current.toImage([...shapeIds], {
-            background: true,
-            scale: 0.1,
-            quality: 0.1,
-            format: "webp",
-          });
-
-          const file = new File([blob], "canvas.png", { type: "image/png" });
-          const reader = new FileReader();
-
-          reader.onloadend = async () => {
-            const base64Result = reader.result as string;
-            const attachment = {
-              name: "canvas.png",
-              contentType: "image/png",
-              data: base64Result.split(",")[1],
-            };
-
-            const visionResponse = await fetch("/api/vision", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ image: attachment.data }),
-            });
-
-            if (!visionResponse.ok) {
-              throw new Error("Failed to analyze image");
-            }
-
-            const a = visionResponse.body?.getReader();
-            if (!a) {
-              throw new Error("Failed to read stream from /api/vision");
-            }
-
-            const decoder = new TextDecoder();
-            let resultText = "";
-            let done = false;
-            while (!done) {
-              const { done: chunkDone, value } = await a.read();
-              done = chunkDone;
-              if (done) break;
-              const chunk = decoder.decode(value, { stream: true });
-              resultText += chunk;
-              setInput(`Analyzing... ${resultText}`);
-            }
-
-            const extractedVisionText = extractText(resultText);
-            if (extractedVisionText) {
-              setInput(extractedVisionText);
-            } else {
-              setInput(resultText);
-              console.warn("Failed to extract text, showing raw result.");
-            }
-            setIsLoading(false);
-          };
-
-          reader.readAsDataURL(file);
-        } catch (error) {
-          console.error("Error exporting canvas image:", error);
-          setIsLoading(false);
-          setError("An error occurred while exporting the canvas.");
-        }
-      } else {
-        // Use the handleSubmit directly since we're in a submit handler
-        handleSubmit(event);
-      }
+      // Use the handleSubmit directly since we're in a submit handler
+      handleSubmit(event);
     } catch (error) {
       console.error("Error submitting form:", error);
       setIsLoading(false);
@@ -813,45 +608,9 @@ export default function Page() {
     }
   };
 
-  // const handleSearchWeb = async () => {
-  //   if (!lastQuery.trim()) {
-  //     console.error("No query to search");
-  //     return;
-  //   }
-  //   console.log(handleSearchWeb)
 
-  //   setIsWebSearchLoading(true);
-  //   try {
-  //     const response = await fetch("/api/search", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         messages: [{ role: "user", content: lastQuery }],
-  //       }),
-  //     });
 
-  //     if (!response.ok) {
-  //       throw new Error(`Search failed: HTTP status ${response.status}`);
-  //     }
 
-  //     const data = await response.json();
-  //     const links = extractLinks(data.results);
-  //     setSearchLinks(links);
-  //     const cleanedResults = data.results.replace(/https?:\/\/[^\s]+/g, "");
-  //     setSearchResults(cleanedResults);
-  //   } catch (error) {
-  //     console.error("Error during web search:", error);
-  //     setSearchResults("Failed to fetch search results. Please try again.");
-  //   } finally {
-  //     setIsWebSearchLoading(false);
-  //   }
-
-  const handleSearchYouTube = (query: string) => {
-    window.open(
-      `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
-      "_blank",
-    );
-  };
 
   const shareChat = async () => {
     try {
@@ -874,21 +633,7 @@ export default function Page() {
     }
   };
   console.log(shareChat);
-  // const regenerateQuery = (query: string, messageId: string) => {
-  //   setRegenForMessageId(messageId);
-  //   setIsRegenerating(true);
-  //   setSkipAutoScroll(true);
-  //   setIsLoading(true);
-  //   setError(null);
-  //   setInput(query);
 
-  //   setTimeout(() => {
-  //     const syntheticEvent = {
-  //       preventDefault: () => { },
-  //     } as React.FormEvent;
-  //     handleSubmit(syntheticEvent);
-  //   }, 10);
-  // };
 
   useEffect(() => {
     return () => {
@@ -897,18 +642,12 @@ export default function Page() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hideTimeout]);
 
-  const toggleActionButtons = () => {
-    setShowActionButtons((prev) => !prev);
-  };
-  console.log(toggleActionButtons);
+  // const toggleActionButtons = () => {
+  //   setShowActionButtons((prev) => !prev);
+  // };
+  // console.log(toggleActionButtons);
 
-  const toggleWhiteboard = () => {
-    if (isMobile) {
-      setShowDesktopOnlyModal(true);
-    } else {
-      setShowWhiteboard((prev) => !prev);
-    }
-  };
+
 
   // -----------------------------------------------------------------------
   // Get model display name
@@ -918,65 +657,84 @@ export default function Page() {
     return model ? model.name : "Choose a model";
   };
 
-  const [showNav, setShowNav] = useState(false);
 
+
+  // Add state for diagram panel
+  const [diagramContent, setDiagramContent] = useState('');
+  const [hasDiagramsAvailable, setHasDiagramsAvailable] = useState(false);
+  const [activeDiagramMessageId, setActiveDiagramMessageId] = useState<string | null>(null);
+  const [messageDiagrams, setMessageDiagrams] = useState<{ [key: string]: string }>({});
+
+  // Debug useEffect to track messageDiagrams changes
   useEffect(() => {
-    if (typeof window !== "undefined" && window.innerWidth >= 768) {
-      const handleMouseMove = (e: MouseEvent) => {
-        if (e.clientY < 60) {
-          setShowNav(true);
-        } else if (e.clientY > 150) {
-          setShowNav(false);
-        }
-      };
+    console.log('messageDiagrams updated:', messageDiagrams);
+  }, [messageDiagrams]);
 
-      window.addEventListener("mousemove", handleMouseMove);
 
-      return () => {
-        window.removeEventListener("mousemove", handleMouseMove);
-      };
-    } else {
-      setShowNav(true);
-    }
-  }, []);
 
-  // Add state for mobile dropdown menu
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  // Handle diagram panel changes
+  const handleDiagramsChange = useCallback((hasDiagrams: boolean, content: string, messageId?: string) => {
+    console.log('handleDiagramsChange called:', { hasDiagrams, messageId, contentLength: content?.length });
 
-  // Toggle mobile menu function
-  const toggleMobileMenu = () => {
-    setShowMobileMenu((prev) => !prev);
-  };
+    if (messageId && hasDiagrams && content) {
+      console.log('Storing diagram for messageId:', messageId);
 
-  // Close the menu when an action is clicked
-  const handleMenuAction = (action: () => void) => {
-    action();
-    setShowMobileMenu(false);
-  };
-
-  // Add state for design mode
-  const [isDesignMode, setIsDesignMode] = useState(false);
-  const [editedMessages, setEditedMessages] = useState<{
-    [key: string]: string;
-  }>({});
-
-  // Add function to toggle design mode
-  const toggleDesignMode = () => {
-    setIsDesignMode((prev) => {
-      // When exiting design mode, reset edited messages state
-      if (prev) {
-        setEditedMessages({});
+      // Check if we already have this exact diagram content
+      if (messageDiagrams[messageId] === content) {
+        console.log('Diagram content unchanged, skipping update');
+        return;
       }
-      return !prev;
-    });
+
+      // Store diagram content for this specific message
+      setMessageDiagrams(prev => {
+        // Don't update if the content is the same
+        if (prev[messageId] === content) {
+          return prev;
+        }
+
+        const updated = {
+          ...prev,
+          [messageId]: content
+        };
+        console.log('Updated messageDiagrams:', updated);
+        return updated;
+      });
+
+      // Set as active diagram and show panel
+      setActiveDiagramMessageId(messageId);
+      setDiagramContent(content);
+      setHasDiagramsAvailable(true);
+    } else if (!hasDiagrams) {
+      // No diagrams in this message
+      console.log('No diagrams in message:', messageId);
+
+      // Only update if we're actually changing the state
+      if (hasDiagramsAvailable) {
+        setHasDiagramsAvailable(false);
+      }
+    }
+  }, [messageDiagrams, hasDiagramsAvailable]);
+
+  // Handle clicking on diagram indicator
+  const handleDiagramClick = (messageId: string) => {
+    console.log('Diagram click for messageId:', messageId);
+    console.log('Available diagrams:', messageDiagrams);
+    const diagramContent = messageDiagrams[messageId];
+    if (diagramContent) {
+      console.log('Setting active diagram:', messageId);
+      setActiveDiagramMessageId(messageId);
+      setDiagramContent(diagramContent);
+      setHasDiagramsAvailable(true);
+    } else {
+      console.log('No diagram content found for messageId:', messageId);
+    }
   };
 
-  // Add function to handle updates to edited messages
-  const handleMessageEdit = (messageId: string, content: string) => {
-    setEditedMessages((prev) => ({
-      ...prev,
-      [messageId]: content,
-    }));
+  // Handle closing the diagram panel
+  const handleCloseDiagramPanel = () => {
+    setHasDiagramsAvailable(false);
+    setActiveDiagramMessageId(null);
+    setDiagramContent('');
   };
 
   // Create a reusable error display component function
@@ -991,33 +749,27 @@ export default function Page() {
     actionText?: string;
     onAction?: () => void;
   }) => (
-    <div
-      className="mt-2 text-center p-3 rounded-lg bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800"
-      data-oid="qpnlvcx"
-    >
-      <div
-        className="flex items-center justify-center gap-2"
-        data-oid="a8x.siw"
-      >
+    <div className="mt-2 text-center p-3 rounded-lg bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800">
+      <div className="flex items-center justify-center gap-2">
         {icon || (
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5 text-red-500"
             viewBox="0 0 20 20"
             fill="currentColor"
-            data-oid="5wxmmbx"
+
           >
             <path
               fillRule="evenodd"
               d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
               clipRule="evenodd"
-              data-oid="v5_f144"
+
             />
           </svg>
         )}
         <span
           className="text-base text-red-600 dark:text-red-400 font-medium"
-          data-oid="ph-7i1a"
+
         >
           {message}
         </span>
@@ -1026,12 +778,12 @@ export default function Page() {
       {actionText && onAction && (
         <div
           className="mt-2 text-sm text-red-600 dark:text-red-400"
-          data-oid="ieh-4b7"
+
         >
           <button
             onClick={onAction}
             className="underline hover:text-red-700 dark:hover:text-red-300"
-            data-oid="pd1wry2"
+
           >
             {actionText}
           </button>
@@ -1084,15 +836,13 @@ export default function Page() {
 
     return (
       <div
-        className={`inline-block max-w-[95vw] bg-[#1d1c1c] sm:max-w-[85vw] rounded-t-3xl rounded-br-3xl dark:text-[#e7e7d6] text-[#000000] overflow-hidden md:max-w-3xl ${expanded ? "text-2xl" : "text-xl md:text-xl"} tracking-tight p-3 md:p-4 font-mono`}
-        data-oid=":87oz.z"
-      >
-        <MarkdownRenderer content={displayed} data-oid=":vh-uhy" />
+        className={`inline-block max-w-[95vw] leading-tight sm:max-w-[85vw] dark:text-[#99C5CB] text-[#99C5CB] overflow-hidden md:max-w-3xl ${expanded ? "text-2xl" : "text-3xl md:text-4xl"} tracking-tight `} >
+
+        <MarkdownRenderer content={displayed} />
         {isLong && !expanded && (
           <span
             onClick={() => setExpanded(true)}
             className="cursor-pointer text-blue-500 ml-2 text-base"
-            data-oid=".21q9a6"
           >
             more..
           </span>
@@ -1102,732 +852,354 @@ export default function Page() {
   }
 
   return (
-    <main
-      className={`${showWhiteboard ? "pr-[33.333%]" : ""} transition-all duration-300 text-base`}
-      data-oid="yci825x"
-    >
-      {/* Optimized Top Navigation Bar with Mobile Dropdown */}
-      <TopNav
-        createNewChat={createNewChat}
-        openChatSwitcher={() => setShowChatSwitcher(true)}
-        clearHistory={handleClearHistory}
-        exportPDF={() => createPDF(messages)}
-        toggleWhiteboard={toggleWhiteboard}
-        toggleDesignMode={toggleDesignMode}
-        isDesignMode={isDesignMode}
-        showNav={showNav}
-        isMobile={isMobile}
-        showMobileMenu={showMobileMenu}
-        toggleMobileMenu={toggleMobileMenu}
-        onMenuAction={handleMenuAction}
-        selectedModel={selectedModel}
-        showModelSelector={showModelSelector}
-        onModelChange={handleModelChange}
-        modelOptions={MODEL_OPTIONS}
-        data-oid="im09ys-"
-      />
 
-      {/* Add Timeline component */}
-      {messages.length > 0 && (
-        <Timeline
-          messages={messages}
-          onHoverChange={setTimelineHovered}
-          isMobile={isMobile}
-          onMessageClick={scrollToMessage}
-          currentMessageId={currentMessageId}
-          data-oid="a6b2q2a"
-        />
-      )}
 
-      {showActionButtons && (
-        <div
-          className="fixed bottom-16 right-1 z-20 p-3 backdrop-blur-md rounded-lg shadow-lg border border-[#f7eee332] max-w-[90vw] sm:max-w-xs bg-[#151515] dark:bg-[#1a1a1a] transition-all duration-300"
-          data-oid="1w47hoy"
-        >
-          <div className="flex flex-col gap-1" data-oid="cms01r5">
-            <button
-              onClick={createNewChat}
-              className="flex items-start justify-center gap-2 rounded-xl p-3 text-white hover:bg-[#575757] w-full"
-              data-oid="e91bjbd"
-            >
-              <Plus className="w-5 h-5" data-oid="hnfgf:v" />
-              New Chat
-            </button>
-            <button
-              onClick={() => setShowChatSwitcher(true)}
-              className="flex items-center justify-center gap-2 rounded-xl p-3 text-white hover:bg-[#575757] w-full"
-              data-oid="ul1go5h"
-            >
-              <ArrowLeftRight className="w-4 h-4" data-oid="j._rdzw" />
-              Switch Chat
-            </button>
-            <button
-              onClick={handleClearHistory}
-              className="flex items-center justify-center gap-2 rounded-xl p-3 text-white hover:bg-[#575757] w-full"
-              data-oid="4ac5ncx"
-            >
-              <Trash className="h-4 w-4" data-oid="zgs8p:8" />
-              Delete Chat
-            </button>
-            <button
-              onClick={() => createPDF(messages)}
-              className="flex items-center justify-center gap-2 rounded-xl p-3 text-white hover:bg-[#575757] w-full"
-              data-oid="-ens54f"
-            >
-              <FileText className="w-4 h-4" data-oid="dirn5o2" /> Export to PDF
-            </button>
+    <div className="p-1  bg-[#CCF9FF] rounded-lg ">
+      <main className="relative h-[100svh] rounded-lg bg-[#242D31] transition-all duration-300 text-base">
+        {/* Main Content Area */}
+        <div className={`transition-all duration-300  ${!isMobile && hasDiagramsAvailable && (timelineHovered || activeDiagramMessageId) ? "mr-[30rem]" : "mr-0"
+          } px-4 lg:px-6`}>
 
-            {/* Replace the theme toggle button with the new component */}
-            <div className="p-1" data-oid="bwb_w1t">
-              <ThemeToggle data-oid="wpq9z89" />
-            </div>
+          {/* Add Timeline component */}
+          {messages.length > 0 && (
+            <Timeline
+              messages={messages}
+              onHoverChange={setTimelineHovered}
+              isMobile={isMobile}
+              onMessageClick={scrollToMessage}
+              currentMessageId={currentMessageId}
 
-            <button
-              onClick={() => setShowActionButtons(false)}
-              className="flex items-center justify-center gap-2 rounded-xl p-3 text-white hover:bg-[#575757] w-full mt-2"
-              data-oid="x1d_tz:"
-            >
-              <X className="w-5 h-5" data-oid="l8:.d63" />
-              Close Menu
-            </button>
-          </div>
-        </div>
-      )}
+            />
+          )}
 
-      {/* ...existing code... */}
-      {/* Audio element for TTS playback */}
-      <audio
-        ref={audioRef}
-        src={audioSrc || undefined}
-        className="hidden"
-        data-oid="ws05e58"
-      />
 
-      {messages.length === 0 ? (
-        <div
-          className="flex flex-col  items-center justify-center h-[calc(100vh-56px)] px-4"
-          data-oid="r-lqwoc"
-        >
-          <h1
-            className="text-[2.5em] sm:text-[3.5em] dark:text-[#f7eee3ca] text-[#1a1a1a] mb-4 font-['Instrument_Serif'] text-center leading-tight"
-            data-oid=":e4baxc"
-          >
-            What do you want to learn?
-          </h1>
 
-          <div className="w-full max-w-2xl px-4" data-oid="33..od1">
-            <form onSubmit={onSubmit} className="w-full" data-oid="i0rqc2m">
-              <div
-                className="group flex-col  w-full items-center   rounded-2xl dark:bg-[#ffffff] bg-[#f0f0f0] p-1  shadow-md transition-all duration-300"
-                data-oid="ajuja7."
-              >
-                <div
-                  className="flex   relative flex-1  items-center overflow-hidden dark:bg-[#bebdbdde] bg-[#ffffff] rounded-xl py-3 sm:py-5 transition-all duration-300"
-                  data-oid="at08.7u"
+
+          {messages.length === 0 ? (
+            <div
+              className="flex flex-col  items-center justify-center h-[calc(100vh-56px)] px-4 ">
+
+              <div className="flex flex-col gap-2 items-center justify-center p-4">
+                <svg
+                  width="211"
+                  height="43"
+                  viewBox="0 0 211 43"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  {!isVoiceMode ? (
-                    <textarea
-                      ref={textareaRef}
-                      placeholder="Ask me anything..."
-                      value={input}
-                      onChange={(e) => {
-                        handleInputChange(e);
-                        adjustTextareaHeight();
-                      }}
-                      onKeyDown={handleKeyDown}
-                      className="max-h-[120px] min-h-[60px] flex-1 resize-none bg-transparent font-serif px-4 py-2 text-base md:text-lg dark:text-[#000000] text-[#000000] outline-none transition-all duration-200 dark:placeholder:text-[#000000] placeholder:text-[#606060] "
-                      rows={1}
-                      data-oid="ih3p6--"
-                    />
-                  ) : (
-                    <div
-                      className="flex-1 flex items-center justify-center px-4"
-                      data-oid="awmrd14"
-                    >
-                      <div
-                        className={`flex flex-col items-center ${isRecording ? "animate-pulse" : ""}`}
-                        data-oid="uq9-vz5"
-                      >
-                        <div className="text-center mb-2" data-oid="obn6d90">
-                          {isRecording ? (
+                  <g
+                    id="Repeat_group_1_inner"
+                    data-figma-trr="r6u2.5-0f"
+                    stroke="#99C5CB"
+                    strokeWidth="0.781686"
+                    strokeLinecap="round"
+                    fill="none"
+                  >
+                    <path d="M18.8803 10.7699L18.75 0.738281" />
+                    <path d="M17.1911 2.94756L16.6808 2.47366C16.1806 2.00923 15.3672 2.36394 15.3672 3.04648V7.75304C15.3672 8.00743 15.491 8.24591 15.699 8.39231L18.4263 10.3115C18.7004 10.5044 19.0668 10.5011 19.3374 10.3034L21.9516 8.39299C22.153 8.24581 22.2721 8.01133 22.2721 7.76187V2.96577C22.2721 2.29592 21.4846 1.93636 20.9784 2.37506L20.3179 2.94756" />
+                    <path d="M13.5391 2.55859V9.62383C13.5391 10.3987 14.1672 11.0269 14.9421 11.0269H18.7503H22.5585C23.3334 11.0269 23.9615 10.3987 23.9615 9.62383V2.55859" />
+                  </g>
+
+                  <use href="#Repeat_group_1_inner" transform="translate(25.6138 -6.8632) rotate(60)" />
+                  <use href="#Repeat_group_1_inner" transform="translate(44.3644 11.8874) rotate(120)" />
+                  <use href="#Repeat_group_1_inner" transform="translate(37.5012 37.5012) rotate(-180)" />
+                  <use href="#Repeat_group_1_inner" transform="translate(11.8874 44.3644) rotate(-120)" />
+                  <use href="#Repeat_group_1_inner" transform="translate(-6.8632 25.6138) rotate(-60)" />
+
+                  <path
+                    d="M41.0362 32.75L41.0545 6.47519H44.9227V22.532L52.6592 13.0439H57.5127L49.3384 22.8969L58.3521 32.75H53.1701L44.9227 23.2619V32.75H41.0362ZM71.833 32.75V23.0612C71.833 22.2948 71.7661 21.5102 71.6323 20.7074C71.5107 19.8924 71.2674 19.1382 70.9025 18.4448C70.5497 17.7515 70.0449 17.1919 69.388 16.7662C68.7433 16.3404 67.8979 16.1275 66.8518 16.1275C66.1706 16.1275 65.5259 16.2431 64.9176 16.4742C64.3094 16.6932 63.7742 17.052 63.312 17.5508C62.8619 18.0495 62.503 18.7064 62.2354 19.5214C61.98 20.3364 61.8523 21.3278 61.8523 22.4955L59.4802 21.6015C59.4802 19.8133 59.8147 18.238 60.4838 16.8756C61.1528 15.5011 62.1138 14.4306 63.3667 13.6643C64.6196 12.8979 66.1341 12.5147 67.9101 12.5147C69.2725 12.5147 70.4159 12.7337 71.3404 13.1716C72.2649 13.6095 73.013 14.1873 73.5847 14.905C74.1686 15.6106 74.6126 16.383 74.9167 17.2223C75.2208 18.0617 75.4276 18.8827 75.537 19.6856C75.6465 20.4884 75.7013 21.1939 75.7013 21.8022V32.75H71.833ZM57.984 32.75V13.0439H61.3961V18.7368H61.8523V32.75H57.984ZM86.5724 33.2974C84.6018 33.2974 82.8927 32.8534 81.4452 31.9654C79.9976 31.0774 78.8785 29.8549 78.0878 28.2979C77.3093 26.7287 76.9201 24.9223 76.9201 22.8787C76.9201 20.8229 77.3215 19.0165 78.1243 17.4595C78.9272 15.8903 80.0524 14.6739 81.4999 13.8102C82.9475 12.9344 84.6383 12.4965 86.5724 12.4965C88.543 12.4965 90.2521 12.9405 91.6996 13.8285C93.1472 14.7165 94.2663 15.939 95.057 17.496C95.8477 19.053 96.243 20.8473 96.243 22.8787C96.243 24.9345 95.8416 26.7469 95.0387 28.3161C94.2481 29.8732 93.1289 31.0957 91.6814 31.9837C90.2339 32.8595 88.5309 33.2974 86.5724 33.2974ZM86.5724 29.7029C88.4579 29.7029 89.8628 29.0703 90.7873 27.8052C91.724 26.528 92.1923 24.8858 92.1923 22.8787C92.1923 20.8229 91.7179 19.1808 90.7691 17.9522C89.8324 16.7114 88.4335 16.091 86.5724 16.091C85.2952 16.091 84.243 16.383 83.4158 16.9669C82.5886 17.5386 81.9743 18.3353 81.5729 19.3571C81.1715 20.3668 80.9708 21.5406 80.9708 22.8787C80.9708 24.9466 81.4452 26.601 82.394 27.8417C83.3428 29.0825 84.7356 29.7029 86.5724 29.7029ZM101.547 32.75L95.5257 13.0256L99.3027 13.0439L103.426 26.5645L107.587 13.0439H110.871L115.031 26.5645L119.155 13.0439H122.914L116.892 32.75H113.827L109.229 18.4813L104.612 32.75H101.547ZM124.356 32.75V5.9278H128.17V32.75H124.356ZM140.2 33.2974C138.241 33.2974 136.52 32.8716 135.036 32.0201C133.564 31.1565 132.415 29.9583 131.587 28.4256C130.772 26.8807 130.365 25.0926 130.365 23.0612C130.365 20.9081 130.766 19.0409 131.569 17.4595C132.384 15.8782 133.515 14.6557 134.963 13.792C136.411 12.9283 138.095 12.4965 140.017 12.4965C142.024 12.4965 143.733 12.9648 145.144 13.9015C146.556 14.826 147.608 16.1458 148.301 17.8609C149.007 19.5761 149.286 21.6136 149.14 23.9735H145.327V22.5868C145.303 20.2999 144.865 18.609 144.013 17.5143C143.174 16.4195 141.891 15.8721 140.163 15.8721C138.253 15.8721 136.818 16.4742 135.857 17.6785C134.896 18.8827 134.416 20.6222 134.416 22.8969C134.416 25.0622 134.896 26.7409 135.857 27.933C136.818 29.1129 138.205 29.7029 140.017 29.7029C141.209 29.7029 142.237 29.4352 143.101 28.9C143.977 28.3526 144.658 27.5741 145.144 26.5645L148.885 27.7505C148.119 29.5143 146.957 30.8828 145.4 31.8559C143.843 32.8169 142.109 33.2974 140.2 33.2974ZM133.175 23.9735V20.9993H147.243V23.9735H133.175ZM158.872 33.2974C157.036 33.2974 155.448 32.8412 154.11 31.9289C152.784 31.0166 151.756 29.7758 151.026 28.2066C150.309 26.6253 149.95 24.8493 149.95 22.8787C149.95 20.8959 150.315 19.126 151.045 17.569C151.774 15.9998 152.808 14.7651 154.147 13.865C155.497 12.9527 157.096 12.4965 158.945 12.4965C160.806 12.4965 162.37 12.9527 163.635 13.865C164.912 14.7651 165.873 15.9998 166.518 17.569C167.174 19.1382 167.503 20.9081 167.503 22.8787C167.503 24.8493 167.174 26.6192 166.518 28.1884C165.861 29.7576 164.894 31.0044 163.616 31.9289C162.339 32.8412 160.758 33.2974 158.872 33.2974ZM159.401 29.8488C160.654 29.8488 161.676 29.5508 162.467 28.9547C163.258 28.3587 163.835 27.5376 164.2 26.4915C164.565 25.4454 164.748 24.2411 164.748 22.8787C164.748 21.5163 164.559 20.312 164.182 19.2659C163.817 18.2198 163.245 17.4048 162.467 16.8209C161.701 16.237 160.721 15.9451 159.529 15.9451C158.264 15.9451 157.224 16.2553 156.409 16.8756C155.594 17.496 154.986 18.3293 154.584 19.3754C154.195 20.4215 154.001 21.5893 154.001 22.8787C154.001 24.1803 154.195 25.3602 154.584 26.4185C154.986 27.4646 155.582 28.2979 156.373 28.9183C157.175 29.5386 158.185 29.8488 159.401 29.8488ZM164.748 32.75V18.5726H164.31V6.47519H168.141V32.75H164.748ZM179.177 42.0557C178.119 42.0557 177.091 41.8914 176.093 41.563C175.108 41.2346 174.208 40.748 173.393 40.1033C172.578 39.4708 171.903 38.6862 171.367 37.7495L174.889 35.9614C175.315 36.8007 175.923 37.415 176.714 37.8043C177.504 38.1935 178.338 38.3881 179.213 38.3881C180.296 38.3881 181.22 38.1935 181.987 37.8043C182.753 37.4272 183.331 36.8554 183.72 36.0891C184.122 35.3227 184.316 34.3739 184.304 33.2427V27.7322H184.76V13.0439H188.136V33.2791C188.136 33.8022 188.118 34.3009 188.081 34.7754C188.045 35.2498 187.978 35.7242 187.88 36.1986C187.601 37.5245 187.065 38.6193 186.275 39.4829C185.496 40.3466 184.499 40.9913 183.282 41.417C182.078 41.8428 180.71 42.0557 179.177 42.0557ZM178.885 33.2974C177.048 33.2974 175.461 32.8412 174.123 31.9289C172.797 31.0166 171.769 29.7758 171.039 28.2066C170.321 26.6253 169.962 24.8493 169.962 22.8787C169.962 20.8959 170.327 19.126 171.057 17.569C171.787 15.9998 172.821 14.7651 174.159 13.865C175.509 12.9527 177.109 12.4965 178.958 12.4965C180.819 12.4965 182.382 12.9527 183.647 13.865C184.924 14.7651 185.885 15.9998 186.53 17.569C187.187 19.1382 187.515 20.9081 187.515 22.8787C187.515 24.8493 187.187 26.6192 186.53 28.1884C185.873 29.7576 184.906 31.0044 183.629 31.9289C182.352 32.8412 180.77 33.2974 178.885 33.2974ZM179.414 29.8488C180.667 29.8488 181.689 29.5508 182.479 28.9547C183.27 28.3587 183.848 27.5376 184.213 26.4915C184.578 25.4454 184.76 24.2411 184.76 22.8787C184.76 21.5163 184.572 20.312 184.195 19.2659C183.83 18.2198 183.258 17.4048 182.479 16.8209C181.713 16.237 180.734 15.9451 179.542 15.9451C178.277 15.9451 177.237 16.2553 176.422 16.8756C175.607 17.496 174.998 18.3293 174.597 19.3754C174.208 20.4215 174.013 21.5893 174.013 22.8787C174.013 24.1803 174.208 25.3602 174.597 26.4185C174.998 27.4646 175.594 28.2979 176.385 28.9183C177.188 29.5386 178.198 29.8488 179.414 29.8488ZM199.81 33.2974C197.851 33.2974 196.13 32.8716 194.646 32.0201C193.174 31.1565 192.025 29.9583 191.198 28.4256C190.383 26.8807 189.975 25.0926 189.975 23.0612C189.975 20.9081 190.376 19.0409 191.179 17.4595C191.994 15.8782 193.126 14.6557 194.573 13.792C196.021 12.9283 197.705 12.4965 199.627 12.4965C201.634 12.4965 203.344 12.9648 204.755 13.9015C206.166 14.826 207.218 16.1458 207.911 17.8609C208.617 19.5761 208.897 21.6136 208.751 23.9735H204.937V22.5868C204.913 20.2999 204.475 18.609 203.623 17.5143C202.784 16.4195 201.501 15.8721 199.773 15.8721C197.864 15.8721 196.428 16.4742 195.467 17.6785C194.506 18.8827 194.026 20.6222 194.026 22.8969C194.026 25.0622 194.506 26.7409 195.467 27.933C196.428 29.1129 197.815 29.7029 199.627 29.7029C200.819 29.7029 201.847 29.4352 202.711 28.9C203.587 28.3526 204.268 27.5741 204.755 26.5645L208.495 27.7505C207.729 29.5143 206.567 30.8828 205.01 31.8559C203.453 32.8169 201.72 33.2974 199.81 33.2974ZM192.785 23.9735V20.9993H206.853V23.9735H192.785Z"
+                    fill="#99C5CB"
+                  />
+                </svg>
+
+
+
+
+              </div>
+
+
+              <div className="w-full max-w-2xl px-4" >
+                <form onSubmit={onSubmit} className="w-full" >
+                  <div className="group flex-col  w-full items-center border-2 border-[#44595D]  rounded-2xl dark:bg-[#0C1114] bg-[#f0f0f0] p-1  shadow-lg transition-all duration-300">
+                    <div className="flex   relative flex-1 border border-[#44595d7c] items-center overflow-hidden dark:bg-[#121719] bg-[#ffffff] rounded-xl py-3 sm:py-5 transition-all duration-300" >
+                      <textarea
+                        ref={textareaRef}
+                        placeholder="Ask me anything..."
+                        value={input}
+                        onChange={(e) => {
+                          handleInputChange(e);
+                          adjustTextareaHeight();
+                        }}
+                        onKeyDown={handleKeyDown}
+                        className="max-h-[120px] min-h-[60px] flex-1 resize-none bg-transparent font-serif px-4 py-2 text-base md:text-lg dark:text-[#546C70] text-[#546C70] outline-none transition-all duration-200 dark:placeholder:text-[#546C70] placeholder:text-[#546C70] "
+                        rows={1}
+                      />
+                    </div>
+
+                    <div className="flex gap-1 justify-between items-center p-1 ">
+                      <div className="relative m-1" data-oid="pd:ki5q">
+                        <button
+                          type="button"
+                          onClick={() => setShowModelSelector(!showModelSelector)}
+                          className="flex items-center justify-between gap-2 px-3 py-2 text-base sm:px-4 sm:py-2 sm:text-lg rounded-lg dark:bg-[#242D31] bg-[#e2e2e2] dark:text-[#f7eee3] text-[#000000] transition-colors dark:hover:bg-[#323232] hover:bg-[#d0d0d0]">
+                          <div className="flex items-center gap-2"  >
+ 
+                            {
+                              MODEL_OPTIONS.find(
+                                (model) => model.id === selectedModel,
+                              )?.icon
+                            }
                             <span
-                              className="text-red-500 text-base"
-                              data-oid="8toujqe"
+                              className="max-w-[100px] sm:max-w-none truncate"
+                              data-oid="q:zgdxy"
                             >
-                              Recording...
+                              {getModelDisplayName(selectedModel)}
                             </span>
-                          ) : (
-                            <span
-                              className="dark:text-[#f7eee380] text-[#444444] text-base"
-                              data-oid="8fpsm.6"
-                            >
-                              Ready to record
-                            </span>
-                          )}
-                        </div>
-                        {transcribedText && (
-                          <div
-                            className="max-w-full overflow-x-auto dark:text-[#f7eee3] text-[#000000] text-base py-2"
-                            data-oid="4m2w6h5"
-                          >
-                            {transcribedText}
                           </div>
+                          <ChevronDown className="h-4 w-4" data-oid="ooy9-_w" />
+                        </button>
+                        {showModelSelector && (
+                          <ModelSelector
+                            modelOptions={MODEL_OPTIONS}
+                            selectedModel={selectedModel}
+                            showModelSelector={showModelSelector}
+                            onModelChange={handleModelChange}
+                            data-oid="km:q:ei"
+                          />
                         )}
                       </div>
+                        <SubmitButton
+                          isLoading={isLoading}
+                          isStreaming={isStreaming}
+                          type="submit"
+                        />
+
+                    </div>
+                  </div>
+                  {input.length > 0 && (
+                    <div
+                      className="mt-1.5 flex items-center justify-between px-1 text-xs dark:text-[#99C5CB] text-[#99C5CB]"
+                      data-oid="lo5x-5-"
+                    >
+                      <span data-oid="rq6l398">
+                        Press Enter to send, Shift + Enter for new line
+                      </span>
+                      <span data-oid="bi6ykkm">{input.length}</span>
                     </div>
                   )}
-                  <div
-                    className="absolute right-3 bottom-3 flex gap-3 items-center justify-center"
-                    data-oid="btm99yo"
-                  >
-                    {/* Submit button */}
-                    {!isVoiceMode && (
-                      <div
-                        className="flex items-center justify-center p-1 bg-[#E0E0E0] rounded-full box-shadow: 76px 2px 58px -95px rgba(224,224,224,1) inset;"
-                        data-oid="m9a8i13"
-                      >
+                  {error && (
+                    <ErrorDisplay
+                      message={error}
+                      icon={
+                        error.includes("Internet connection") ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-red-500"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            data-oid="3q89qoh"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a 1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                              clipRule="evenodd"
+                              data-oid="m5uc0fn"
+                            />
+
+                            <path
+                              d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z"
+                              data-oid="d.ll2hs"
+                            />
+                          </svg>
+                        ) : undefined
+                      }
+                      actionText={
+                        error.includes("Internet connection")
+                          ? "Reload page"
+                          : undefined
+                      }
+                      onAction={
+                        error.includes("Internet connection")
+                          ? () => window.location.reload()
+                          : undefined
+                      }
+                      data-oid="3_:w5hq"
+                    />
+                  )}
+                </form>
+              </div>
+            </div>
+          ) : (
+            <div
+              className={`relative mx-auto flex h-[calc(100vh-56px)] w-full p-2  flex-col md:w-2/3 transition-all duration-300`}
+              data-oid="l_est0k"
+            >
+              <div
+                className="flex-1 space-y-4 overflow-y-auto  px-3 sm:px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6" >
+                {messages.map((m, index) => {
+                  const previousUserMessage =
+                    m.role === "assistant" &&
+                      index > 0 &&
+                      messages[index - 1]?.role === "user"
+                      ? (messages[index - 1]?.content ?? "")
+                      : "";
+                  console.log(previousUserMessage);
+                  return m.role === "user" ? (
+                    <div
+                      key={m.id}
+                      ref={(el) => {
+                        messageRefs.current[m.id] = el;
+                      }} // Fix ref callback to not return a value
+                      className="animate-slide-in group relative p-2 mx-2 flex flex-col md:mx-0"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                      data-oid="h9:.sd3"
+                    >
+                      <>
+                        {/* user question */}
+                        <div className="flex justify-start " data-oid="zgnwoog">
+                          <QuestionMessage content={m.content} data-oid="4a3-5gr" />
+                        </div>
+
+
+                      </>
+                      <div className="mt-1 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity" >
                         <button
-                          type="submit"
-                          className="p-3 rounded-full bg-[#0D0C0C] hover:bg-[#323232] text-[#f7eee3] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed drop-shadow-xl-[#888787] box-shadow: 76px 2px 58px -95px rgba(136, 135, 135, 1) inset"
-                          // disabled={isLoading || isWebSearchLoading}
-                          data-oid="t9gk2dy"
+                          onClick={() => copyMessage(m.content, m.id)}
+                          className="p-1 rounded-full dark:text-white text-[#000000] hover:bg-[#646464] hover:text-[#48AAFF]"
+                          data-oid="efva4nq"
                         >
-                          {isLoading || isStreaming ? (
-                            <div
-                              className="relative h-5 w-5 flex items-center justify-center"
-                              data-oid="ia3n_9h"
-                            >
-                              {/* Agentic workflow animation */}
-                              <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 50 50"
-                                className="animate-spin-slow"
-                                data-oid="2bov7_5"
-                              >
-                                {/* Base circular path */}
-                                <circle
-                                  cx="25"
-                                  cy="25"
-                                  r="20"
-                                  stroke="#f7eee3"
-                                  strokeWidth="1"
-                                  fill="none"
-                                  opacity="0.3"
-                                  data-oid="lgl_da9"
-                                />
-
-                                {/* Nodes representing processing steps */}
-                                <circle
-                                  cx="25"
-                                  cy="5"
-                                  r="3"
-                                  fill="#f7eee3"
-                                  className="animate-pulse-node"
-                                  style={{ animationDelay: "0ms" }}
-                                  data-oid="qe0wwk_"
-                                />
-
-                                <circle
-                                  cx="41"
-                                  cy="15"
-                                  r="3"
-                                  fill="#f7eee3"
-                                  className="animate-pulse-node"
-                                  style={{ animationDelay: "300ms" }}
-                                  data-oid="p7pi9mg"
-                                />
-
-                                <circle
-                                  cx="41"
-                                  cy="35"
-                                  r="3"
-                                  fill="#f7eee3"
-                                  className="animate-pulse-node"
-                                  style={{ animationDelay: "600ms" }}
-                                  data-oid="q:_x.we"
-                                />
-
-                                <circle
-                                  cx="25"
-                                  cy="45"
-                                  r="3"
-                                  fill="#f7eee3"
-                                  className="animate-pulse-node"
-                                  style={{ animationDelay: "900ms" }}
-                                  data-oid="y9nvlps"
-                                />
-
-                                <circle
-                                  cx="9"
-                                  cy="35"
-                                  r="3"
-                                  fill="#f7eee3"
-                                  className="animate-pulse-node"
-                                  style={{ animationDelay: "1200ms" }}
-                                  data-oid="f-6fb06"
-                                />
-
-                                <circle
-                                  cx="9"
-                                  cy="15"
-                                  r="3"
-                                  fill="#f7eee3"
-                                  className="animate-pulse-node"
-                                  style={{ animationDelay: "1500ms" }}
-                                  data-oid="7ayw9mw"
-                                />
-
-                                {/* Flowing path/connection */}
-                                <path
-                                  d="M25,5 L41,15 L41,35 L25,45 L9,35 L9,15 Z"
-                                  stroke="#f7eee3"
-                                  strokeWidth="1.5"
-                                  fill="none"
-                                  strokeDasharray="100"
-                                  strokeDashoffset="100"
-                                  className="animate-dash-flow"
-                                  data-oid="8u75qyc"
-                                />
-
-                                {/* Center node - representing the agent */}
-                                <circle
-                                  cx="25"
-                                  cy="25"
-                                  r="4"
-                                  fill="#48AAFF"
-                                  className="animate-pulse-agent"
-                                  data-oid="jzk5zjx"
-                                />
-                              </svg>
-
-                              {/* Small dot in center for focus */}
-                              <div
-                                className="absolute w-1 h-1 bg-white rounded-full animate-ping-slow"
-                                data-oid="d94orzw"
-                              ></div>
-                            </div>
+                          {copiedMessageId === m.id ? (
+                            <Check className="h-5 w-5" data-oid="pzynuvl" />
                           ) : (
-                            <ArrowUp className="h-4 w-4" data-oid="11-25u:" />
+                            <Copy className="h-5 w-5" data-oid="zvtke.l" />
                           )}
                         </button>
                       </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex gap-1 items-center  " data-oid="jei027r">
-                  <div className="relative m-1" data-oid="pd:ki5q">
-                    <button
-                      type="button"
-                      onClick={() => setShowModelSelector(!showModelSelector)}
-                      className="flex items-center justify-between gap-2 px-3 py-2 text-base sm:px-4 sm:py-2 sm:text-lg rounded-lg dark:bg-[#252525] bg-[#e2e2e2] dark:text-[#f7eee3] text-[#000000] transition-colors dark:hover:bg-[#323232] hover:bg-[#d0d0d0]"
-                      data-oid="q5onphf"
-                    >
-                      <div
-                        className="flex items-center gap-2"
-                        data-oid="lpwn6v4"
-                      >
-                        {
-                          MODEL_OPTIONS.find(
-                            (model) => model.id === selectedModel,
-                          )?.icon
-                        }
-                        <span
-                          className="max-w-[100px] sm:max-w-none truncate"
-                          data-oid="q:zgdxy"
-                        >
-                          {getModelDisplayName(selectedModel)}
-                        </span>
-                      </div>
-                      <ChevronDown className="h-4 w-4" data-oid="ooy9-_w" />
-                    </button>
-                    {showModelSelector && (
-                      <ModelSelector
-                        modelOptions={MODEL_OPTIONS}
-                        selectedModel={selectedModel}
-                        showModelSelector={showModelSelector}
-                        onModelChange={handleModelChange}
-                        data-oid="km:q:ei"
-                      />
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#000000] p-2 rounded-lg transition-colors duration-200"
-                    onClick={toggleWhiteboard}
-                    data-oid="p2fuslx"
-                  >
-                    <Paintbrush className="h-6 w-6" data-oid="wk.axir" />
-                  </button>
-                  <button
-                    type="button"
-                    className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#000000] p-2 rounded-lg transition-colors duration-200"
-                    title="sphere Voice Assistant"
-                    aria-label={
-                      isVoiceMode
-                        ? "Exit Voice Mode"
-                        : "Activate sphere Voice Assistant"
-                    }
-                    onClick={toggleFullScreenVoiceMode}
-                    data-oid="drn3g3e"
-                  >
-                    {isRecording ? (
-                      <MicOff className="h-6 w-6" data-oid="9mwjjgz" />
-                    ) : (
-                      <Mic className="h-6 w-6" data-oid="wsqk9oi" />
-                    )}
-                  </button>
-                </div>
-              </div>
-              {input.length > 0 && !isVoiceMode && (
-                <div
-                  className="mt-1.5 flex items-center justify-between px-1 text-xs dark:text-[#f7eee380] text-[#555555]"
-                  data-oid="lo5x-5-"
-                >
-                  <span data-oid="rq6l398">
-                    Press Enter to send, Shift + Enter for new line
-                  </span>
-                  <span data-oid="bi6ykkm">{input.length}</span>
-                </div>
-              )}
-              {error && (
-                <ErrorDisplay
-                  message={error}
-                  icon={
-                    error.includes("Internet connection") ? (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-red-500"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        data-oid="3q89qoh"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a 1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
-                          clipRule="evenodd"
-                          data-oid="m5uc0fn"
-                        />
+                    </div>
+                  ) : (
+                    <div
+                      key={m.id}
+                      className="animate-slide-in group relative flex flex-col md:mx-0"
 
-                        <path
-                          d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z"
-                          data-oid="d.ll2hs"
-                        />
-                      </svg>
-                    ) : undefined
-                  }
-                  actionText={
-                    error.includes("Internet connection")
-                      ? "Reload page"
-                      : undefined
-                  }
-                  onAction={
-                    error.includes("Internet connection")
-                      ? () => window.location.reload()
-                      : undefined
-                  }
-                  data-oid="3_:w5hq"
-                />
-              )}
-            </form>
-          </div>
-        </div>
-      ) : (
-        <div
-          className={`relative mx-auto flex h-[calc(100vh-56px)] w-full p-2  flex-col ${showWhiteboard ? "md:w-full" : "md:w-2/3 w-full"} transition-all duration-300`}
-          data-oid="l_est0k"
-        >
-          <div
-            className="flex-1 space-y-4 overflow-y-auto  px-3 sm:px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6"
-            data-oid="v:d18j_"
-          >
-            {messages.map((m, index) => {
-              const previousUserMessage =
-                m.role === "assistant" &&
-                index > 0 &&
-                messages[index - 1]?.role === "user"
-                  ? (messages[index - 1]?.content ?? "")
-                  : "";
-              console.log(previousUserMessage);
-              return m.role === "user" ? (
-                <div
-                  key={m.id}
-                  ref={(el) => {
-                    messageRefs.current[m.id] = el;
-                  }} // Fix ref callback to not return a value
-                  className="animate-slide-in group relative p-2 mx-2 flex flex-col md:mx-0"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  data-oid="h9:.sd3"
-                >
-                  {isDesignMode ? (
-                    <div
-                      className="max-w-[100vw] sm:max-w-[85vw] overflow-hidden md:max-w-xl rounded-t-3xl rounded-br-3xl dark:bg-[#1F2937] bg-[#e0e6f0] dark:text-[#E8E8E6] text-[#000000] p-4"
-                      data-oid="imzmhl1"
                     >
-                      <textarea
-                        value={editedMessages[m.id] || m.content}
-                        onChange={(e) =>
-                          handleMessageEdit(m.id, e.target.value)
-                        }
-                        placeholder="Edit message..."
-                        className="w-full min-h-[60px] bg-transparent resize-vertical p-2 focus:outline-none text-[1.4em] sm:text-[1.6em] md:text-[2.2em]"
-                        data-oid="eyldf71"
-                      />
-                    </div>
-                  ) : (
-                    //user question
-                    <div className="flex justify-start " data-oid="zgnwoog">
-                      <QuestionMessage content={m.content} data-oid="4a3-5gr" />
-                    </div>
-                  )}
-                  <div
-                    className="mt-1 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity"
-                    data-oid="0_hjq-x"
-                  >
-                    <button
-                      onClick={() => copyMessage(m.content, m.id)}
-                      className="p-1 rounded-full dark:text-white text-[#000000] hover:bg-[#646464] hover:text-[#48AAFF]"
-                      data-oid="efva4nq"
-                    >
-                      {copiedMessageId === m.id ? (
-                        <Check className="h-5 w-5" data-oid="pzynuvl" />
-                      ) : (
-                        <Copy className="h-5 w-5" data-oid="zvtke.l" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  key={m.id}
-                  className="animate-slide-in group relative flex flex-col md:mx-0"
-                  data-oid="xm7.7g2"
-                >
-                  {isDesignMode ? (
-                    <div
-                      className="relative max-w-[95vw] sm:max-w-[90vw] overflow-hidden md:max-w-2xl rounded-xl p-4 dark:bg-[#1a1a1a] bg-[#f8f8f8]"
-                      data-oid="m0t6:c3"
-                    >
-                      <textarea
-                        value={editedMessages[m.id] || m.content}
-                        onChange={(e) =>
-                          handleMessageEdit(m.id, e.target.value)
-                        }
-                        placeholder="Edit response..."
-                        className="w-full min-h-[120px] bg-transparent resize-vertical p-2 focus:outline-none text-[1.1rem] sm:text-[1.2rem] md:text-[1.4rem]"
-                        data-oid="9jh2v0o"
-                      />
-                    </div>
-                  ) : (
-                    // Regular message display (non-design mode)
-                    // the actual area in whivh the response is displayed
-                    <div
-                      className="relative max-w-[95vw] sm:max-w-[90vw] overflow-x-hidden rounded-xl p-1 text-[1.1rem] sm:text-[1.2rem] tracking-tight dark:text-[#E8E8E6] text-[#000000] md:max-w-2xl md:p-2 md:text-[1.4rem] "
-                      data-oid="qvz08gm"
-                    >
+
+                      {/* answers*/}
                       <div
-                        className="flex-col w-full gap-4 justify-start cursor-pointer "
-                        data-oid="a__2-j7"
-                      >
+                        className="relative max-w-[95vw] sm:max-w-[90vw] overflow-x-hidden rounded-xl p-1 text-[1.1rem] sm:text-[1.2rem] tracking-tight dark:text-[#99C5CB]/50 text-[#99C5CB]/50 md:max-w-2xl md:p-2 md:text-[1.4rem] ">
+
                         <div
-                          className="flex w-full gap-4 border-t-[1px] border-[#484848] justify-start cursor-pointer "
-                          data-oid="r2v9a7a"
-                        >
-                          <div
-                            className="flex items-center     sm:p-3 dark:text-white text-[#000000] transition-colors   "
-                            data-oid="h-qwzs6"
-                          >
+                          className="flex-col w-full gap-4 justify-start cursor-pointer " >
+
+                          <div className="flex items-center sm:p-3 dark:text-[#99C5CB] text-[#000000] transition-colors   " >
+
                             <button
                               className="flex gap-2 text-base md:text-lg"
-                              data-oid="1w1aaxh"
                             >
+
                               <BookOpenText
                                 className="h-8 w-8"
                                 data-oid="-7rk6d."
                               />
 
-                              <p data-oid="nvk1ajq">Response</p>
+                              <p >Response</p>
                             </button>
                           </div>
-                          <div
-                            className="flex  gap-2  items-center     sm:p-3 dark:text-[#6d6c6c] text-[#000000] transition-colors  dark:hover:text-[#e0e0e0] "
-                            onClick={() => handleSearchYouTube(lastQuery)}
-                            data-oid="fd4i8t5"
-                          >
+
+                          <div className="flex w-full gap-4 border-t-[1px] border-[#484848] justify-start cursor-pointer "  >
+                          </div>
+                        </div>
+
+
+                        <div
+                          className="flex animate-fade-in transition-opacity duration-500">
+                          <SplitScreenLayout
+                            content={m.content}
+                            isMobile={isMobile}
+                            messageId={m.id}
+                            onDiagramsChange={handleDiagramsChange}
+                          />
+                        </div>
+
+                        {/* Diagram indicator - appears after the response */}
+                        {messageDiagrams[m.id] && (
+                          <div className="mt-4 flex justify-start">
                             <button
-                              className="text-base md:text-lg"
-                              data-oid=".75c7vv"
+                              onClick={() => {
+                                console.log('Button clicked for messageId:', m.id);
+                                handleDiagramClick(m.id);
+                              }}
+                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all duration-200 ${activeDiagramMessageId === m.id
+                                ? 'bg-blue-500/20 text-blue-400 border border-blue-400/30'
+                                : 'bg-gray-500/10 text-gray-400 border border-gray-400/20 hover:bg-gray-500/20 hover:text-gray-300'
+                                }`}
                             >
-                              <Video className="h-8 w-8" data-oid="rhsujwk" />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                              </svg>
+                              {activeDiagramMessageId === m.id ? 'Viewing Diagram' : 'View Diagram'}
                             </button>
-                            <p data-oid="o_5gfgm">Video</p>
                           </div>
+                        )}
+
+                        {/* Message action buttons... */}
+                        <div
+                          className="mb-14 flex flex-wrap gap-1 sm:gap-2">
+
+
+                          <div
+                            className="flex items-center justify-center rounded-full   p-2 sm:p-3 dark:text-white text-[#000000] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
+                            <button
+                              onClick={() => copyMessage(m.content, m.id)}
+                              className="text-base md:text-lg" >
+
+                              {copiedMessageId === m.id ? (
+                                <Check
+                                  className="h-5 w-5 text-[#48AAFF]"
+
+                                />
+                              ) : (
+                                <Clipboard
+                                  className="h-5 w-5 dark:text-[#f7eee3] text-[#000000] hover:text-[#48AAFF]"
+                                  data-oid="gp4p:1y"
+                                />
+                              )}
+                            </button>
+                          </div>
+
+                          <div
+                            className="w-full h-[1px] bg-[#484848]"
+                            data-oid="0pqkos0"
+                          ></div>
                         </div>
                       </div>
-
-                      <div
-                        className="w-full h-3/2 bg-[#a5a4a4]"
-                        data-oid="gr:1pwr"
-                      ></div>
-
-                      <div
-                        className="flex animate-fade-in transition-opacity duration-500"
-                        data-oid=":jp4n-6"
-                      >
-                        <MarkdownRenderer
-                          content={m.content}
-                          data-oid="_zvcviw"
-                        />
-                      </div>
-
-                      {/* Message action buttons... */}
-                      <div
-                        className="mb-14 flex flex-wrap gap-1 sm:gap-2"
-                        data-oid="ds7fme7"
-                      >
-                        {/* <div className="flex items-center justify-center rounded-full  p-2 sm:p-3 dark:text-white text-[#000000] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
-                    <button onClick={handleSearchWeb} className="text-base md:text-lg">
-                    <Globe className="h-5 w-5" />
-                    </button>
-                    </div> */}
-                        {/* <div className="flex items-center justify-center rounded-full  p-2 sm:p-3 dark:text-white text-[#000000] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
-                    <button onClick={() => handleSearchYouTube(lastQuery)} className="text-base md:text-lg">
-                    <Play className="h-5 w-5" />
-                    </button>
-                    </div> */}
-                        {/* {previousUserMessage && (
-                    <div className="flex items-center justify-center rounded-full  p-2 sm:p-3 dark:text-white text-[#000000] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
-                    <button
-                    onClick={() => regenerateQuery(previousUserMessage, m.id)}
-                    className="text-base md:text-lg"
-                    // disabled={regenForMessageId === m.id || isLoading}
-                    >
-                    {regenForMessageId === m.id ? " " : <RotateCw className="h-5 w-5" />}
-                    </button>
                     </div>
-                    )} */}
-                        <div
-                          className="flex items-center justify-center rounded-full   p-2 sm:p-3 dark:text-white text-[#000000] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]"
-                          data-oid="ylsym5i"
-                        >
-                          <button
-                            onClick={() => copyMessage(m.content, m.id)}
-                            className="text-base md:text-lg"
-                            data-oid="zjc-htj"
-                          >
-                            {copiedMessageId === m.id ? (
-                              <Check
-                                className="h-5 w-5 text-[#48AAFF]"
-                                data-oid="a68hwop"
-                              />
-                            ) : (
-                              <Clipboard
-                                className="h-5 w-5 dark:text-[#f7eee3] text-[#000000] hover:text-[#48AAFF]"
-                                data-oid="gp4p:1y"
-                              />
-                            )}
-                          </button>
-                        </div>
-                        <div
-                          className="w-full h-[1px] bg-[#484848]"
-                          data-oid="0pqkos0"
-                        ></div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            {searchResults && (
-              <div
-                className="mx-3 overflow-x-hidden rounded-xl border border-[#f7eee332] dark:bg-gradient-to-r dark:from-[#1a1a1a] dark:to-[#252525] bg-gradient-to-r from-[#f0f0f0] to-[#ffffff] p-4 shadow-lg md:mx-0"
-                data-oid="ttn0tb2"
-              >
-                <div
-                  className="mb-4 flex items-center justify-between"
-                  data-oid="csuzkxu"
-                >
-                  <div className="flex items-center gap-2" data-oid="htfkb0f">
-                    <Globe
-                      className="h-6 w-6 flex-shrink-0 text-[#FF5E00]"
-                      data-oid="yed2yb-"
-                    />
+                  );
+                })}
 
-                    <h3
-                      className="truncate text-lg font-medium dark:text-[#E8E8E6] text-[#000000] md:text-xl"
-                      data-oid="b6ne54s"
-                    >
-                      Web Search Results
-                    </h3>
-                  </div>
-                  <div className="group relative" data-oid="h4467a:">
-                    <button
-                      className="flex items-center gap-2 rounded-full bg-[#4544449d] px-3 py-1.5 dark:text-white text-[#000000] transition-colors duration-200 dark:hover:bg-[#FF5E00] hover:bg-[#FF5E00]"
-                      data-oid="h_wmq:v"
-                    >
-                      <span className="text-base" data-oid="65q0ont">
-                        Sources
-                      </span>
-                      <Info className="h-5 w-5" data-oid="q.6th44" />
-                    </button>
-                    {/* <div className="absolute right-0 z-10 mt-2 hidden w-max max-w-[300px] rounded-lg border border-[#f7eee332] dark:bg-[#1a1a1a] bg-[#ffffff] p-2 shadow-xl group-hover:block">
-                  {searchLinks.map((link, index) => (
-                  <a
-                  key={index}
-                  href={link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block truncate rounded-lg px-3 py-2 text-base dark:text-[#E8E8E6] text-[#000000] dark:hover:bg-[#252525] hover:bg-[#f0f0f0]"
-                  >
-                  {link}
-                  </a>
-                  ))}
-                  </div> */}
-                  </div>
-                </div>
-                <div
-                  className="prose prose-base md:prose-lg dark:prose-invert prose-gray max-w-none"
-                  data-oid="u564iop"
-                >
-                  <MarkdownRenderer
-                    content={searchResults}
-                    data-oid="5w18k3c"
-                  />
-                </div>
+                <div ref={messagesEndRef} data-oid="xsdo_32" />
               </div>
-            )}
-            <div ref={messagesEndRef} data-oid="xsdo_32" />
-          </div>
 
-          {/* Bottom input or toolbar area */}
-          <div
-            className={`flex sticky bottom-0 z-10 flex-row  gap-3 items-center justify-center ${showWhiteboard ? "right-[33.333%]" : "right-0"} left-0
+              {/* Bottom input or toolbar area */}
+              <div
+                className={`flex sticky bottom-0 z-10 flex-row  gap-3 items-center justify-center right-0 left-0
           bg-gradient-to-b from-[var(--background)] via-[var(--background)/80] to-transparent
           p-2 sm:p-4 transition-all duration-300`}
-            data-oid="2j:l2q7"
-          >
-            {isDesignMode ? (
-              // floating Toolbar for design mode
-              <div
-                className={`mx-auto w-auto ${showWhiteboard ? "max-w-full px-2 sm:px-4" : "max-w-2xl px-2 sm:px-3 md:px-0"}`}
-                data-oid="_akrulh"
-              ></div>
-            ) : (
-              // ...existing input field form...
-              <form
-                onSubmit={onSubmit}
-                className={`mx-auto w-full ${showWhiteboard ? "max-w-full px-2 sm:px-4" : "max-w-2xl px-2 sm:px-3 md:px-0"}`}
-                data-oid="8tx03ya"
+                data-oid="2j:l2q7"
               >
-                <div
-                  className="group flex-col  w-full items-center   border border-[#383838] rounded-2xl dark:bg-[#ffffff] bg-[#f0f0f0] p-1  shadow-md transition-all duration-300"
-                  data-oid=":x0551_"
+                {/* ...existing input field form... */}
+                <form
+                  onSubmit={onSubmit}
+                  className={`mx-auto w-full max-w-2xl px-2 sm:px-3 md:px-0`}
+                  data-oid="8tx03ya"
                 >
                   <div
-                    className="flex relative flex-1   items-center overflow-hidden dark:bg-[#bebdbdde] bg-[#ffffff] rounded-xl py-3 sm:py-5 transition-all duration-300"
-                    data-oid="uosyzcp"
+                    className="group flex-col  w-full items-center   border border-[#383838] rounded-2xl dark:bg-[#ffffff] bg-[#f0f0f0] p-1  shadow-md transition-all duration-300"
+                    data-oid=":x0551_"
                   >
-                    {!isVoiceMode ? (
+                    <div
+                      className="flex relative flex-1   items-center overflow-hidden dark:bg-[#bebdbdde] bg-[#ffffff] rounded-xl py-3 sm:py-5 transition-all duration-300"
+                      data-oid="uosyzcp"
+                    >
                       <textarea
                         ref={textareaRef}
                         placeholder="Ask me anything..."
@@ -1839,655 +1211,245 @@ export default function Page() {
                         onKeyDown={handleKeyDown}
                         className="max-h-[120px] min-h-[60px] flex-1 resize-none bg-transparent px-4 py-2 text-base md:text-lg dark:text-[#000000] text-[#000000] outline-none transition-all duration-200 dark:placeholder:text-[#000000] placeholder:text-[#606060] font-serif"
                         rows={1}
-                        data-oid="t_m00wi"
+
                       />
-                    ) : (
-                      <div
-                        className="flex-1 flex items-center justify-center px-4"
-                        data-oid="9_63n7c"
-                      >
-                        <div
-                          className={`flex flex-col items-center ${isRecording ? "animate-pulse" : ""}`}
-                          data-oid="o:w075q"
-                        >
-                          <div className="text-center mb-2" data-oid="g5ln2q7">
-                            {isRecording ? (
-                              <span
-                                className="text-red-500 text-base"
-                                data-oid="ytjgvsv"
-                              >
-                                Recording...
-                              </span>
-                            ) : (
-                              <span
-                                className="dark:text-[#f7eee380] text-[#444444] text-base"
-                                data-oid="gd8aija"
-                              >
-                                Ready to record
-                              </span>
-                            )}
-                          </div>
-                          {transcribedText && (
-                            <div
-                              className="max-w-full overflow-x-auto dark:text-[#f7eee3] text-[#000000] text-base py-2"
-                              data-oid="z7-w5uj"
-                            >
-                              {transcribedText}
-                            </div>
-                          )}
-                        </div>
+                      <div className="absolute right-3 bottom-3 flex gap-3 items-center justify-center">
+                        {/* Submit button */}
+                        <SubmitButton
+                          isLoading={isLoading}
+                          isStreaming={isStreaming}
+                          type="submit"
+                        />
                       </div>
-                    )}
+                    </div>
+                    <div className="flex gap-1 items-center " data-oid="v608xbp">
+                      <div className="relative m-1" >
+                        <button
+                          type="button"
+                          onClick={() => setShowModelSelector(!showModelSelector)}
+                          className="flex items-center justify-between gap-2 px-3 py-1.5 text-base sm:px-4 sm:py-2 sm:text-lg rounded-lg  dark:bg-[#252525] bg-[#e2e2e2] dark:text-[#f7eee3] text-[#000000] transition-colors dark:hover:bg-[#323232] hover:bg-[#d0d0d0] border border-transparent hover:border-gray-300 dark:hover:border-gray-700"
+
+                        >
+                          <div
+                            className="flex items-center gap-2"
+
+                          >
+                            <span className="text-xl" data-oid="39kjr-t">
+                              {MODEL_OPTIONS.find((m) => m.id === selectedModel)
+                                ?.icon || "✨"}
+                            </span>
+                            <span
+                              className="max-w-[100px] sm:max-w-none truncate"
+
+                            >
+                              {getModelDisplayName(selectedModel)}
+                            </span>
+                          </div>
+                          <div className="flex gap-1 ml-1" data-oid="5833l-:">
+                            {/* {renderModelTags(MODEL_OPTIONS.find(m => m.id === selectedModel)?.tags || [])} */}
+                          </div>
+                          <ChevronDown
+                            className="h-4 w-4 ml-1"
+
+                          />
+                        </button>
+                        {showModelSelector && (
+                          <ModelSelector
+                            modelOptions={MODEL_OPTIONS}
+                            selectedModel={selectedModel}
+                            showModelSelector={showModelSelector}
+                            onModelChange={handleModelChange}
+
+                          />
+                        )}
+                      </div>
+
+
+                    </div>
+                  </div>
+
+                  {input.length > 0 && (
                     <div
-                      className="absolute right-3 bottom-3 flex gap-3 items-center justify-center"
-                      data-oid="w2mw50b"
+                      className="mt-1.5 flex items-center justify-between px-1 text-xs dark:text-[#f7eee380] text-[#555555]"
+
                     >
-                      {/* Canvas button */}
-
-                      {/* Submit button */}
-                      {!isVoiceMode && (
-                        <div
-                          className="flex items-center justify-center p-1 bg-[#E0E0E0] rounded-full box-shadow: 76px 2px 58px -95px rgba(224,224,224,1) inset;"
-                          data-oid=".a5ixow"
-                        >
-                          <button
-                            type="submit"
-                            className="p-3 rounded-full bg-[#0D0C0C] hover:bg-[#323232] text-[#f7eee3] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed drop-shadow-xl-[#888787] box-shadow: 76px 2px 58px -95px rgba(136, 135, 135, 1) inset"
-                            data-oid="8jw72wj"
-                          >
-                            {isLoading || isStreaming ? (
-                              <div
-                                className="relative h-6 w-6 flex items-center justify-center"
-                                data-oid="vcj:0kw"
-                              >
-                                {/* Agentic workflow animation */}
-                                <svg
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 50 50"
-                                  className="animate-spin-slow"
-                                  data-oid="ij_rlkf"
-                                >
-                                  {/* Base circular path with gradient */}
-                                  <defs data-oid="skmif.q">
-                                    <linearGradient
-                                      id="grad"
-                                      x1="0%"
-                                      y1="0%"
-                                      x2="100%"
-                                      y2="100%"
-                                      data-oid="jb9_1os"
-                                    >
-                                      <stop
-                                        offset="0%"
-                                        style={{
-                                          stopColor: "#f7eee3",
-                                          stopOpacity: 0.2,
-                                        }}
-                                        data-oid="w9-h55q"
-                                      />
-
-                                      <stop
-                                        offset="100%"
-                                        style={{
-                                          stopColor: "#f7eee3",
-                                          stopOpacity: 0.8,
-                                        }}
-                                        data-oid="68iuwhj"
-                                      />
-                                    </linearGradient>
-                                  </defs>
-                                  <circle
-                                    cx="25"
-                                    cy="25"
-                                    r="22"
-                                    stroke="url(#grad)"
-                                    strokeWidth="1.5"
-                                    fill="none"
-                                    data-oid="_.y_5yx"
-                                  />
-
-                                  {/* Enhanced nodes with subtle glow */}
-                                  <g className="nodes" data-oid="xfkawt9">
-                                    <circle
-                                      cx="25"
-                                      cy="5"
-                                      r="3.5"
-                                      fill="#f7eee3"
-                                      className="animate-pulse-node"
-                                      style={{
-                                        animationDelay: "0ms",
-                                        filter: "drop-shadow(0 0 2px #f7eee3)",
-                                      }}
-                                      data-oid="aqofacf"
-                                    />
-
-                                    <circle
-                                      cx="41"
-                                      cy="15"
-                                      r="3.5"
-                                      fill="#f7eee3"
-                                      className="animate-pulse-node"
-                                      style={{
-                                        animationDelay: "300ms",
-                                        filter: "drop-shadow(0 0 2px #f7eee3)",
-                                      }}
-                                      data-oid="qmhun3i"
-                                    />
-
-                                    <circle
-                                      cx="41"
-                                      cy="35"
-                                      r="3.5"
-                                      fill="#f7eee3"
-                                      className="animate-pulse-node"
-                                      style={{
-                                        animationDelay: "600ms",
-                                        filter: "drop-shadow(0 0 2px #f7eee3)",
-                                      }}
-                                      data-oid="2uc2qy0"
-                                    />
-
-                                    <circle
-                                      cx="25"
-                                      cy="45"
-                                      r="3.5"
-                                      fill="#f7eee3"
-                                      className="animate-pulse-node"
-                                      style={{
-                                        animationDelay: "900ms",
-                                        filter: "drop-shadow(0 0 2px #f7eee3)",
-                                      }}
-                                      data-oid="owajvb7"
-                                    />
-
-                                    <circle
-                                      cx="9"
-                                      cy="35"
-                                      r="3.5"
-                                      fill="#f7eee3"
-                                      className="animate-pulse-node"
-                                      style={{
-                                        animationDelay: "1200ms",
-                                        filter: "drop-shadow(0 0 2px #f7eee3)",
-                                      }}
-                                      data-oid="tg796am"
-                                    />
-
-                                    <circle
-                                      cx="9"
-                                      cy="15"
-                                      r="3.5"
-                                      fill="#f7eee3"
-                                      className="animate-pulse-node"
-                                      style={{
-                                        animationDelay: "1500ms",
-                                        filter: "drop-shadow(0 0 2px #f7eee3)",
-                                      }}
-                                      data-oid="6yni5bl"
-                                    />
-                                  </g>
-
-                                  {/* Smoother flowing path with gradient */}
-                                  <path
-                                    d="M25,5 L41,15 L41,35 L25,45 L9,35 L9,15 Z"
-                                    stroke="url(#grad)"
-                                    strokeWidth="2"
-                                    fill="none"
-                                    strokeDasharray="120"
-                                    strokeDashoffset="120"
-                                    className="animate-dash-flow"
-                                    data-oid="zrnco_d"
-                                  />
-
-                                  {/* Enhanced center node with subtle rotation */}
-                                  <circle
-                                    cx="25"
-                                    cy="25"
-                                    r="5"
-                                    fill="#48AAFF"
-                                    className="animate-pulse-agent"
-                                    style={{
-                                      filter: "drop-shadow(0 0 4px #48AAFF)",
-                                    }}
-                                    data-oid="x14wsc4"
-                                  >
-                                    <animateTransform
-                                      attributeName="transform"
-                                      type="rotate"
-                                      from="0 25 25"
-                                      to="360 25 25"
-                                      dur="4s"
-                                      repeatCount="indefinite"
-                                      data-oid="d3yf3db"
-                                    />
-                                  </circle>
-                                </svg>
-
-                                {/* Enhanced center dot with gradient */}
-                                <div
-                                  className="absolute w-1.5 h-1.5 bg-gradient-to-r from-white to-[#48AAFF] rounded-full animate-ping-slow"
-                                  data-oid="kdg-s2e"
-                                ></div>
-                              </div>
-                            ) : (
-                              <ArrowUp className="h-4 w-4" data-oid="o61_hzu" />
-                            )}
-                          </button>
-                        </div>
-                      )}
+                      <span >
+                        Press Enter to send, Shift + Enter for new line
+                      </span>
+                      <span data-oid="cyafi.h">{input.length}</span>
                     </div>
-                  </div>
-                  <div className="flex gap-1 items-center " data-oid="v608xbp">
-                    <div className="relative m-1" data-oid="2cnt8s4">
-                      <button
-                        type="button"
-                        onClick={() => setShowModelSelector(!showModelSelector)}
-                        className="flex items-center justify-between gap-2 px-3 py-1.5 text-base sm:px-4 sm:py-2 sm:text-lg rounded-lg  dark:bg-[#252525] bg-[#e2e2e2] dark:text-[#f7eee3] text-[#000000] transition-colors dark:hover:bg-[#323232] hover:bg-[#d0d0d0] border border-transparent hover:border-gray-300 dark:hover:border-gray-700"
-                        data-oid="xgxvnao"
-                      >
-                        <div
-                          className="flex items-center gap-2"
-                          data-oid="ko3044o"
-                        >
-                          <span className="text-xl" data-oid="39kjr-t">
-                            {MODEL_OPTIONS.find((m) => m.id === selectedModel)
-                              ?.icon || "✨"}
-                          </span>
-                          <span
-                            className="max-w-[100px] sm:max-w-none truncate"
-                            data-oid=".wzvffx"
+                  )}
+
+                  {error && (
+                    <ErrorDisplay
+                      message={error}
+                      icon={
+                        error.includes("Internet connection") ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-red-500"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            data-oid="1-hv8:."
                           >
-                            {getModelDisplayName(selectedModel)}
-                          </span>
-                        </div>
-                        <div className="flex gap-1 ml-1" data-oid="5833l-:">
-                          {/* {renderModelTags(MODEL_OPTIONS.find(m => m.id === selectedModel)?.tags || [])} */}
-                        </div>
-                        <ChevronDown
-                          className="h-4 w-4 ml-1"
-                          data-oid="s1kovsy"
-                        />
-                      </button>
-                      {showModelSelector && (
-                        <ModelSelector
-                          modelOptions={MODEL_OPTIONS}
-                          selectedModel={selectedModel}
-                          showModelSelector={showModelSelector}
-                          onModelChange={handleModelChange}
-                          data-oid="vz8vzih"
-                        />
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#000000] p-2 rounded-lg transition-colors duration-200"
-                      onClick={toggleWhiteboard}
-                      data-oid="0rix:jz"
-                    >
-                      <Paintbrush className="h-6 w-6" data-oid=":79y8qd" />
-                    </button>
-                    <button
-                      type="button"
-                      className="flex m-1 dark:bg-[#252525] bg-[#e2e2e2] dark:hover:bg-[#323232] hover:bg-[#d0d0d0] dark:text-[#f7eee3] text-[#000000] p-2 rounded-lg transition-colors duration-200"
-                      title="sphere Voice Assistant"
-                      aria-label={
-                        isVoiceMode
-                          ? "Exit Voice Mode"
-                          : "Activate sphere Voice Assistant"
+                            <path
+                              fillRule="evenodd"
+                              d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a 1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                              clipRule="evenodd"
+                              data-oid="lh.:33h"
+                            />
+
+                            <path
+                              d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z"
+                              data-oid="-8ysrry"
+                            />
+                          </svg>
+                        ) : undefined
                       }
-                      onClick={toggleFullScreenVoiceMode}
-                      data-oid="lcdzpaa"
-                    >
-                      {isRecording ? (
-                        <MicOff className="h-6 w-6" data-oid="koicer2" />
-                      ) : (
-                        <Mic className="h-6 w-6" data-oid="dxrkrw-" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+                      actionText={
+                        error.includes("Internet connection")
+                          ? "Reload page"
+                          : undefined
+                      }
+                      onAction={
+                        error.includes("Internet connection")
+                          ? () => window.location.reload()
+                          : undefined
+                      }
+                      data-oid="x6_7ny_"
+                    />
+                  )}
+                </form>
+              </div>
+            </div>
+          )}
 
-                {input.length > 0 && !isVoiceMode && (
-                  <div
-                    className="mt-1.5 flex items-center justify-between px-1 text-xs dark:text-[#f7eee380] text-[#555555]"
-                    data-oid="a8uue-n"
-                  >
-                    <span data-oid="xg8i4j8">
-                      Press Enter to send, Shift + Enter for new line
-                    </span>
-                    <span data-oid="cyafi.h">{input.length}</span>
-                  </div>
-                )}
 
-                {error && (
-                  <ErrorDisplay
-                    message={error}
-                    icon={
-                      error.includes("Internet connection") ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 text-red-500"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                          data-oid="1-hv8:."
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a 1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
-                            clipRule="evenodd"
-                            data-oid="lh.:33h"
-                          />
 
-                          <path
-                            d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z"
-                            data-oid="-8ysrry"
-                          />
-                        </svg>
-                      ) : undefined
-                    }
-                    actionText={
-                      error.includes("Internet connection")
-                        ? "Reload page"
-                        : undefined
-                    }
-                    onAction={
-                      error.includes("Internet connection")
-                        ? () => window.location.reload()
-                        : undefined
-                    }
-                    data-oid="x6_7ny_"
-                  />
-                )}
-              </form>
-            )}
-          </div>
-        </div>
-      )}
-
-      {showWhiteboard && (
-        <div
-          ref={whiteboardRef}
-          className="fixed right-0 top-[56px] z-20 h-[calc(100vh-56px)] w-full border-l border-[#f7eee332] md:w-1/3 dark:bg-[#1a1a1a] bg-[#f0f0f0]"
-          style={{ touchAction: "none" }}
-          data-oid="0w4ejut"
-        >
-          <Tldraw
-            inferDarkMode
-            components={components}
-            persistenceKey="example"
-            onMount={(editor: Editor) => {
-              editor.setCamera({ x: 0, y: 0, z: 0 });
-              tldrawEditor.current = editor;
-            }}
-            data-oid="8cpev-."
+          {/* Chat Switcher Modal */}
+          <ChatSwitcher
+            isOpen={showChatSwitcher}
+            onClose={() => setShowChatSwitcher(false)}
+            filteredChats={filteredChats}
+            currentChatId={chatId}
+            onSwitchToChat={switchToChat}
+            onCreateNewChat={createNewChat}
           />
 
+
+
+          {/* Add this right after the existing error notification */}
+          {showCreditLimitError && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+              data-oid="vc1jlj8"
+            >
+              <div
+                className="relative w-full max-w-md rounded-lg bg-white dark:bg-[#1a1a1a] p-6 shadow-xl"
+                data-oid="zxgnm10"
+              >
+                <div
+                  className="mb-4 flex items-center justify-between"
+                  data-oid="wchlo8."
+                >
+                  <h2
+                    className="text-xl font-bold dark:text-white text-black"
+                    data-oid="28k1og8"
+                  >
+                    Credit Limit Reached
+                  </h2>
+                  <button
+                    onClick={() => setShowCreditLimitError(false)}
+                    className="rounded-full p-1 dark:text-gray-400 text-gray-500 hover:dark:bg-gray-800 hover:bg-gray-200"
+                    data-oid="a_8p3qb"
+                  >
+                    <X className="h-5 w-5" data-oid="rzw8.a1" />
+                  </button>
+                </div>
+                <div
+                  className="mb-6 text-gray-800 dark:text-gray-200"
+                  data-oid="4kywl0g"
+                >
+                  <p className="mb-3" data-oid="0oh6cah">
+                    You&apos;ve reached your free usage limit for the selected AI
+                    model today.
+                  </p>
+                  <p data-oid="gbikx13">Please try one of these options:</p>
+                  <ul className="list-disc ml-5 mt-2 space-y-1" data-oid="boc_mk1">
+                    <li data-oid="3j1y549">Switch to a different AI model</li>
+                    <li data-oid="pf5h.1c">
+                      Try again tomorrow when your limits reset
+                    </li>
+                  </ul>
+                </div>
+                <div className="flex justify-between" data-oid="_.1ie-y">
+                  <button
+                    onClick={() => {
+                      setShowCreditLimitError(false);
+                      setShowModelSelector(true);
+                    }}
+                    className="flex items-center justify-center w-full gap-2 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                    data-oid="lqze5i."
+                  >
+                    Switch Model
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Floating Diagram Toggle Button (when panel is closed but diagrams are available) */}
+        {!isMobile && !hasDiagramsAvailable && Object.keys(messageDiagrams).length > 0 && (
           <button
-            onClick={() => setShowWhiteboard(false)}
-            className="absolute top-0 right-0 z-30 flex items-center justify-center gap-2 rounded-bl-xl dark:bg-[#1A1A1C] bg-[#e2e2e2] p-3 text-sm dark:text-[#f7eee3] text-[#000000] dark:hover:bg-[#575757] hover:bg-[#d0d0d0]"
-            data-oid="s:y.u.n"
+            onClick={() => {
+              const lastMessageId = Object.keys(messageDiagrams)[Object.keys(messageDiagrams).length - 1];
+              if (lastMessageId) {
+                handleDiagramClick(lastMessageId);
+              }
+            }}
+            className="fixed right-4 bottom-4 p-3 bg-blue-500/95 hover:bg-blue-600/95 backdrop-blur-xl rounded-full border border-blue-400/50 z-20 shadow-2xl hover:scale-105 transition-all duration-200 group text-white"
+            title="View available diagrams"
           >
-            Close
+            <svg className="h-5 w-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            {Object.keys(messageDiagrams).length > 1 && (
+              <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                {Object.keys(messageDiagrams).length}
+              </div>
+            )}
           </button>
-        </div>
-      )}
+        )}
 
-      {/* Add Chat Switcher Modal */}
-      {showChatSwitcher && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-          data-oid="5fezq60"
-        >
-          <div
-            className="relative w-full max-w-lg rounded-3xl bg-[#E9E9E9] p-0 shadow-xl dark:bg-[#E9E9E9]"
-            data-oid="jv4p_g0"
-          >
-            {/* Close button */}
-            <button
-              onClick={() => setShowChatSwitcher(false)}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-black/10 text-gray-600 hover:bg-black/20 transition-all"
-              aria-label="Close chat switcher"
-              data-oid="1wfy8f4"
-            >
-              <X className="h-4 w-4" data-oid="jw3v48q" />
-            </button>
-
-            {/* Today section */}
-            <div className="p-6" data-oid="e2iv9-0">
-              <h2
-                className="mb-6 text-xl font-semibold text-gray-500"
-                data-oid="hu_k258"
-              >
-                Today
-              </h2>
-
-              <div
-                className="space-y-4 max-h-60 overflow-y-auto"
-                data-oid="m4sseja"
-              >
-                {filteredChats
-                  .filter((chat) => {
-                    const chatDate = new Date(chat.updatedAt);
-                    const today = new Date();
-                    return chatDate.toDateString() === today.toDateString();
-                  })
-                  .map((chat) => (
-                    <button
-                      key={chat.id}
-                      onClick={() => {
-                        switchToChat(chat.id);
-                        setShowChatSwitcher(false);
-                      }}
-                      className={`w-full flex items-start text-left py-2 px-3 rounded-xl transition-colors 
-                        ${
-                          chatId === chat.id
-                            ? "bg-white dark:bg-white shadow-sm"
-                            : "hover:bg-white/50 dark:hover:bg-white/50"
-                        }`}
-                      data-oid="6d.r26f"
-                    >
-                      <div className="min-w-0 flex-1" data-oid="6s2ua4k">
-                        <h3
-                          className="font-medium text-black truncate"
-                          data-oid="yugbaxc"
-                        >
-                          {chat.title}
-                        </h3>
-                        {chat.firstMessage && (
-                          <p
-                            className="mt-1 text-sm text-gray-500 line-clamp-1"
-                            data-oid="kdegjgz"
-                          >
-                            {chat.firstMessage}
-                          </p>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-
-                {filteredChats.filter((chat) => {
-                  const chatDate = new Date(chat.updatedAt);
-                  const today = new Date();
-                  return chatDate.toDateString() === today.toDateString();
-                }).length === 0 && (
-                  <div
-                    className="py-6 text-center text-gray-500"
-                    data-oid=":65osby"
-                  >
-                    No chats from today
+        {/* Floating Right Diagram Panel */}
+        {!isMobile && hasDiagramsAvailable && diagramContent && (
+          <div className="fixed right-4 top-4 w-[30rem] h-[95svh] bg-white/95 dark:bg-[#1a1a1a] backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-700/50 z-20 shadow-2xl overflow-hidden animate-in slide-in-from-right-5 duration-300">
+            <div className="h-full flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200/50 dark:border-gray-700/5">
+                <div className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm">
+                    📊
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* History section */}
-            <div
-              className="border-t border-gray-300 p-6 relative"
-              data-oid="8wzy3kb"
-            >
-              <h2
-                className="text-xl font-medium text-black mb-6"
-                data-oid="eie9w:i"
-              >
-                History
-              </h2>
-
-              <div
-                className="space-y-4 max-h-60 overflow-y-auto"
-                data-oid="3-ci74a"
-              >
-                {filteredChats
-                  .filter((chat) => {
-                    const chatDate = new Date(chat.updatedAt);
-                    const today = new Date();
-                    return chatDate.toDateString() !== today.toDateString();
-                  })
-                  .sort((a, b) => b.updatedAt - a.updatedAt) // Sort by increasing date (oldest to newest)
-                  .map((chat) => (
-                    <button
-                      key={chat.id}
-                      onClick={() => {
-                        switchToChat(chat.id);
-                        setShowChatSwitcher(false);
-                      }}
-                      className={`w-full flex items-start text-left py-2 px-3 rounded-xl transition-colors 
-                        ${
-                          chatId === chat.id
-                            ? "bg-white dark:bg-white shadow-sm"
-                            : "hover:bg-white/50 dark:hover:bg-white/50"
-                        }`}
-                      data-oid="dyjg9y_"
-                    >
-                      <div className="min-w-0 flex-1" data-oid="0xr5fq:">
-                        <h3
-                          className="font-medium text-black truncate"
-                          data-oid="ut36k9m"
-                        >
-                          {chat.title}
-                        </h3>
-                        {chat.firstMessage && (
-                          <p
-                            className="mt-1 text-sm text-gray-500 line-clamp-1"
-                            data-oid="hqzo4o0"
-                          >
-                            {chat.firstMessage}
-                          </p>
-                        )}
-                        <div
-                          className="mt-1 text-xs text-gray-400"
-                          data-oid="c6:t1w-"
-                        >
-                          {new Date(chat.updatedAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-
-                {filteredChats.filter((chat) => {
-                  const chatDate = new Date(chat.updatedAt);
-                  const today = new Date();
-                  return chatDate.toDateString() !== today.toDateString();
-                }).length === 0 && (
-                  <div
-                    className="py-6 text-center text-gray-500"
-                    data-oid="cpebl5u"
-                  >
-                    No older chats
-                  </div>
-                )}
+                  Diagrams
+                </div>
+                <button
+                  onClick={handleCloseDiagramPanel}
+                  className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
 
-              {/* Enhanced New chat button with inner shadows and dynamic effects */}
-              <Button
-                onClick={() => {
-                  createNewChat();
-                  setShowChatSwitcher(false);
-                }}
-                variant="default"
-                size="icon"
-                //isRounded={true}
-                className="absolute bottom-6 right-6 h-14 w-14"
-                aria-label="New Chat"
-                // leftIcon={
-                //   <Plus className="h-6 w-6 stroke-[2.5px]" data-oid="m_-bhnd" />
-                // }
-                // data-oid="5es_4ng"
-              />
+              {/* Content */}
+              <div className="flex-1 text-red-400 overflow-y-auto p-4">
+                <MarkdownRenderer content={diagramContent} onlyDiagrams={true} />
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Add Jarvis Voice Mode UI */}
-      {isFullScreenVoiceMode && (
-        <VoiceMode
-          onSubmit={handleVoiceCommand}
-          onExit={exitVoiceMode}
-          lastResponse={messages[messages.length - 1]?.role === "assistant" ? messages[messages.length - 1]?.content : undefined}
-          data-oid="tmvs4-c"
-        />
-      )}
-
-      {/* Add this right after the existing error notification */}
-      {showCreditLimitError && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-          data-oid="vc1jlj8"
-        >
-          <div
-            className="relative w-full max-w-md rounded-lg bg-white dark:bg-[#1a1a1a] p-6 shadow-xl"
-            data-oid="zxgnm10"
-          >
-            <div
-              className="mb-4 flex items-center justify-between"
-              data-oid="wchlo8."
-            >
-              <h2
-                className="text-xl font-bold dark:text-white text-black"
-                data-oid="28k1og8"
-              >
-                Credit Limit Reached
-              </h2>
-              <button
-                onClick={() => setShowCreditLimitError(false)}
-                className="rounded-full p-1 dark:text-gray-400 text-gray-500 hover:dark:bg-gray-800 hover:bg-gray-200"
-                data-oid="a_8p3qb"
-              >
-                <X className="h-5 w-5" data-oid="rzw8.a1" />
-              </button>
-            </div>
-            <div
-              className="mb-6 text-gray-800 dark:text-gray-200"
-              data-oid="4kywl0g"
-            >
-              <p className="mb-3" data-oid="0oh6cah">
-                You&apos;ve reached your free usage limit for the selected AI
-                model today.
-              </p>
-              <p data-oid="gbikx13">Please try one of these options:</p>
-              <ul className="list-disc ml-5 mt-2 space-y-1" data-oid="boc_mk1">
-                <li data-oid="3j1y549">Switch to a different AI model</li>
-                <li data-oid="pf5h.1c">
-                  Try again tomorrow when your limits reset
-                </li>
-              </ul>
-            </div>
-            <div className="flex justify-between" data-oid="_.1ie-y">
-              <button
-                onClick={() => {
-                  setShowCreditLimitError(false);
-                  setShowModelSelector(true);
-                }}
-                className="flex items-center justify-center w-full gap-2 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                data-oid="lqze5i."
-              >
-                Switch Model
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </main>
+        )}
+      </main>
+    </div>
   );
 }

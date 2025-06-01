@@ -750,7 +750,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               let isValidJSON = true;
               try {
                 JSON.parse(codeString);
-              } catch (e) {
+              } catch {
                 isValidJSON = false;
               }
 

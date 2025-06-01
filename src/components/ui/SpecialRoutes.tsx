@@ -8,13 +8,23 @@ import Para from './Para';
 
 export default function SpecialRoutes({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  
-  // If we're on the role-selection page, show it
-  if (pathname === '/role-selection') {
+
+  // Routes that should render their own content without the landing page layout
+  const specialRoutes = [
+    '/role-selection',
+    '/signin',
+    '/signup',
+    '/sign-in',
+    '/sign-up',
+    '/onboarding'
+  ];
+
+  // If we're on any special route, show the page content directly
+  if (specialRoutes.some(route => pathname.startsWith(route))) {
     return <>{children}</>;
   }
-  
-  // Otherwise, show the home page
+
+  // Otherwise, show the landing page layout
   return (
     <div className="min-h-[100svh] w-[100vw] bg-black text-[#a0a0a0] overflow-x-hidden">
       <Header />

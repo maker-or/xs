@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { FileText, Book, Globe } from "lucide-react";
 
 interface Citation {
   url: string;

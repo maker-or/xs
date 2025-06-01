@@ -12,14 +12,14 @@ export default function RoleRedirect() {
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
 
-    // Allow if already in student, teacher, ai, or repo paths
+    // Allow if already in student, teacher, ai, repo, or onboarding paths
     if (
       pathname.startsWith('/student') ||
       pathname.startsWith('/teacher') ||
       pathname.startsWith('/ai') ||
-      pathname.startsWith('/loading') ||
-      pathname.startsWith('/repo')||
-       pathname.startsWith('/test')
+      pathname.startsWith('/onboarding') ||
+      pathname.startsWith('/repo') ||
+      pathname.startsWith('/test')
     ) {
       return;
     }
@@ -33,8 +33,8 @@ export default function RoleRedirect() {
       }
     }
 
-    // Redirect to loading page which will handle role determination
-    router.replace('/loading');
+    // Redirect to onboarding page which will handle role determination
+    router.replace('/onboarding');
   }, [isLoaded, isSignedIn, pathname, router]);
 
   return null;

@@ -525,31 +525,55 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         .katex .mbin.amsrm {
           margin: 0 0.25em !important;
         }
-        .custom-bullet-list li:before {
-          content: '•';
-          color: #99C5CB !important;
-          font-weight: bold;
-          position: absolute;
-          left: -1.5rem;
-          top: 0.75rem;
+        /* Proper list styling with custom bullets and numbering */
+        .markdown-content ul {
+          list-style-type: none !important;
+          padding-left: 1.5rem !important;
         }
-        .custom-numbered-list {
+        .markdown-content ol {
+          list-style-type: none !important;
+          padding-left: 1.5rem !important;
           counter-reset: list-counter;
         }
-        .custom-numbered-list li {
+        .markdown-content li {
+          position: relative !important;
+          margin: 0.5rem 0 !important;
+        }
+        .markdown-content ul > li::before {
+          content: '•' !important;
+          color: #99C5CB !important;
+          font-weight: bold !important;
+          position: absolute !important;
+          left: -1.2rem !important;
+          top: 0 !important;
+          display: block !important;
+        }
+        .markdown-content ol > li {
           counter-increment: list-counter;
         }
-        .custom-numbered-list li:before {
-          content: counter(list-counter) '.';
-          color: #99C5CB !important;
-          font-weight: bold;
-          position: absolute;
-          left: -2rem;
-          top: 0.75rem;
+        .markdown-content ol > li::before {
+          content: counter(list-counter) ". " !important;
+          color: #99C5CB !important; /* Or any color you prefer for numbers */
+          font-weight: bold !important;
+          position: absolute !important;
+          left: -1.5rem !important; /* Adjust as needed for alignment */
+          top: 0 !important;
+          display: block !important;
+          width: 1.5rem; /* Ensure space for the number */
+          text-align: right; /* Align numbers to the right before the dot */
         }
+
+        /* Ensure ::after pseudo-elements on list items are not displaying anything */
+        .markdown-content ul > li::after,
+        .markdown-content ol > li::after {
+          content: "" !important;
+          display: none !important;
+        }
+
+        
       `}</style>
       <div
-        className="prose max-w-none dark:prose-invert prose-lg [&_.katex]:my-4 [&_.katex]:text-lg [&_.katex-display]:my-6 [&_.katex-display]:text-xl [&_.katex-display]:py-4 [&_.katex-display]:px-2 [&_.katex]:leading-relaxed [&_.katex-mathml]:hidden"
+        className="markdown-content max-w-none [&_.katex]:my-4 [&_.katex]:text-lg [&_.katex-display]:my-6 [&_.katex-display]:text-xl [&_.katex-display]:py-4 [&_.katex-display]:px-2 [&_.katex]:leading-relaxed [&_.katex-mathml]:hidden"
         data-oid="e3n597w"
       >
       <ReactMarkdown
@@ -649,7 +673,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             if (isInline) {
               return (
                 <code
-                  className={`${className} text-base md:text-lg`}
+                  className={`${className || ''} text-base md:text-lg bg-[#50636A] text-[#617D82] px-1 py-0.5 rounded`}
                   {...restProps}
                   data-oid="cqf0ne7"
                 >
@@ -969,7 +993,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           blockquote({ children }) {
             return (
               <blockquote
-                className="border-l-4 border-blue-500 bg-yellow-500 pl-4 italic my-4"
+                className="border-l-4  bg-yellow-500 pl-4  my-4"
 
               >
                 {children}
@@ -1005,7 +1029,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           ul({ children }) {
             return (
-              <ul className="custom-bullet-list list-none pl-8 my-4" data-oid="swyr7.k">
+              <ul className="my-4" data-oid="swyr7.k">
                 {children}
               </ul>
             );
@@ -1013,7 +1037,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           ol({ children }) {
             return (
               <ol
-                className="custom-numbered-list list-none pl-12 my-4"
+                className="my-4"
                 data-oid="6yjdj89"
               >
                 {children}
@@ -1022,7 +1046,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           },
           li({ children }) {
             return (
-              <li className="my-8 p-3 relative" data-oid="l8rvb-5">
+              <li className="my-1" data-oid="l8rvb-5">
                 {children}
               </li>
             );
@@ -1032,6 +1056,13 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               <p className="my-4  " data-oid="v06:sbi">
                 {children}
               </p>
+            );
+          },
+          strong({ children }) {
+            return (
+              <strong className="font-bold" style={{ fontWeight: 'bold' }} data-oid="bold-text">
+                {children}
+              </strong>
             );
           },
         }}

@@ -104,13 +104,13 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
   }
 
   return (
-    <div className="relative flex max-h-[500px] w-1/2 flex-col overflow-hidden rounded-3xl border border-[#f7eee3]/20 bg-[#000000]/60 p-6 text-[#f7eee3] shadow-2xl backdrop-blur-xl">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#000000]/10 to-[#000000]/5 opacity-50 blur-3xl"></div>
+    <div className=" bg-[#121212]   text-[#f7eee3] shadow-2xl backdrop-blur-xl rounded-3xl p-1 pb-12  border-[#5858583d] border-2">
+      <div className=" bg-[#2a2a2a] text-[#a0a0a0] rounded-2xl w-[600px] max-w-[90vw] shadow-2xl p-4  overflow-hidden">
 
       <div className="mb-6 flex items-center justify-between">
         <button
           onClick={onClose}
-          className="rounded-full bg-[#f7eee3]/10 p-2 text-[#f7eee3]/70 transition-colors hover:text-[#f7eee3]"
+          className="rounded-xl bg-[#0E0D0D]p-2 text-[#f7eee3]/70 transition-colors hover:text-[#f7eee3]"
           aria-label="Close"
         >
           <ChevronLeft size={24} />
@@ -164,7 +164,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
             onChange={(e) => setNewTask(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Enter new task"
-            className="flex-grow rounded-xl border border-[#f7eee3]/20 bg-[#f7eee3]/10 p-3 text-[#f7eee3] backdrop-blur-md focus:outline-none"
+            className="flex-grow rounded-xl border border-[#f7eee3]/20 bg-[#f7eee3]/10 p-3 text-[#f7eee3] placeholder:text-[#6D6D6C] backdrop-blur-md focus:outline-none"
           />
           <button
             onClick={() => { void handleAddTask(); }}
@@ -185,6 +185,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
           </button>
         </div>
       )}
+      </div>
     </div>
   );
 };

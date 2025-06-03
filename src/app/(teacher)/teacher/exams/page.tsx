@@ -201,7 +201,7 @@ export default function ExamCreationPage() {
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
                   Subject
                 </label>
                 <input
@@ -210,7 +210,7 @@ export default function ExamCreationPage() {
                   value={formData.subject}
                   onChange={handleInputChange}
                   className={`w-full p-2    rounded-md ${formErrors.subject ? '  -red-500' : '  -gray-300   '} dark:bg-[#181818] placeholder:text-[#818181]`}
-                  placeholder="e.g., Mathematics, Computer Science, Physics"
+     
                 />
                 {formErrors.subject && (
                   <p className="text-red-500 text-xs mt-1">{formErrors.subject}</p>
@@ -218,7 +218,7 @@ export default function ExamCreationPage() {
               </div>
 
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
                   Topic (Optional)
                 </label>
                 <input
@@ -227,12 +227,12 @@ export default function ExamCreationPage() {
                   value={formData.topic}
                   onChange={handleInputChange}
                   className="w-full p-2      -gray-300    rounded-md dark:bg-[#181818] placeholder:text-[#818181]"
-                  placeholder="e.g., Calculus, Machine Learning, Quantum Mechanics"
+             
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
                   Number of Questions
                 </label>
                 <input
@@ -250,7 +250,7 @@ export default function ExamCreationPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
                   Difficulty Level
                 </label>
                 <select
@@ -269,7 +269,7 @@ export default function ExamCreationPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
                   Duration (minutes)
                 </label>
                 <input
@@ -287,7 +287,7 @@ export default function ExamCreationPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
                   Time per Question (seconds)
                 </label>
                 <input
@@ -308,7 +308,7 @@ export default function ExamCreationPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
                   Start Date & Time
                 </label>
                 <input
@@ -324,7 +324,7 @@ export default function ExamCreationPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
                   End Date & Time
                 </label>
                 <input
@@ -340,7 +340,7 @@ export default function ExamCreationPage() {
               </div>
 
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
                   Student List (CSV)
                 </label>
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 bg-[#181818] rounded-lg  ">
@@ -416,11 +416,11 @@ export default function ExamCreationPage() {
           </form>
         </div>
 
-        <div className="max-w-2xl mx-auto mt-8 bg-white dark:bg-[#464646] rounded-lg shadow p-6">
+        <div className="max-w-2xl mx-auto mt-8 bg-white dark:bg-[#202020] rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">CSV Format Help</h2>
 
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">Email Format Example:</h3>
+            <h3 className="text-lg font-medium text-[#0c0c0c] dark:text-gray-300">Email Format Example:</h3>
             <pre className="bg-gray-100 dark:bg-[#181818] p-3 rounded mt-2 overflow-x-auto">
               <code>email<br/>student1@example.com<br/>student2@example.com<br/>student3@example.com</code>
             </pre>

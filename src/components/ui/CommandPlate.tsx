@@ -4,7 +4,7 @@ import { SignOutButton } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import TaskComponent from '~/components/ui/TaskComponent';
 import PomodoroComponent from '~/components/ui/PomodoroComponent';
-import ChatComponent from '~/components/ui/ChatComponent';
+// import ChatComponent from '~/components/ui/ChatComponent';
 import Filesearch from './Filesearch';
 import ExamStatus from './ExamStatus';
 import "~/styles/globals.css";
@@ -27,14 +27,14 @@ const CommandPlate = () => {
   const commands = [
     { name: 'Task', shortcut: '⌘ T', icon: 'check', handler: () => setActiveView('task') },
     { name: 'Timer', shortcut: '⌘ I', icon: 'clock', handler: () => setActiveView('timer') },
-    { name: 'Sphere Intelligence', shortcut: '⌘ S', icon: 'globe', handler: () => setActiveView('Sphere Intelligence') },
+    // { name: 'Sphere Intelligence', shortcut: '⌘ S', icon: 'globe', handler: () => setActiveView('Sphere Intelligence') },
     { name: 'Logout', shortcut: '⌘ ,', icon: 'settings', handler: () => setActiveView('logout') },
     { name: 'File Search', shortcut: '⌘ ,', icon: 'File Searh', handler: () => setActiveView('Filesearch') },
     { name: 'Exam Status', shortcut: '⌘ E', icon: 'exam', handler: () => setActiveView('examStatus') },
-    { name: 'Self Test', shortcut: '⌘ S', icon: 'test', handler: () => {
-      setIsOpen(false);
-      router.push('/test');
-    } },
+    // { name: 'Self Test', shortcut: '⌘ S', icon: 'test', handler: () => {
+    //   setIsOpen(false);
+    //   router.push('/test');
+    // } },
   ];
 
   // Focus management and keyboard shortcuts [unchanged]
@@ -105,16 +105,19 @@ const CommandPlate = () => {
         />
       );
     }
-    else if (activeView === 'Sphere Intelligence') {
-      return (
-        <ChatComponent
-          onClose={() => {
-            setActiveView('commands');
-            setSearchQuery('');
-          }}
-        />
-      );
-    }
+
+
+
+    // else if (activeView === 'Sphere Intelligence') {
+    //   return (
+    //     <ChatComponent
+    //       onClose={() => {
+    //         setActiveView('commands');
+    //         setSearchQuery('');
+    //       }}
+    //     />
+    //   );
+    // }
     else if (activeView === 'Filesearch') {
       return (
         <Filesearch
@@ -127,9 +130,12 @@ const CommandPlate = () => {
     }
     else if (activeView === 'examStatus') {
       return (
-        <div className="bg-[#0c0c0ce0] backdrop-blur-3xl text-[#e1ddd6] rounded-xl p-6 w-2/3 max-w-3xl shadow-2xl border border-[#f7eee338] inner overflow-hidden">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Exam Status</h2>
+        <div className="bg-[#121212] rounded-3xl p-1 pb-12  border-[#5858583d] border-2">
+          <div className="bg-[#2a2a2a] text-[#a0a0a0] rounded-2xl w-[600px] max-w-[90vw] shadow-2xl  overflow-hidden p-3">
+            <div className='flex justify-between items-center mb-4'>
+              <h2 className="text-xl font-bold">Exam Status</h2>
+
+         
             <button
               onClick={() => {
                 setActiveView('commands');
@@ -139,8 +145,11 @@ const CommandPlate = () => {
             >
               Close
             </button>
+            </div>
+            
+                <ExamStatus />
           </div>
-          <ExamStatus />
+         
         </div>
       );
     }

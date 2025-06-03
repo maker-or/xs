@@ -1,4 +1,4 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 // import { getEmbedding } from '~/utils/embeddings';
 import { type ConvertibleMessage } from '~/utils/types';
 import { streamText } from "ai";
@@ -61,16 +61,11 @@ export async function POST(req: Request): Promise<Response> {
 
     // console.log(context);
 
-    const google = createGoogleGenerativeAI({
-      baseURL: 'https://generativelanguage.googleapis.com/v1beta',
-      apiKey: process.env.GEMINI_API_KEY
+    const openrouter = createOpenRouter({
+      apiKey: process.env.OPENROUTER_API_KEY,
     });
 
-    const model = google('models/gemini-1.5-pro-latest', {
-      safetySettings: [
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
-      ],
-    });
+    const model = openrouter('google/gemma-3-27b-it:free');
 
     // Generate SQL query
     const generatedSQL = await generateQuery(query);

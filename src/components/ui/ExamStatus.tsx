@@ -113,10 +113,10 @@ const ExamStatus = () => {
   // Available exam
   if (examAvailable && exam) {
     return (
-      <div className="w-full bg-gradient-to-r from-blue-900/50 to-indigo-900/30 rounded-lg p-6 my-4 border border-blue-700/50">
+      <div className="w-full rounded-lg p-6 my-4 border ">
         <div className="flex justify-between items-start">
           <div>
-            <span className="px-3 py-1 text-xs font-medium bg-blue-600 rounded-full mb-3 inline-block">
+            <span className="px-3 py-1 text-xs font-medium  rounded-full mb-3 inline-block">
               Available Now
             </span>
             <h3 className="text-xl font-bold mb-1">{exam.subject}</h3>
@@ -147,7 +147,7 @@ const ExamStatus = () => {
 
   // No active exam
   return (
-    <div className="w-full bg-gray-800/50 rounded-lg p-6 my-4">
+    <div className="w-fullrounded-lg p-6 my-4">
       <h3 className="text-xl font-semibold mb-3">No Active Exams</h3>
       <p className="text-gray-300 mb-4">
         You don&apos;t have any exams available at this time. Check back later or contact your teacher.

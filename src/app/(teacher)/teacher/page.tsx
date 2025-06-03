@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import TagInput from "~/components/ui/TagInput";
-import Navbar from "~/components/ui/Navbar";
+// import Navbar from "~/components/ui/Navbar";
+import Tnav from "~/components/ui/Tnav";
 
 
 
@@ -68,32 +69,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
-      <Navbar />
+      <Tnav />
 
-      <main className="container p-3">
-        <div className="flex flex-col gap-6 ">
-          {/* Exam Management Section */}
-          {/* <div className="bg-white dark:bg-[#000000] rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-4">Exam Management</h2>
-            <p className="mb-4 text-gray-600 dark:text-gray-300">
-              Create and manage online exams for your students. View results and export data.
-            </p>
-            <div className="flex flex-col space-y-2">
-              <Link
-                href="/teacher/exams"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 inline-flex items-center justify-center"
-              >
-                Create New Exam
-              </Link>
-              <Link
-                href="/teacher/exams/results"
-                className="px-4 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 inline-flex items-center justify-center"
-              >
-                View Exam Results
-              </Link>
-            </div>
-          </div> */}
-          
+      <main className=" w-full flex items-center justify-center p-3">
+        <div className="flex  w-full flex-col gap-6 ">          
           {/* Original resource upload section can go here */}
           <div className="bg-white dark:bg-[#000000] rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold mb-4">Resource Upload</h2>
@@ -111,7 +90,7 @@ export default function HomePage() {
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Enter filename"
-                    className="mt-8 w-[90%] border-b placeholder:text-[#595959] border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none "
+                    className="mt-8 w-[90%] border-b placeholder:text-[#9CA3AF] border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none "
                   />
                 </div>
                 <div>
@@ -120,7 +99,7 @@ export default function HomePage() {
                     name="year"
                     value={formData.year}
                     onChange={handleInputChange}
-                    className="mt-8 w-[90%] border-b border-gray-300 bg-inherit text-2xl text-[#9CA3AF] outline-none"
+                    className="mt-8 w-[90%] border-b border-gray-300 bg-inherit text-2xl text-[#9CA3AF] outline-none placeholder:text-[#9CA3AF]"
                   >
                     <option value="" className="" disabled>
                       Choose year
@@ -141,7 +120,7 @@ export default function HomePage() {
                     value={formData.branch}
                     onChange={handleInputChange}
                     placeholder="Enter branch"
-                    className="mt-8 w-[90%] border-b  placeholder:text-[#595959] border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none"
+                    className="mt-8 w-[90%] border-b  placeholder:text-[#9CA3AF] border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none"
                   />
                 </div>
                 <div>
@@ -152,7 +131,7 @@ export default function HomePage() {
                     value={formData.subject}
                     onChange={handleInputChange}
                     placeholder="Enter subject"
-                    className="mt-8 w-[90%] border-b placeholder:text-[#595959] border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none"
+                    className="mt-8 w-[90%] border-b placeholder:text-[#9CA3AF] border-gray-300 bg-inherit text-2xl text-[#E8E8E6] outline-none"
                   />
                 </div>
                 <div>
@@ -184,14 +163,54 @@ export default function HomePage() {
                   >
                     Upload File (only pdf)
                   </label>
-                  <div
-                    className="mt-2 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-[#E8E8E6]  bg-[#f7eee310] p-12 text-[#E8E8E6] hover:border-[#FF5E00]"
-                    onClick={() => document.getElementById("file-upload")?.click()}
-                  >
-                    <span>
-                      {file ? file.name : "Click to select or drag & drop a file"}
-                    </span>
-                  </div>
+
+                  {/* File Selected State */}
+                  {file && (
+                    <div className="mt-4 rounded-xl border-4 border-[#3D3B3B] bg-[#1E1E1E] p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex bg-[#454545] p-2 rounded-lg items-center gap-3">
+                          {/* Orange File Icon */}
+                          <div className="flex h-8 w-8 items-center justify-center rounded bg-[linear-gradient(to_bottom,_#E8E8E6_0%,_#FF5E00_100%)]">
+                          </div>
+                          <span className="text-gray-300">{file.name}</span>
+                        </div>
+                        {/* X Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFile(undefined);
+                          }}
+                          className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white"
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-500">selected flie</div>
+                    </div>
+                  )}
+
+                  {/* Empty State */}
+                  {!file && (
+                    <div
+                      className="mt-4 flex cursor-pointer items-center justify-center rounded-xl border border-[#3D3B3B] bg-[#1E1E1E] p-12 text-gray-400 hover:border-[#FF5E00] hover:text-gray-300"
+                      onClick={() => document.getElementById("file-upload")?.click()}
+                    >
+                      <span>Click to select or drag & drop a file</span>
+                    </div>
+                  )}
+
                   <input
                     type="file"
                     id="file-upload"

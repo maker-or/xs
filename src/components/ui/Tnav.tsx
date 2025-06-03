@@ -5,11 +5,21 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 
-const Navbar = () => {
+const Tnav = () => {
   const pathName = usePathname();
 
   // Function to check if the current path matches the link's path
-  const isActive = (path: string) => pathName.includes(path);
+  const isActive = (path: string) => {
+    if (path === '/teacher') {
+      // For /teacher, only match exact path, not /teacher/test
+      return pathName === '/teacher';
+    }
+    if (path === 'teacher/test') {
+      // For teacher/test, match /teacher/test
+      return pathName === '/teacher/test' || pathName.startsWith('/teacher/test/');
+    }
+    return pathName === path || pathName.startsWith(path + '/');
+  };
 
 
   return (
@@ -24,12 +34,12 @@ const Navbar = () => {
 
 
           <li className="px-2">
-            <Link href="/repo/year/1"  prefetch={true}   >
+            <Link href="/teacher/test"  prefetch={true}   >
               <button
-                className={`rounded-full px-4 py-3 ${isActive('repo') ? 'bg-[#FF5E00] text-[#f7eee3]' : ''
+                className={`rounded-full px-5 py-3 ${isActive('teacher/test') ? 'bg-[#FF5E00] text-[#f7eee3]' : ''
                   }`}
               >
-                Repos
+                Test
               </button>
             </Link>
           </li>
@@ -37,12 +47,12 @@ const Navbar = () => {
 
 
           <li className="px-2">
-            <Link href="/" prefetch={true} rel="preload">
+            <Link href="/teacher" prefetch={true} rel="preload">
               <button
-                className={`rounded-full px-4 py-3 ${isActive('/') && !isActive('repo') ? 'bg-[#FF5E00] text-[#f7eee3]' : ''
+                className={`rounded-full px-4 py-3 ${isActive('/teacher') ? 'bg-[#FF5E00] text-[#f7eee3]' : ''
                   }`}
               >
-                Space
+                upload
               </button>
             </Link>
           </li>
@@ -51,4 +61,4 @@ const Navbar = () => {
     </nav>
   );
 };
-export default Navbar;
+export default Tnav;

@@ -13,6 +13,7 @@ export default async function FolderPage(props: PageProps) {
   const folderId = parseInt(params.folderId);
 
   return (
+     <main className="flex min-h-[100svh] p-5 flex-col items-center justify-start bg-[#000000]  ">
     <FolderProvider>
       <Greeting />
       <Navbar />
@@ -20,5 +21,6 @@ export default async function FolderPage(props: PageProps) {
         <ServerComponent folderId={folderId} />
       </Suspense>
     </FolderProvider>
+   </main>
   );
 }

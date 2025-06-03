@@ -1,6 +1,6 @@
 'use client';
 
-import { SignUp } from '@clerk/nextjs';
+import { SignUp, useSignUp } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
@@ -10,29 +10,37 @@ import { ArrowLeft } from 'lucide-react';
 
 export default function SignUpPage() {
   const { isSignedIn, isLoaded } = useUser();
+  const { isLoaded: signUpLoaded } = useSignUp();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [isValidInvitation, setIsValidInvitation] = useState<boolean | null>(null);
 
+  // Get the invitation token from the URL
+  const invitationToken = searchParams.get('__clerk_ticket');
+
   useEffect(() => {
-    // Extract organization ID from URL parameters
-    const orgId = searchParams.get('organization');
-    
-    if (!orgId) {
-      // No organization ID provided - invalid invitation
+    // Check if we have an invitation token
+    if (signUpLoaded && invitationToken) {
+      // Verify the invitation token format
+      if (invitationToken.startsWith('dvb_')) {
+        console.log('Valid Clerk invitation token found:', invitationToken);
+        setOrganizationId('invitation-based'); // Placeholder - will be resolved after signup
+        setIsValidInvitation(true);
+      } else {
+        console.warn('Invalid invitation token format');
+        setIsValidInvitation(false);
+      }
+    } else if (signUpLoaded && !invitationToken) {
+      // No invitation token - invalid invitation
       setIsValidInvitation(false);
-      return;
     }
 
-    setOrganizationId(orgId);
-    setIsValidInvitation(true);
-
-    // If user is already signed in, redirect to onboarding with org ID
+    // If user is already signed in, redirect to onboarding
     if (isLoaded && isSignedIn) {
-      router.replace(`/onboarding?orgId=${encodeURIComponent(orgId)}`);
+      router.replace('/onboarding');
     }
-  }, [isSignedIn, isLoaded, router, searchParams]);
+  }, [isSignedIn, isLoaded, router, signUpLoaded, invitationToken]);
 
   // Show loading while checking invitation validity
   if (isValidInvitation === null) {
@@ -117,8 +125,8 @@ export default function SignUpPage() {
           </p>
           {organizationId && (
             <div className="mt-6 p-4 bg-[#1a1a1a] rounded-lg border border-[#333]">
-              <p className="text-sm text-[#d0cfcf]">Organization ID:</p>
-              <p className="text-[#FF5E00] font-mono text-sm">{organizationId}</p>
+              <p className="text-sm text-[#d0cfcf]">Valid invitation detected</p>
+              <p className="text-[#FF5E00] text-sm">✓ Ready to join organization</p>
             </div>
           )}
         </div>
@@ -143,8 +151,8 @@ export default function SignUpPage() {
             <p className="text-[#d0cfcf]">You&apos;ve been invited to join</p>
             {organizationId && (
               <div className="mt-4 p-3 bg-[#1a1a1a] rounded-lg border border-[#333]">
-                <p className="text-xs text-[#d0cfcf]">Organization:</p>
-                <p className="text-[#FF5E00] font-mono text-sm">{organizationId}</p>
+                <p className="text-xs text-[#d0cfcf]">Valid invitation detected</p>
+                <p className="text-[#FF5E00] text-sm">✓ Ready to join</p>
               </div>
             )}
           </div>
@@ -166,7 +174,7 @@ export default function SignUpPage() {
                   formFieldLabel: "text-[#d0cfcf]",
                 }
               }}
-              forceRedirectUrl={`/onboarding?orgId=${encodeURIComponent(organizationId || '')}`}
+              forceRedirectUrl="/onboarding"
               signInUrl="/signin"
             />
           </div>

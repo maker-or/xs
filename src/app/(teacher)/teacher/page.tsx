@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import TagInput from "~/components/ui/TagInput";
-// import Navbar from "~/components/ui/Navbar";
+import { UploadButton } from "~/utils/uploadthing";
+import { OurFileRouter } from "../../api/uploadthing/core";
 import Tnav from "~/components/ui/Tnav";
 
 
@@ -16,11 +17,8 @@ export default function HomePage() {
     subject: "",
     type: "",
   });
-  const [file, setFile] = useState<undefined | File>(undefined);
   const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => console.log(file), [file]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -33,23 +31,41 @@ export default function HomePage() {
   };
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, fileUrl?: string) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const data = new FormData();
-      data.append("year", formData.year);
-      data.append("branch", formData.branch.toUpperCase());
-      data.append("tags", JSON.stringify(tags).toLowerCase());
-      data.append("name", formData.name.toLowerCase());
-      data.append("file", file ?? "");
-      data.append("subject", formData.subject.toUpperCase());
-      data.append("type", formData.type);
+      const requestBody = {
+        year: formData.year,
+        branch: formData.branch.toUpperCase(),
+        tags: tags.join(',').toLowerCase(),
+        name: formData.name.toLowerCase(),
+        filename: formData.name.toLowerCase(),
+        fileurl: fileUrl || "",
+        subject: formData.subject.toUpperCase(),
+        type: formData.type,
+        tag: tags.join(','),
+        url: fileUrl || "",
+        size: 0,
+      };
 
-      await fetch("/api/uploadfile", {
+      console.log('Sending request body:', JSON.stringify(requestBody, null, 2));
+
+      const response = await fetch("/api/tupload", {
         method: "POST",
-        body: data,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
       });
+
+      const responseData = await response.json();
+      console.log('Response:', responseData);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${responseData.error || 'Unknown error'}`);
+      }
+      
       setFormData({
         year: "",
         branch: "",
@@ -59,13 +75,37 @@ export default function HomePage() {
         type: "",
       });
       setTags([]);
-      // Clear any additional state if needed
+      window.location.reload();
     } catch (error) {
       console.error("Error updating database:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
+
+const handleUploadComplete = async (response: Array<{
+    name: string;
+    url: string;
+    size: number;
+    type: string;
+    //userId: string;
+    // folderId: number;
+  }>) => {
+    try {
+      // Use the first uploaded file's data
+      const fileData = response[0];
+      if (fileData) {
+        // Call handleSubmit with the file URL
+        const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
+        await handleSubmit(syntheticEvent, fileData.url);
+      }
+    } catch (error) {
+      console.error('Error updating database:', error);
+    }
+  };
+
+
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -77,7 +117,7 @@ export default function HomePage() {
           <div className="bg-white dark:bg-[#000000] rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold mb-4">Resource Upload</h2>
             <form
-              onSubmit={handleSubmit}
+              onSubmit={(e) => handleSubmit(e)}
               className="grid h-full w-full grid-cols-1  rounded-lg px-2 py-8 md:grid-cols-2"
             >
               {/* Left Column: Text Inputs */}
@@ -157,66 +197,17 @@ export default function HomePage() {
               {/* Right Column: File Upload */}
               <div className="flex flex-col gap-6">
                 <div>
-                  <label
-                    htmlFor="file-upload"
-                    className="block text-sm font-medium text-gray-400"
-                  >
+                  <label className="block text-sm font-medium text-gray-400 mb-4">
                     Upload File (only pdf)
                   </label>
 
-                  {/* File Selected State */}
-                  {file && (
-                    <div className="mt-4 rounded-xl border-4 border-[#3D3B3B] bg-[#1E1E1E] p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex bg-[#454545] p-2 rounded-lg items-center gap-3">
-                          {/* Orange File Icon */}
-                          <div className="flex h-8 w-8 items-center justify-center rounded bg-[linear-gradient(to_bottom,_#E8E8E6_0%,_#FF5E00_100%)]">
-                          </div>
-                          <span className="text-gray-300">{file.name}</span>
-                        </div>
-                        {/* X Button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFile(undefined);
-                          }}
-                          className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-600 text-gray-300 hover:bg-gray-500 hover:text-white"
-                        >
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="mt-2 text-sm text-gray-500">selected flie</div>
-                    </div>
-                  )}
-
-                  {/* Empty State */}
-                  {!file && (
-                    <div
-                      className="mt-4 flex cursor-pointer items-center justify-center rounded-xl border border-[#3D3B3B] bg-[#1E1E1E] p-12 text-gray-400 hover:border-[#FF5E00] hover:text-gray-300"
-                      onClick={() => document.getElementById("file-upload")?.click()}
-                    >
-                      <span>Click to select or drag & drop a file</span>
-                    </div>
-                  )}
-
-                  <input
-                    type="file"
-                    id="file-upload"
-                    accept=".pdf"
-                    onChange={(e) => setFile(e.target.files?.[0] ?? undefined)}
-                    className="hidden"
+                  <UploadButton
+                    endpoint="imageUploader"
+                    onClientUploadComplete={(res: { name: string; url: string; size: number; type: string; }[]) => {
+                      if (res) {
+                        void handleUploadComplete(res);
+                      }
+                    }}
                   />
                 </div>
                 <button

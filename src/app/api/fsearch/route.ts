@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "~/server/db";
 import { posts } from "~/server/db/schema";
-import { ilike } from "drizzle-orm";
+import { ilike, eq, and } from "drizzle-orm";
 
 export async function GET(req: Request) {
     try {
@@ -14,12 +14,15 @@ export async function GET(req: Request) {
       const searchtext = url.searchParams.get("query") ?? "";
   
       const search = await db
-        .select({ 
+        .select({
           name: posts.name,
           url: posts.url  // Include the URL in the selection
         })
         .from(posts)
-        .where(ilike(posts.name, `%${searchtext}%`));
+        .where(and(
+          eq(posts.userId, userId),
+          ilike(posts.name, `%${searchtext}%`)
+        ));
   
       return new Response(
         JSON.stringify({ 

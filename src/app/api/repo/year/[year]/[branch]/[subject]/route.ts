@@ -8,18 +8,11 @@ const years = ["1", "2", "3", "4"];
 
 export async function GET(
   request: NextRequest,
-  context: unknown
+  context: { params: Promise<{ year: string; branch: string; subject: string }> }
 ) {
   try {
-    // Safely extract params with type checking
-    const params = context && typeof context === 'object' && 'params' in context
-      ? (context as { params: { year: string; branch: string; subject: string } }).params
-      : null;
-
-    if (!params) {
-      return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
-    }
-
+    // Await params before accessing properties (Next.js 15 requirement)
+    const params = await context.params;
     const { year, branch, subject } = params;
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get("category") || "notes";

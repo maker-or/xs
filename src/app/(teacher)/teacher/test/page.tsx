@@ -1,12 +1,18 @@
 import React from 'react'
 import Link from "next/link";
 import Navbar from "~/components/ui/Navbar";
+import Tnav from "~/components/ui/Tnav";
+
+
 import { Plus, BarChart3 } from "lucide-react";
 
 const page = () => {
   return (
     <div className="w-[100svw] h-[100svh] bg-black relative overflow-hidden">
-      <Navbar />
+      <div className='z-50 relative'>
+           <Tnav />
+      </div>
+   
       {/* 4x4 Grid Container - Full screen */}
       <div className="absolute inset-0 w-[100svw] h-[100svh]">
         <div

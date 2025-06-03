@@ -3,6 +3,7 @@
     /* Base Options: */
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "target": "es2022",
     "allowJs": true,
     "resolveJsonModule": true,
@@ -22,6 +23,7 @@
     "jsx": "preserve",
     "plugins": [{ "name": "next" }],
     "incremental": true,
+    "types": ["node"],
 
     /* Path Aliases */
     "baseUrl": ".",
@@ -38,5 +40,5 @@
     "**/*.js",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "node_modules/@posthog/**/*"]
 }

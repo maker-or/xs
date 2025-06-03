@@ -4,23 +4,18 @@ import { type Result } from "~/lib/types";
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import { explanationSchema } from '~/lib/types';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { auth } from "@clerk/nextjs/server";
 
 
 
 
 
-const google = createGoogleGenerativeAI({
-    baseURL: 'https://generativelanguage.googleapis.com/v1beta',
-    apiKey: process.env.GEMINI_API_KEY
+const openrouter = createOpenRouter({
+    apiKey: process.env.OPENROUTER_API_KEY,
 });
 
-const model = google('models/gemini-1.5-pro-latest', {
-    safetySettings: [
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
-    ],
-});
+const model = openrouter('google/gemma-3-27b-it:free');
 
 
 // /**

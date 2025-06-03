@@ -27,9 +27,18 @@ export default function OnboardingPage() {
         setStatus('Checking your account status...');
         setProgress(10);
 
-        // Get organization ID from URL parameters (from signup flow) or user metadata
+        // Get organization ID from user metadata (set by Clerk during invitation signup)
+        // or from URL parameters as fallback
         const orgIdFromUrl = searchParams.get('orgId');
         const orgIdFromMetadata = user.publicMetadata?.organizationId as string;
+        const orgIdFromOrganizations = user.organizationMemberships?.[0]?.organization?.id;
+
+        console.log('Organization ID sources:', {
+          fromUrl: orgIdFromUrl,
+          fromMetadata: orgIdFromMetadata,
+          fromOrganizations: orgIdFromOrganizations,
+          userOrganizations: user.organizationMemberships
+        });
 
         // Single API call to handle both status check and onboarding
         const response = await fetch('/api/onboarding/status-and-setup', {
@@ -37,8 +46,8 @@ export default function OnboardingPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email: user.emailAddresses,
-            // Priority: URL parameter (from signup) > user metadata > null
-            organisationId: orgIdFromUrl || orgIdFromMetadata || null,
+            // Priority: Organization membership > URL parameter > user metadata > null
+            organisationId: orgIdFromOrganizations || orgIdFromUrl || orgIdFromMetadata || null,
           }),
         });
 

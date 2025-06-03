@@ -76,7 +76,7 @@ const Page = (props: PageProps) => {
   }, [branch, selectedBranch]);
 
   return (
-    <>
+    <main className="h-[100svh] ">
       <Navyear yearprop={year} />
       {/* Branch suggestions */}
       <div className="text-normal mt-4 flex gap-4 overflow-x-auto p-2">
@@ -116,7 +116,7 @@ const Page = (props: PageProps) => {
               ))}
         </div>
       )}
-    </>
+    </main>
   );
 };
 

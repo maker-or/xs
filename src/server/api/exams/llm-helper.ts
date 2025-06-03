@@ -47,7 +47,7 @@ export async function generateQuestions({
 
               const i = await generateText({
             //model: groq('llama-3.3-70b-versatile'),
-            model: openrouter('meta-llama/llama-3.3-70b-instruct:free'),
+            model: openrouter('google/gemma-3-27b-it:free'),
             prompt: sub,
             temperature: 0,
         });
@@ -106,7 +106,7 @@ export async function generateQuestions({
 
     // Make the API call to OpenRouter
        const response = await generateText({
-            model: openrouter('meta-llama/llama-4-maverick:free'),
+            model: openrouter('google/gemma-3-27b-it:free'),
             prompt: prompt,
             system: `You are an expert question creator for educational tests. Your task is to generate multiple-choice questions (MCQs) based on the provided topic, difficulty level, and context.
 

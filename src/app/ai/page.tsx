@@ -17,7 +17,6 @@ import {
   Copy,
   Check,
   X,
-  ChevronDown,
 } from "lucide-react";
 
 
@@ -26,8 +25,6 @@ import { v4 as uuidv4 } from "uuid";
 
 
 import MarkdownRenderer from "~/components/ui/MarkdownRenderer";
-import { MODEL_OPTIONS } from "~/components/ui/modeloption";
-import { ModelSelector } from "~/components/ui/ModelSelector";
 
 
 import Timeline from "~/components/ui/Timeline";
@@ -82,10 +79,7 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false); // New state to track token streaming
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string>(
-    "google/gemini-2.0-flash-lite-preview-02-05:free",
-  );
-  const [showModelSelector, setShowModelSelector] = useState<boolean>(false);
+
   const [error, setError] = useState<string | null>(null);
 
   const [skipAutoScroll, setSkipAutoScroll] = useState(false);
@@ -152,7 +146,7 @@ export default function Page() {
   const { messages, input, handleInputChange, handleSubmit, setInput } =
     useChat({
       api: "/api/chat",
-      body: { model: selectedModel },
+      body: { model: "google/gemma-3-27b-it:free" },
       id: chatId,
       initialMessages: initialMessages,
       onResponse: (response) => {
@@ -161,9 +155,8 @@ export default function Page() {
 
         // Only reset input if NOT using the deepseek model to prevent refresh loop
         console.log(response);
-        if (selectedModel !== "deepseek/deepseek-chat:free") {
-          resetInputField();
-        }
+        // Since we're using google/gemma-3-27b-it:free, always reset input
+        resetInputField();
         setError(null);
         setIsStreaming(true); // Start streaming state
         // Don't set isLoading to false here - keep it on during streaming
@@ -479,26 +472,9 @@ export default function Page() {
 
 
 
-  // -----------------------------------------------------------------------
-  // Handle model change
-  // -----------------------------------------------------------------------
-  const handleModelChange = (modelId: string) => {
-    setSelectedModel(modelId);
-    setShowModelSelector(false);
-    // Store the selected model in localStorage
-    localStorage.setItem("selectedModel", modelId);
-  };
 
-  // Load previously selected model
-  useEffect(() => {
-    const storedModel = localStorage.getItem("selectedModel");
-    if (
-      storedModel &&
-      MODEL_OPTIONS.some((model) => model.id === storedModel)
-    ) {
-      setSelectedModel(storedModel);
-    }
-  }, []);
+
+
 
   // -----------------------------------------------------------------------
   // Chat hook configuration
@@ -649,13 +625,7 @@ export default function Page() {
 
 
 
-  // -----------------------------------------------------------------------
-  // Get model display name
-  // -----------------------------------------------------------------------
-  const getModelDisplayName = (modelId: string): string => {
-    const model = MODEL_OPTIONS.find((m) => m.id === modelId);
-    return model ? model.name : "Choose a model";
-  };
+
 
 
 
@@ -854,8 +824,8 @@ export default function Page() {
   return (
 
 
-    <div className="p-1  bg-[#CCF9FF] rounded-lg ">
-      <main className="relative h-[100svh] rounded-lg bg-[#242D31] transition-all duration-300 text-base">
+    <div className="p-1 h-[100svh] w-[100svw]  bg-[#CCF9FF] rounded-lg ">
+      <main className=" h-full rounded-lg bg-[#242D31] transition-all duration-300 text-base">
         {/* Main Content Area */}
         <div className={`transition-all duration-300  ${!isMobile && hasDiagramsAvailable && (timelineHovered || activeDiagramMessageId) ? "mr-[30rem]" : "mr-0"
           } px-4 lg:px-6`}>
@@ -936,44 +906,12 @@ export default function Page() {
                       />
                     </div>
 
-                    <div className="flex gap-1 justify-between items-center p-1 ">
-                      <div className="relative m-1" data-oid="pd:ki5q">
-                        <button
-                          type="button"
-                          onClick={() => setShowModelSelector(!showModelSelector)}
-                          className="flex items-center justify-between gap-2 px-3 py-2 text-base sm:px-4 sm:py-2 sm:text-lg rounded-lg dark:bg-[#242D31] bg-[#e2e2e2] dark:text-[#f7eee3] text-[#000000] transition-colors dark:hover:bg-[#323232] hover:bg-[#d0d0d0]">
-                          <div className="flex items-center gap-2"  >
- 
-                            {
-                              MODEL_OPTIONS.find(
-                                (model) => model.id === selectedModel,
-                              )?.icon
-                            }
-                            <span
-                              className="max-w-[100px] sm:max-w-none truncate"
-                              data-oid="q:zgdxy"
-                            >
-                              {getModelDisplayName(selectedModel)}
-                            </span>
-                          </div>
-                          <ChevronDown className="h-4 w-4" data-oid="ooy9-_w" />
-                        </button>
-                        {showModelSelector && (
-                          <ModelSelector
-                            modelOptions={MODEL_OPTIONS}
-                            selectedModel={selectedModel}
-                            showModelSelector={showModelSelector}
-                            onModelChange={handleModelChange}
-                            data-oid="km:q:ei"
-                          />
-                        )}
-                      </div>
+                    <div className="flex gap-1 justify-end items-center p-1 ">
                         <SubmitButton
                           isLoading={isLoading}
                           isStreaming={isStreaming}
                           type="submit"
                         />
-
                     </div>
                   </div>
                   {input.length > 0 && (
@@ -1193,11 +1131,11 @@ export default function Page() {
                   data-oid="8tx03ya"
                 >
                   <div
-                    className="group flex-col  w-full items-center   border border-[#383838] rounded-2xl dark:bg-[#ffffff] bg-[#f0f0f0] p-1  shadow-md transition-all duration-300"
+                    className="group flex-col  w-full items-center   border-2 border-[#44595D]  rounded-2xl dark:bg-[#0C1114] bg-[#f0f0f0] p-1  shadow-lg transition-all duration-300"
                     data-oid=":x0551_"
                   >
                     <div
-                      className="flex relative flex-1   items-center overflow-hidden dark:bg-[#bebdbdde] bg-[#ffffff] rounded-xl py-3 sm:py-5 transition-all duration-300"
+                      className="flex relative flex-1 overflow-hidden  items-center  dark:bg-[#bebdbdde] bg-[#ffffff] rounded-xl py-3 sm:py-5 transition-all duration-300"
                       data-oid="uosyzcp"
                     >
                       <textarea
@@ -1222,50 +1160,7 @@ export default function Page() {
                         />
                       </div>
                     </div>
-                    <div className="flex gap-1 items-center " data-oid="v608xbp">
-                      <div className="relative m-1" >
-                        <button
-                          type="button"
-                          onClick={() => setShowModelSelector(!showModelSelector)}
-                          className="flex items-center justify-between gap-2 px-3 py-1.5 text-base sm:px-4 sm:py-2 sm:text-lg rounded-lg  dark:bg-[#252525] bg-[#e2e2e2] dark:text-[#f7eee3] text-[#000000] transition-colors dark:hover:bg-[#323232] hover:bg-[#d0d0d0] border border-transparent hover:border-gray-300 dark:hover:border-gray-700"
 
-                        >
-                          <div
-                            className="flex items-center gap-2"
-
-                          >
-                            <span className="text-xl" data-oid="39kjr-t">
-                              {MODEL_OPTIONS.find((m) => m.id === selectedModel)
-                                ?.icon || "✨"}
-                            </span>
-                            <span
-                              className="max-w-[100px] sm:max-w-none truncate"
-
-                            >
-                              {getModelDisplayName(selectedModel)}
-                            </span>
-                          </div>
-                          <div className="flex gap-1 ml-1" data-oid="5833l-:">
-                            {/* {renderModelTags(MODEL_OPTIONS.find(m => m.id === selectedModel)?.tags || [])} */}
-                          </div>
-                          <ChevronDown
-                            className="h-4 w-4 ml-1"
-
-                          />
-                        </button>
-                        {showModelSelector && (
-                          <ModelSelector
-                            modelOptions={MODEL_OPTIONS}
-                            selectedModel={selectedModel}
-                            showModelSelector={showModelSelector}
-                            onModelChange={handleModelChange}
-
-                          />
-                        )}
-                      </div>
-
-
-                    </div>
                   </div>
 
                   {input.length > 0 && (
@@ -1386,12 +1281,11 @@ export default function Page() {
                   <button
                     onClick={() => {
                       setShowCreditLimitError(false);
-                      setShowModelSelector(true);
                     }}
                     className="flex items-center justify-center w-full gap-2 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
                     data-oid="lqze5i."
                   >
-                    Switch Model
+                    Try Again
                   </button>
                 </div>
               </div>

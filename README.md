@@ -18,7 +18,7 @@ Sphere aims to empower every college student with their own AI learning assistan
 
 ## 🧠 AI Capabilities
 
-- Support for multiple language models (Google Gemini, Groq, OpenAI, Meta Llama)
+- Powered by Google Gemma 3 27B model via OpenRouter
 - Voice mode for spoken interaction
 - Retrieval-Augmented Generation (RAG) for educational content
 - Contextual responses drawing from the educational repository
@@ -44,7 +44,7 @@ Sphere aims to empower every college student with their own AI learning assistan
 - AI SDK for model integration
 - LangChain for LLM applications
 - Pinecone for vector embeddings
-- Multiple AI model providers
+- OpenRouter AI model provider (Google Gemma 3)
 
 ## 🚀 Getting Started
 

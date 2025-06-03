@@ -96,8 +96,8 @@ const SubjectPage = () => {
 
   return (
     <>
-      <div>
-        <div className="text-normal mb-4  h-[100svh] mt-16 flex gap-4 overflow-x-auto">
+      <div className="h-[100svh]">
+        <div className="text-normal mb-4  mt-16 flex gap-4 overflow-x-auto">
           {tags &&
             tags.map((el) => (
               <button

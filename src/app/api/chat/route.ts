@@ -7,7 +7,7 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { getEmbedding } from '~/utils/embeddings';
 import { type ConvertibleMessage } from '~/utils/types';
-import { getSystemInstructions } from '~/utils/systemPrompts';
+import { getDynamicSystemInstructions } from '~/utils/systemPrompts';
 import { v4 as uuidv4 } from 'uuid';
 
 // Response timeout in milliseconds
@@ -365,16 +365,16 @@ const result = streamText({
   messages: [
     {
       role: 'system',
-      content: getSystemInstructions(),
+      content: getDynamicSystemInstructions(query),
       experimental_providerMetadata: {
         openrouter: {
           cacheControl: { type: 'ephemeral' },
         },
       },
     },
-    { 
-      role: 'user', 
-      content: finalPrompt 
+    {
+      role: 'user',
+      content: finalPrompt
     },
   ],
 });

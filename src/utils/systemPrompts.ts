@@ -6,14 +6,10 @@
 import { getAllComponentSchemas } from 'circuit-bricks/llm';
 
 /**
- * Get the main system instructions for the chat assistant
- * @returns Formatted system instructions string
+ * Core system instructions that apply to all queries (Rules 1-8)
  */
-
-    export const getSystemInstructions = (): string => {
-        // Get the latest component schemas from circuit-bricks
-        const componentSchemas = getAllComponentSchemas();
-        return `
+const getCoreInstructions = (): string => {
+    return `
     You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams. Follow these guidelines:
 
               1. **Role**: Act as a knowledgeable and helpful assistant don't show the thinking process. just provide the answer. you will be provided with the context from the web and knowledge base to answer the user query.
@@ -47,7 +43,14 @@ import { getAllComponentSchemas } from 'circuit-bricks/llm';
                    https://another-source.com | Research Paper | Academic study on related concepts
                    \`\`\`
               8. **Question Generation**:
-                 - if the user requests you to generate a question, create only a thought-provoking and contextually appropriate question without providing any answers.
+                 - if the user requests you to generate a question, create only a thought-provoking and contextually appropriate question without providing any answers.`;
+};
+
+/**
+ * UML diagram instructions (Rules 9-10)
+ */
+const getUMLInstructions = (): string => {
+    return `
                 9. **Reminder**:draw uml diagrams only if the user explicitly asks for it.
             10. **For UML diagrams like ['Flowcharts','Sequence diagrams'. 'Class diagrams' , 'State diagrams' , 'Entity Relationship Diagrams', 'User Journey Diagram', 'Gantt diagrams', 'Pie chart diagrams', 'Quadrant Chart' , 'Requirement Diagram' , 'Gitgraph Diagrams' , 'Timeline Diagram', 'ZenUML' ,'Sankey diagram' , 'XY Chart' , 'Block Diagrams Documentation', 'Packet Diagram', 'Architecture Diagrams Documentation' , 'Radar Diagram'] **:
                     -To create UML diagram, only use mermaid syntax.
@@ -62,8 +65,14 @@ import { getAllComponentSchemas } from 'circuit-bricks/llm';
                         D --> E
                          \`\`\`
                     - Only create the diagram if the user explicitly asks for it.
-                    - Do NOT use mermaid for Finite State Machines or Automata - use ASCII representation instead.
+                    - Do NOT use mermaid for Finite State Machines or Automata - use ASCII representation instead.`;
+};
 
+/**
+ * Automata theory instructions (Rules 11-12)
+ */
+const getAutomataInstructions = (): string => {
+    return `
                 11. **Transition diagram and other finite state machine / automaton diagrams**:
                     - For transition diagrams, finite state machines, and automata, ALWAYS use ASCII representation:
                     - Example:
@@ -101,12 +110,16 @@ import { getAllComponentSchemas } from 'circuit-bricks/llm';
                       - Production rules: Use -> to indicate derivation
                       - Alternatives: Use | to separate production options
                       - Epsilon/empty string: Use ε or the word "epsilon"
-                    - Do not use the grammar syntax with special formatting
-              13. **Mathematical/Scientific Notation:**:
-                        - Use LaTeX exclusively for equations (e.g., $E = mc^2$, $alpha$).
-                        - Enclose inline math in $ $ and display math in $$ $$.
-                        - Do not use Unicode characters for mathematical notation.
+                    - Do not use the grammar syntax with special formatting`;
+};
 
+/**
+ * Circuit diagram instructions (Rules 14-15)
+ */
+const getCircuitInstructions = (): string => {
+    // Get the latest component schemas from circuit-bricks
+    const componentSchemas = getAllComponentSchemas();
+    return `
               14. **Circuit Diagrams**:
                   - For electrical circuit diagrams, use the native circuit-bricks package with CircuitCanvas component via JSON format in code blocks with 'circuit' or 'circuit-bricks' language tag.
                   - The circuit-bricks package provides professional-grade circuit rendering with interactive features including component selection, zooming, panning, and grid snapping.
@@ -114,12 +127,12 @@ import { getAllComponentSchemas } from 'circuit-bricks/llm';
                   - Step 1: First identify all the components in the circuit
                   - Step 2: Figure out a way to connect the components using wires
                   - Step 3: Then create the circuit-bricks JSON structure with the identified components and their connections
-                  
+
                   **Available Component Schemas:**
                   ${JSON.stringify(componentSchemas, null, 2)}
-                  
+
                   **IMPORTANT:** Use ONLY the component types and port IDs specified in the schemas above. Each component has specific ports that MUST be used exactly as defined.
-                  
+
                   - Example format (ComponentInstance structure):
                     \`\`\`circuit
                     {
@@ -180,7 +193,7 @@ import { getAllComponentSchemas } from 'circuit-bricks/llm';
                         }
                       ]
                     }
-                    \`\`\`                 
+                    \`\`\`
 
                   - **Component Requirements**:
                     * Each component MUST have: id (unique string), type (from available schemas above), position {x, y}, props (object)
@@ -203,7 +216,7 @@ import { getAllComponentSchemas } from 'circuit-bricks/llm';
                     * Components can be selected individually or in groups (Ctrl+click)
                     * Professional rendering with proper component symbols and wire routing
 
-              15. **rember**:
+              15. **Remember**:
                   - If the user asks to draw a diagram, only draw the diagram if the user explicitly asks for it.
                   - dont render both mermaid and circuit-bricks diagrams at the same time render only one.
                   - use mermaid for UML diagrams only.
@@ -211,10 +224,76 @@ import { getAllComponentSchemas } from 'circuit-bricks/llm';
                   - use circuit or circuit-bricks for Circuit-Bricks native canvas diagrams (PREFERRED for all electrical circuits).
                   - use ascii for transition diagrams and finite state machines.
                   - When creating electrical circuits, ALWAYS use the circuit-bricks format with proper ComponentInstance structure.
-                  - Ensure all component types and port IDs are exactly as specified in the component documentation above.
+                  - Ensure all component types and port IDs are exactly as specified in the component documentation above.`;
+};
 
-    `;
-    };
+/**
+ * Keywords that trigger specific instruction sets
+ */
+const UML_KEYWORDS = [
+    'flowchart', 'sequence diagram', 'class diagram', 'state diagram', 'entity relationship',
+    'user journey', 'gantt', 'pie chart', 'quadrant chart', 'requirement diagram',
+    'gitgraph', 'timeline', 'zenuml', 'sankey', 'xy chart', 'block diagram',
+    'packet diagram', 'architecture diagram', 'radar diagram', 'uml', 'mermaid'
+];
+
+const AUTOMATA_KEYWORDS = [
+    'finite state machine', 'automaton', 'automata', 'transition diagram',
+    'state machine', 'grammar', 'parsing', 'production rule', 'context free',
+    'regular expression', 'dfa', 'nfa', 'pushdown automaton', 'turing machine'
+];
+
+const CIRCUIT_KEYWORDS = [
+    'circuit', 'electrical', 'electronic', 'resistor', 'capacitor', 'inductor',
+    'battery', 'voltage', 'current', 'led', 'diode', 'transistor', 'amplifier',
+    'oscillator', 'filter', 'power supply', 'schematic', 'breadboard'
+];
+
+/**
+ * Dynamic system instructions that adapt based on query content
+ * @param query The user query to analyze
+ * @returns Formatted system instructions string with relevant rules
+ */
+export const getDynamicSystemInstructions = (query: string): string => {
+    const lowerQuery = query.toLowerCase();
+
+    // Start with core instructions (Rules 1-8)
+    let instructions = getCoreInstructions();
+
+    // Add UML instructions if query contains UML-related keywords
+    if (UML_KEYWORDS.some(keyword => lowerQuery.includes(keyword))) {
+        instructions += '\n' + getUMLInstructions();
+    }
+
+    // Add Automata instructions if query contains automata-related keywords
+    if (AUTOMATA_KEYWORDS.some(keyword => lowerQuery.includes(keyword))) {
+        instructions += '\n' + getAutomataInstructions();
+    }
+
+    // Add Circuit instructions if query contains circuit-related keywords
+    if (CIRCUIT_KEYWORDS.some(keyword => lowerQuery.includes(keyword))) {
+        instructions += '\n' + getCircuitInstructions();
+    }
+
+    return instructions + '\n    ';
+};
+
+/**
+ * Get the main system instructions for the chat assistant (backward compatibility)
+ * @param query Optional query to make instructions dynamic
+ * @returns Formatted system instructions string
+ */
+export const getSystemInstructions = (query?: string): string => {
+    if (query) {
+        return getDynamicSystemInstructions(query);
+    }
+
+    // Fallback to all instructions for backward compatibility
+    return getCoreInstructions() + '\n' +
+           getUMLInstructions() + '\n' +
+           getAutomataInstructions() + '\n' +
+           getCircuitInstructions() + '\n    ';
+};
 
 
 /**

@@ -39,9 +39,9 @@ export async function POST(req: Request) {
 
     if (!authUserId) throw new Error("Unauthorized");
     const body = await req.json();
-    console.log("body", body);
-    console.log("type", typeof body.userId);
-    console.log("userId", body.userId);
+    // console.log("body", body);
+    // console.log("type", typeof body.userId);
+    // console.log("userId", body.userId);
 
     // Validate the request body
     if (!isValidUploadRequest(body)) {

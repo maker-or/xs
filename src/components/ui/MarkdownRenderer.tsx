@@ -673,7 +673,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             if (isInline) {
               return (
                 <code
-                  className={`${className || ''} text-base md:text-lg bg-[#50636A] text-[#617D82] px-1 py-0.5 rounded`}
+                  className={`${className || ''} text-base md:text-lg bg-[#50636a2d] text-[#617D82] px-1 py-0.5 rounded`}
                   {...restProps}
                   data-oid="cqf0ne7"
                 >
@@ -724,49 +724,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               return <MermaidRenderer chart={codeString} data-oid="tji:5pw" />;
             }
 
-            // Falstad circuit diagram rendering
-            if (language === "cct") {
-              const circuitData = encodeURIComponent(codeString);
-              const falstadUrl = `https://www.falstad.com/circuit/circuitjs.html?cct=${circuitData}`;
-              return (
-                <div className="relative my-6" data-oid="falstad-container">
-                  <div
-                    className="px-3 py-1.5 bg-gray-800 text-xs text-gray-300 rounded-t-md border-b border-gray-700 flex justify-between items-center"
-                    data-oid="falstad-header"
-                  >
-                    <span data-oid="falstad-title">Electrical Circuit Diagram (Falstad)</span>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(codeString);
-                        setCopiedCode(codeString);
-                        setTimeout(() => setCopiedCode(null), 2000);
-                      }}
-                      className="p-1 rounded hover:bg-gray-700 transition-colors"
-                      aria-label="Copy CCT string"
-                      data-oid="falstad-copy-button"
-                    >
-                      {copiedCode === codeString ? (
-                        <Check
-                          className="h-3.5 w-3.5 text-green-500"
-                          data-oid="falstad-check-icon"
-                        />
-                      ) : (
-                        <Copy
-                          className="h-3.5 w-3.5 text-gray-400"
-                          data-oid="falstad-copy-icon"
-                        />
-                      )}
-                    </button>
-                  </div>
-                  <iframe
-                    src={falstadUrl}
-                    title="Falstad Circuit Simulator"
-                    className="w-full h-96 border border-gray-700 rounded-b-md"
-                    data-oid="falstad-iframe"
-                  ></iframe>
-                </div>
-              );
-            }
+
+            
 
             // Circuit-Bricks circuit diagram rendering
             if (language === "circuit-bricks" || language === "circuit") {
@@ -900,7 +859,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               return (
                 <div className="relative group my-6" data-oid="ysa:q4e">
                   <div
-                    className="px-3 py-1.5 bg-gray-800 text-xs text-gray-300 rounded-t-md border-b border-gray-700 flex justify-between items-center"
+                    className="px-3 py-1.5 bg-[#42595D] text-xs text-gray-300 rounded-t-md border-2 border-[#42595D] flex justify-between items-center"
                     data-oid="xgm02at"
                   >
                     <span data-oid="s0xzq2k">
@@ -940,10 +899,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                   <SyntaxHighlighter
                     language={language || "text"}
                     style={vscDarkPlus}
-                    className="rounded-t-none !mt-0 !bg-[#1a1a1a] rounded-b-md"
+                    className="rounded-t-none !mt-0 !bg-[#252D31] rounded-b-md"
                     customStyle={{
                       marginTop: 0,
-                      border: "1px solid rgb(55, 65, 81)",
+                      border: "2px solid rgb(66, 89, 93)",
                       borderTop: "none",
                     }}
                     data-oid="9.6yjrk"

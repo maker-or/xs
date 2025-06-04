@@ -7,6 +7,7 @@ import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { dark } from '@clerk/themes'
 
 export default function SignUpPage() {
   const { isSignedIn, isLoaded } = useUser();
@@ -161,21 +162,10 @@ export default function SignUpPage() {
           <div className="flex justify-center">
             <SignUp 
               appearance={{
-                elements: {
-                  rootBox: "w-full",
-                  card: "bg-[#1a1a1a] border border-[#333] shadow-xl",
-                  headerTitle: "text-[#f7eee3] text-2xl font-serif",
-                  headerSubtitle: "text-[#d0cfcf]",
-                  socialButtonsBlockButton: "bg-[#2a2a2a] border border-[#444] text-[#f7eee3] hover:bg-[#3a3a3a]",
-                  formFieldInput: "bg-[#2a2a2a] border border-[#444] text-[#f7eee3] focus:border-[#FF5E00]",
-                  formButtonPrimary: "bg-[#FF5E00] hover:bg-[#e54d00] text-white",
-                  footerActionLink: "text-[#FF5E00] hover:text-[#e54d00]",
-                  identityPreviewText: "text-[#d0cfcf]",
-                  formFieldLabel: "text-[#d0cfcf]",
-                }
+       baseTheme: dark,
+
               }}
-              forceRedirectUrl="/onboarding"
-              signInUrl="/signin"
+
             />
           </div>
         </div>

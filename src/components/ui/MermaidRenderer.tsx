@@ -80,8 +80,8 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
       // Custom theme settings to match the desired appearance
       themeVariables: {
         darkMode: true,
-        background: "#1e1e1e",
-        primaryColor: "#333333",
+        background: "#252D32",
+        primaryColor: "#FF5E00",
         primaryTextColor: "#ffffff",
         primaryBorderColor: "#ffffff",
         lineColor: "#ffffff",

@@ -138,18 +138,18 @@ const CircuitBricksRenderer: React.FC<CircuitBricksRendererProps> = ({ circuitDa
   }
 
   return (
-    <div className="border rounded-lg bg-white overflow-hidden">
+    <div className=" rounded-lg border-[#42595E] border-2 bg-[#42595E] overflow-hidden">
       {/* Controls */}
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50">
+      <div className="flex items-center justify-between p-3 border-b border-[#42595E] bg-[#42595E]">
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-[#E5E7EA]">
             Components: {components.length} | Wires: {wires.length}
           </span>
 
         </div>
 
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-[#E5E7EA]">
             Circuit-Bricks Canvas
           </span>
         </div>
@@ -174,30 +174,6 @@ const CircuitBricksRenderer: React.FC<CircuitBricksRendererProps> = ({ circuitDa
           maxZoom={3}
         />
       </div>
-
-      {/* Component Info Panel */}
-      {/* {selectedComponent && (
-        <div className="p-3 border-t bg-blue-50">
-          <h4 className="font-medium text-blue-900 mb-2">Selected Component</h4>
-          <div className="text-sm space-y-1 text-black">
-            <p><span className="font-medium">ID:</span> {selectedComponent.id}</p>
-            <p><span className="font-medium">Type:</span> {selectedComponent.type}</p>
-            <p><span className="font-medium">Position:</span> ({selectedComponent.position.x}, {selectedComponent.position.y})</p>
-            {selectedComponent.props && Object.keys(selectedComponent.props).length > 0 && (
-              <div>
-                <span className="font-medium">Properties:</span>
-                <ul className="ml-4 mt-1">
-                  {Object.entries(selectedComponent.props).map(([key, value]) => (
-                    <li key={key}>
-                      {key}: {String(value)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-      )} */}
     </div>
   );
 };

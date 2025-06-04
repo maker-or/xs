@@ -10,13 +10,14 @@ import React, {
 
 // Import KaTeX CSS for math rendering
 import "katex/dist/katex.min.css";
-import { Clipboard, BookOpenText } from "@phosphor-icons/react";
+import {  BookOpenText } from "@phosphor-icons/react";
 // import { useChat } from "ai/react";
 import { useChat } from "@ai-sdk/react";
 import {
   Copy,
   Check,
   X,
+  ScanEye
 } from "lucide-react";
 
 
@@ -1000,7 +1001,7 @@ export default function Page() {
 
 
                       </>
-                      <div className="mt-1 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity" >
+                      <div className="mt-1 flex justify-start opacity-0 group-hover:opacity-100 transition-opacity" >
                         <button
                           onClick={() => copyMessage(m.content, m.id)}
                           className="p-1 rounded-full dark:text-white text-[#000000] hover:bg-[#646464] hover:text-[#48AAFF]"
@@ -1023,7 +1024,7 @@ export default function Page() {
 
                       {/* answers*/}
                       <div
-                        className="relative max-w-[95vw] sm:max-w-[90vw] overflow-x-hidden rounded-xl p-1 text-[1.1rem] sm:text-[1.2rem] tracking-tight dark:text-[#99C5CB]/50 text-[#99C5CB]/50 md:max-w-2xl md:p-2 md:text-[1.4rem] ">
+                        className="relative max-w-[95vw] sm:max-w-[90vw] overflow-x-hidden rounded-xl  text-[1.1rem] sm:text-[1.2rem] tracking-tight dark:text-[#99C5CB]/50 text-[#99C5CB]/50 md:max-w-2xl md:p-2 md:text-[1.4rem] ">
 
                         <div
                           className="flex-col w-full gap-4 justify-start cursor-pointer " >
@@ -1066,14 +1067,12 @@ export default function Page() {
                                 console.log('Button clicked for messageId:', m.id);
                                 handleDiagramClick(m.id);
                               }}
-                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all duration-200 ${activeDiagramMessageId === m.id
-                                ? 'bg-blue-500/20 text-blue-400 border border-blue-400/30'
-                                : 'bg-gray-500/10 text-gray-400 border border-gray-400/20 hover:bg-gray-500/20 hover:text-gray-300'
+                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${activeDiagramMessageId === m.id
+                                ? 'bg-[#5C767B] text-[#242D33] border-blue-400/30'
+                                : 'bg-[#5C767B] text-[#242D33] border border-gray-400/20 hover:bg-gray-500/20 hover:text-gray-300'
                                 }`}
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                              </svg>
+                              <ScanEye />
                               {activeDiagramMessageId === m.id ? 'Viewing Diagram' : 'View Diagram'}
                             </button>
                           </div>
@@ -1096,7 +1095,7 @@ export default function Page() {
 
                                 />
                               ) : (
-                                <Clipboard
+                                <Copy
                                   className="h-5 w-5 dark:text-[#f7eee3] text-[#000000] hover:text-[#48AAFF]"
                                   data-oid="gp4p:1y"
                                 />
@@ -1128,16 +1127,10 @@ export default function Page() {
                 <form
                   onSubmit={onSubmit}
                   className={`mx-auto w-full max-w-2xl px-2 sm:px-3 md:px-0`}
-                  data-oid="8tx03ya"
-                >
-                  <div
-                    className="group flex-col  w-full items-center   border-2 border-[#44595D]  rounded-2xl dark:bg-[#0C1114] bg-[#f0f0f0] p-1  shadow-lg transition-all duration-300"
-                    data-oid=":x0551_"
-                  >
-                    <div
-                      className="flex relative flex-1 overflow-hidden  items-center  dark:bg-[#bebdbdde] bg-[#ffffff] rounded-xl py-3 sm:py-5 transition-all duration-300"
-                      data-oid="uosyzcp"
-                    >
+                  data-oid="8tx03ya"  >
+              
+                  <div className="group flex-col  w-full items-center border-2 border-[#44595D]  rounded-2xl dark:bg-[#0C1114] bg-[#f0f0f0] p-1  shadow-lg transition-all duration-300">
+                    <div className="flex   relative flex-1 border border-[#44595d7c] items-center overflow-hidden dark:bg-[#121719] bg-[#ffffff] rounded-xl py-3 sm:py-5 transition-all duration-300" >
                       <textarea
                         ref={textareaRef}
                         placeholder="Ask me anything..."
@@ -1147,20 +1140,18 @@ export default function Page() {
                           adjustTextareaHeight();
                         }}
                         onKeyDown={handleKeyDown}
-                        className="max-h-[120px] min-h-[60px] flex-1 resize-none bg-transparent px-4 py-2 text-base md:text-lg dark:text-[#000000] text-[#000000] outline-none transition-all duration-200 dark:placeholder:text-[#000000] placeholder:text-[#606060] font-serif"
+                        className="max-h-[120px] min-h-[60px] flex-1 resize-none bg-transparent font-serif px-4 py-2 text-base md:text-lg dark:text-[#546C70] text-[#546C70] outline-none transition-all duration-200 dark:placeholder:text-[#546C70] placeholder:text-[#546C70] "
                         rows={1}
-
                       />
-                      <div className="absolute right-3 bottom-3 flex gap-3 items-center justify-center">
-                        {/* Submit button */}
+                    </div>
+
+                    <div className="flex gap-1 justify-end items-center p-1 ">
                         <SubmitButton
                           isLoading={isLoading}
                           isStreaming={isStreaming}
                           type="submit"
                         />
-                      </div>
                     </div>
-
                   </div>
 
                   {input.length > 0 && (
@@ -1318,10 +1309,10 @@ export default function Page() {
 
         {/* Floating Right Diagram Panel */}
         {!isMobile && hasDiagramsAvailable && diagramContent && (
-          <div className="fixed right-4 top-4 w-[30rem] h-[95svh] bg-white/95 dark:bg-[#1a1a1a] backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-700/50 z-20 shadow-2xl overflow-hidden animate-in slide-in-from-right-5 duration-300">
+          <div className="fixed right-4 top-4 w-[30rem] h-[95svh] bg-white/95 dark:bg-[#121719] backdrop-blur-xl rounded-2xl border-4 border-gray-200/50 dark:border-[#42595d6e] z-20 shadow-2xl overflow-hidden animate-in slide-in-from-right-5 duration-300">
             <div className="h-full flex flex-col">
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200/50 dark:border-gray-700/5">
+              <div className="flex items-center justify-between p-4 ">
                 <div className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm">
                     📊

@@ -104,11 +104,11 @@ const SplitScreenLayout: React.FC<SplitScreenLayoutProps> = ({
         </div>
 
         {/* Diagrams below */}
-        <div className="w-full border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+        <div className="w-full border-t bg-[#0C1114] border-gray-200 dark:border-gray-700 pt-4 mt-4">
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-3 font-medium border-b border-gray-200 dark:border-gray-700 pb-2">
             Diagrams
           </div>
-          <div className="bg-red-500 dark:bg-[#0c0c0c] rounded-lg p-3">
+          <div className="bg-red-500 dark:bg-[#6597b6] rounded-lg p-3">
             <MarkdownRenderer content={content} onlyDiagrams={true} />
           </div>
         </div>

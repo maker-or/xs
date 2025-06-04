@@ -80,7 +80,7 @@ const CitationRenderer: React.FC<CitationRendererProps> = ({ citations, isPanel 
   return (
     <div className="citations-container mt-8 pt-6 border-t border-gray-300 dark:border-gray-700">
       <div className="flex items-center gap-2 mb-4">
-        <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+        <h4 className="text-lg font-semibold text-gray-800 dark:text-[#93BEC4]">
           Citations
         </h4>
       </div>
@@ -89,14 +89,14 @@ const CitationRenderer: React.FC<CitationRendererProps> = ({ citations, isPanel 
         {parsedCitations.map((citation, index) => (
           <div
             key={index}
-            className="citation-card group p-3 bg-gray-50 dark:bg-[#1a1a1a] rounded-lg border-2 border-[#f7eee3] dark:border-[#2e2e2d] hover:border-blue-300 dark:hover:border-[#f7eee3] transition-all duration-200 hover:shadow-md">
+            className="citation-card group p-3 bg-gray-50 dark:bg-[#5C767B] rounded-lg border-2 border-[#43595D] dark:border-[#2e2e2d] hover:border-blue-300 dark:hover:border-[#f7eee3] transition-all duration-200 hover:shadow-md">
             <div className="flex items-start gap-3"> 
               <div className="flex-grow min-w-0">
                 <a
                   href={citation.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-[#f7eee3]  hover:text-[#f7eee3] dark:hover:text-[#f7eee3] hover:underline break-all"
+                  className="text-sm text-[#242D33]  hover:text-[#242D33] dark:hover:text-[#242D33] hover:underline break-all"
                 >
                   {citation.title}
                 </a>

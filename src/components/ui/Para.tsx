@@ -1,302 +1,375 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-interface ShapeData {
-  id: string;
-  heading: string;
-  paragraph: string;
-  svg: React.ReactNode;
-}
-
-const shapesData: ShapeData[] = [
-  {
-    id: "square",
-    heading: "The Square",
-    paragraph: "This is the paragraph associated with the square shape.",
-    svg: (
-      <svg
-        width="86"
-        height="86"
-        viewBox="0 0 86 86"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect
-          x="2.40697"
-          y="2.40697"
-          width="81.1861"
-          height="81.1861"
-          rx="14.5622"
-          fill="currentColor"
-        />
-        <rect
-          x="2.40697"
-          y="2.40697"
-          width="81.1861"
-          height="81.1861"
-          rx="14.5622"
-          stroke="#AFA9A9"
-          strokeWidth="4.81395"
-        />
-      </svg>
-    ),
-  },
-  {
-    id: "triangle",
-    heading: "The Triangle",
-    paragraph: "This is the paragraph associated with the triangle shape.",
-    svg: (
-      <svg
-        width="78"
-        height="68"
-        viewBox="0 0 78 68"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M34.6699 4.5C36.5343 1.27083 41.108 1.16985 43.1416 4.19727L43.3301 4.5L74.5068 58.5C76.4313 61.8333 74.0258 66 70.1768 66H7.82324C3.97424 66 1.56866 61.8333 3.49316 58.5L34.6699 4.5Z"
-          fill="currentColor"
-          stroke="#5C5C5C"
-          strokeWidth="4"
-        />
-      </svg>
-    ),
-  },
-  {
-    id: "flower",
-    heading: "The Flower",
-    paragraph: "This is the paragraph associated with the flower shape.",
-    svg: (
-      <svg
-        width="76"
-        height="84"
-        viewBox="0 0 76 84"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <g filter="url(#filter0_d_3564_1676)">
-          <path
-            d="M27.9742 8.13071C30.8527 -1.9558 45.1473 -1.9558 48.0258 8.13071V8.13071C49.57 13.5414 55.1288 16.7508 60.5867 15.3827V15.3827C70.7611 12.8324 77.9084 25.2118 70.6125 32.748V32.748C66.6988 36.7906 66.6988 43.2094 70.6125 47.252V47.252C77.9084 54.7882 70.7612 67.1676 60.5867 64.6173V64.6173C55.1288 63.2492 49.57 66.4586 48.0258 71.8693V71.8693C45.1473 81.9558 30.8527 81.9558 27.9742 71.8693V71.8693C26.43 66.4586 20.8712 63.2492 15.4133 64.6173V64.6173C5.23885 67.1676 -1.90843 54.7882 5.38747 47.252V47.252C9.3012 43.2094 9.3012 36.7906 5.38747 32.748V32.748C-1.90843 25.2118 5.23885 12.8324 15.4133 15.3827V15.3827C20.8712 16.7508 26.43 13.5414 27.9742 8.13071V8.13071Z"
-            fill="currentColor"
-          />
-          <path
-            d="M29.8975 8.67969C32.1875 0.655266 43.4181 0.5298 45.9873 8.30371L46.1025 8.67969C47.9429 15.1283 54.5684 18.9528 61.0732 17.3223C69.2956 15.2616 75.0716 25.266 69.1758 31.3564C64.5113 36.1745 64.5113 43.8255 69.1758 48.6436C75.0716 54.734 69.2956 64.7384 61.0732 62.6777C54.5684 61.0472 47.9429 64.8717 46.1025 71.3203C43.7762 79.472 32.2238 79.472 29.8975 71.3203C28.0571 64.8717 21.4316 61.0472 14.9268 62.6777C6.70435 64.7384 0.928439 54.734 6.82422 48.6436C11.4887 43.8255 11.4887 36.1745 6.82422 31.3564C0.92844 25.266 6.70435 15.2616 14.9268 17.3223C21.4316 18.9528 28.0571 15.1283 29.8975 8.67969Z"
-            stroke="#5C5C5C"
-            strokeWidth="4"
-          />
-        </g>
-        <defs>
-          <filter
-            id="filter0_d_3564_1676"
-            x="0.538654"
-            y="0.56543"
-            width="74.9227"
-            height="82.6043"
-            filterUnits="userSpaceOnUse"
-            colorInterpolationFilters="sRGB"
-          >
-            <feFlood floodOpacity="0" result="BackgroundImageFix" />
-            <feColorMatrix
-              in="SourceAlpha"
-              type="matrix"
-              values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-              result="hardAlpha"
-            />
-            <feOffset dy="1.8676" />
-            <feGaussianBlur stdDeviation="0.933798" />
-            <feComposite in2="hardAlpha" operator="out" />
-            <feColorMatrix
-              type="matrix"
-              values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"
-            />
-            <feBlend
-              mode="normal"
-              in2="BackgroundImageFix"
-              result="effect1_dropShadow_3564_1676"
-            />
-            <feBlend
-              mode="normal"
-              in="SourceGraphic"
-              in2="effect1_dropShadow_3564_1676"
-              result="shape"
-            />
-          </filter>
-        </defs>
-      </svg>
-    ),
-  },
-  {
-    id: "circle",
-    heading: "The Circle",
-    paragraph: "This is the paragraph associated with the circle shape.",
-    svg: (
-      <svg
-        width="86"
-        height="86"
-        viewBox="0 0 86 86"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect
-          x="2.40697"
-          y="2.40697"
-          width="81.1861"
-          height="81.1861"
-          rx="40.593"
-          fill="currentColor"
-        />
-        <rect
-          x="2.40697"
-          y="2.40697"
-          width="81.1861"
-          height="81.1861"
-          rx="40.593"
-          stroke="#5C5C5C"
-          strokeWidth="4.81395"
-        />
-      </svg>
-    ),
-  },
-  {
-    id: "star",
-    heading: "The Star",
-    paragraph: "This is the paragraph associated with the star shape.",
-    svg: (
-      <svg
-        width="90"
-        height="90"
-        viewBox="0 0 90 90"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M44.0625 3.29785C44.3847 2.42724 45.6153 2.42722 45.9375 3.29785L56.1504 30.8955C56.6251 32.1784 57.6027 33.2071 58.8506 33.748L59.1045 33.8496L86.7021 44.0625C87.5728 44.3847 87.5728 45.6153 86.7021 45.9375L59.1045 56.1504C57.8216 56.6251 56.7929 57.6027 56.252 58.8506L56.1504 59.1045L45.9375 86.7021C45.6153 87.5728 44.3847 87.5728 44.0625 86.7021L33.8496 59.1045C33.3432 57.7359 32.2641 56.6568 30.8955 56.1504L3.29785 45.9375C2.42724 45.6153 2.42722 44.3847 3.29785 44.0625L30.8955 33.8496C32.2641 33.3432 33.3432 32.2641 33.8496 30.8955L44.0625 3.29785Z"
-          fill="currentColor"
-          stroke="#5C5C5C"
-          strokeWidth="4"
-        />
-      </svg>
-    ),
-  },
-];
+gsap.registerPlugin(ScrollTrigger);
 
 const Para = () => {
-  const [activeShapeId, setActiveShapeId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
 
-  const handleShapeClick = (id: string) => {
-    setActiveShapeId(id);
-  };
+  useEffect(() => {
+    const container = containerRef.current;
+    const cards = cardsRef.current;
+    
+    if (!container || !cards) return;
 
-  // Find the active shape data
-  const activeShape = activeShapeId 
-    ? shapesData.find(shape => shape.id === activeShapeId) 
-    : null;
+    const updateScrollDistance = () => {
+      const cardWidth = 400;
+      const totalWidth = cardWidth * 7;
+      const containerWidth = container.offsetWidth;
+      return Math.max(0, totalWidth - containerWidth + 100);
+    };
+
+    let scrollDistance = updateScrollDistance();
+
+    // Set up horizontal scroll animation
+    const scrollTriggerInstance = ScrollTrigger.create({
+      trigger: container,
+      start: "top bottom",
+      end: () => `+=${scrollDistance}`,
+      scrub: 1,
+      pin: true,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
+      refreshPriority: -1,
+      pinSpacing: true,
+      onUpdate: (self) => {
+        const progress = self.progress;
+        gsap.set(cards, {
+          x: -scrollDistance * progress,
+        });
+      },
+      onRefresh: () => {
+        scrollDistance = updateScrollDistance();
+      }
+    });
+
+    // Improved mouse wheel handling for better reverse scrolling
+    let isScrolling = false;
+    
+    const handleWheel = (e: WheelEvent) => {
+      const rect = container.getBoundingClientRect();
+      const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+      
+      if (isInViewport && !isScrolling) {
+        const scrollTrigger = scrollTriggerInstance;
+        if (scrollTrigger && scrollTrigger.isActive) {
+          // Only prevent default when we're in the pinned section
+          if (rect.top <= 0 && rect.bottom >= window.innerHeight) {
+            e.preventDefault();
+            isScrolling = true;
+            
+            const currentProgress = scrollTrigger.progress || 0;
+            const delta = e.deltaY > 0 ? 0.02 : -0.02;
+            const newProgress = Math.max(0, Math.min(1, currentProgress + delta));
+            
+            // Update scroll position
+            scrollTrigger.scroll(scrollTrigger.start + (scrollTrigger.end - scrollTrigger.start) * newProgress);
+            
+            setTimeout(() => {
+              isScrolling = false;
+            }, 50);
+          }
+        }
+      }
+    };
+
+    // Add smooth scroll behavior for keyboard navigation
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const rect = container.getBoundingClientRect();
+      const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+      
+      if (isInViewport && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+        e.preventDefault();
+        const scrollTrigger = scrollTriggerInstance;
+        if (scrollTrigger) {
+          const currentProgress = scrollTrigger.progress || 0;
+          const delta = e.key === 'ArrowRight' ? 0.1 : -0.1;
+          const newProgress = Math.max(0, Math.min(1, currentProgress + delta));
+          
+          scrollTrigger.scroll(scrollTrigger.start + (scrollTrigger.end - scrollTrigger.start) * newProgress);
+        }
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('keydown', handleKeyDown);
+      scrollTriggerInstance.kill();
+    };
+  }, []);
+
+  const cardData = [
+    {
+      title: "Focus Mode",
+      description: "Submit the quarterly report by Friday",
+      svg: (
+        <svg
+          width="200"
+          height="140"
+          viewBox="0 0 490 327"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="transition-opacity duration-300 group-hover:opacity-80"
+        >
+          <path
+            d="M241.41 314.731L259.516 291.299C264.014 285.478 270.956 282.07 278.312 282.07H355.723C368.841 282.07 379.476 271.435 379.476 258.317V83.1364C379.476 70.8378 369.506 60.8677 357.208 60.8677V60.8677M357.208 60.8677V185.055C357.208 191.98 354.185 198.561 348.932 203.073L241.41 295.431M357.208 60.8677L349.203 35.6215C343.945 19.0388 323.232 13.5472 310.449 25.3468L241.41 89.0747M241.41 295.431V89.0747M241.41 295.431L117.294 274.958C105.822 273.066 97.4062 263.148 97.4062 251.522V89.7251C97.4062 74.7741 111.053 63.5408 125.725 66.4148L241.41 89.0747"
+            stroke="url(#paint0_linear_4173_1975)"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <defs>
+            <linearGradient
+              id="paint0_linear_4173_1975"
+              x1="97.4062"
+              y1="157.365"
+              x2="379.476"
+              y2="157.365"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stopColor="#0F1011" />
+              <stop offset="1" stopColor="#FFFCFC" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
+    },
+    {
+      title: "Calendar",
+      description: "Plan your Semester",
+      svg: (
+        <svg
+          width="200"
+          height="140"
+          viewBox="0 0 597 207"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="transition-opacity duration-300 group-hover:opacity-80"
+        >
+          <rect x="1" y="1" width="203" height="205" rx="20" fill="#0F1010" />
+          <rect
+            x="1"
+            y="1"
+            width="203"
+            height="205"
+            rx="20"
+            stroke="url(#paint0_linear_4177_2009)"
+            strokeWidth="2"
+          />
+          <path
+            d="M42.5308 145.945L42.5861 138.533L78.5914 106.013C81.6886 103.21 83.735 100.556 84.7305 98.0482C85.7629 95.5041 86.2791 92.8493 86.2791 90.0839C86.2791 86.8024 85.5048 83.8342 83.9562 81.1794C82.4076 78.5246 80.3243 76.4229 77.7064 74.8743C75.0886 73.2888 72.1572 72.4961 68.9125 72.4961C65.5203 72.4961 62.4968 73.3073 59.8421 74.9296C57.1873 76.552 55.0856 78.6906 53.537 81.3453C52.0253 84.0001 51.2878 86.8945 51.3247 90.0286H43.0285C43.0285 85.1984 44.1716 80.866 46.4576 77.0313C48.7437 73.1967 51.8409 70.1916 55.7493 68.0162C59.6577 65.8039 64.0823 64.6977 69.0231 64.6977C73.8533 64.6977 78.1858 65.8407 82.0204 68.1268C85.892 70.376 88.9339 73.4363 91.1462 77.3079C93.3954 81.1425 94.52 85.4197 94.52 90.1393C94.52 93.4577 94.1144 96.389 93.3032 98.9332C92.5289 101.44 91.2937 103.782 89.5976 105.957C87.9384 108.096 85.8182 110.308 83.2372 112.594L51.2694 141.465L49.9973 138.146H94.52V145.945H42.5308ZM133.823 147.659C128.919 147.659 124.494 146.516 120.549 144.23C116.641 141.944 113.544 138.847 111.257 134.938C108.971 130.993 107.828 126.569 107.828 121.665V90.6923C107.828 85.7884 108.971 81.3822 111.257 77.4738C113.544 73.5285 116.641 70.4128 120.549 68.1268C124.494 65.8407 128.919 64.6977 133.823 64.6977C138.727 64.6977 143.133 65.8407 147.042 68.1268C150.987 70.4128 154.102 73.5285 156.389 77.4738C158.675 81.3822 159.818 85.7884 159.818 90.6923V121.665C159.818 126.569 158.675 130.993 156.389 134.938C154.102 138.847 150.987 141.944 147.042 144.23C143.133 146.516 138.727 147.659 133.823 147.659ZM133.823 139.806C137.105 139.806 140.091 139.013 142.783 137.427C145.474 135.805 147.613 133.648 149.199 130.956C150.784 128.265 151.577 125.296 151.577 122.052V90.3052C151.577 87.0236 150.784 84.037 149.199 81.3453C147.613 78.6537 145.474 76.5151 142.783 74.9296C140.091 73.3073 137.105 72.4961 133.823 72.4961C130.541 72.4961 127.555 73.3073 124.863 74.9296C122.172 76.5151 120.033 78.6537 118.447 81.3453C116.862 84.037 116.069 87.0236 116.069 90.3052V122.052C116.069 125.296 116.862 128.265 118.447 130.956C120.033 133.648 122.172 135.805 124.863 137.427C127.555 139.013 130.541 139.806 133.823 139.806Z"
+            fill="white"
+          />
+          <defs>
+            <linearGradient
+              id="paint0_linear_4177_2009"
+              x1="205"
+              y1="116.955"
+              x2="69.2906"
+              y2="116.568"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stopColor="#0F0F10" />
+              <stop offset="1" stopColor="#A5A5A5" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
+    },
+    {
+      title: "Task Manager",
+      description: "Organize your daily workflow",
+      svg: (
+        <svg
+          width="200"
+          height="140"
+          viewBox="0 0 400 300"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="transition-opacity duration-300 group-hover:opacity-80"
+        >
+          <rect x="50" y="50" width="300" height="200" rx="10" stroke="url(#paint_task)" strokeWidth="3" fill="none"/>
+          <circle cx="100" cy="100" r="8" fill="url(#paint_task)"/>
+          <line x1="120" y1="100" x2="320" y2="100" stroke="url(#paint_task)" strokeWidth="2"/>
+          <circle cx="100" cy="140" r="8" fill="url(#paint_task)"/>
+          <line x1="120" y1="140" x2="280" y2="140" stroke="url(#paint_task)" strokeWidth="2"/>
+          <circle cx="100" cy="180" r="8" fill="url(#paint_task)"/>
+          <line x1="120" y1="180" x2="250" y2="180" stroke="url(#paint_task)" strokeWidth="2"/>
+          <defs>
+            <linearGradient id="paint_task" x1="50" y1="150" x2="350" y2="150" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#0F1011" />
+              <stop offset="1" stopColor="#FFFCFC" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
+    },
+    {
+      title: "Analytics",
+      description: "Track your productivity metrics",
+      svg: (
+        <svg
+          width="200"
+          height="140"
+          viewBox="0 0 400 300"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="transition-opacity duration-300 group-hover:opacity-80"
+        >
+          <rect x="80" y="200" width="40" height="80" fill="url(#paint_analytics)"/>
+          <rect x="140" y="150" width="40" height="130" fill="url(#paint_analytics)"/>
+          <rect x="200" y="100" width="40" height="180" fill="url(#paint_analytics)"/>
+          <rect x="260" y="120" width="40" height="160" fill="url(#paint_analytics)"/>
+          <line x1="50" y1="280" x2="350" y2="280" stroke="url(#paint_analytics)" strokeWidth="2"/>
+          <line x1="50" y1="280" x2="50" y2="50" stroke="url(#paint_analytics)" strokeWidth="2"/>
+          <defs>
+            <linearGradient id="paint_analytics" x1="50" y1="150" x2="350" y2="150" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#0F1011" />
+              <stop offset="1" stopColor="#FFFCFC" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
+    },
+    {
+      title: "Notes",
+      description: "Capture ideas and thoughts",
+      svg: (
+        <svg
+          width="200"
+          height="140"
+          viewBox="0 0 400 300"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="transition-opacity duration-300 group-hover:opacity-80"
+        >
+          <rect x="80" y="60" width="240" height="180" rx="10" stroke="url(#paint_notes)" strokeWidth="3" fill="none"/>
+          <line x1="110" y1="100" x2="290" y2="100" stroke="url(#paint_notes)" strokeWidth="2"/>
+          <line x1="110" y1="130" x2="270" y2="130" stroke="url(#paint_notes)" strokeWidth="2"/>
+          <line x1="110" y1="160" x2="250" y2="160" stroke="url(#paint_notes)" strokeWidth="2"/>
+          <line x1="110" y1="190" x2="280" y2="190" stroke="url(#paint_notes)" strokeWidth="2"/>
+          <circle cx="300" cy="80" r="15" fill="url(#paint_notes)"/>
+          <path d="M295 80 L298 83 L305 75" stroke="#000" strokeWidth="2" fill="none"/>
+          <defs>
+            <linearGradient id="paint_notes" x1="80" y1="150" x2="320" y2="150" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#0F1011" />
+              <stop offset="1" stopColor="#FFFCFC" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
+    },
+    {
+      title: "Time Tracker",
+      description: "Monitor time spent on tasks",
+      svg: (
+        <svg
+          width="200"
+          height="140"
+          viewBox="0 0 400 300"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="transition-opacity duration-300 group-hover:opacity-80"
+        >
+          <circle cx="200" cy="150" r="80" stroke="url(#paint_time)" strokeWidth="4" fill="none"/>
+          <line x1="200" y1="150" x2="200" y2="100" stroke="url(#paint_time)" strokeWidth="3"/>
+          <line x1="200" y1="150" x2="240" y2="150" stroke="url(#paint_time)" strokeWidth="3"/>
+          <circle cx="200" cy="80" r="4" fill="url(#paint_time)"/>
+          <circle cx="200" cy="220" r="4" fill="url(#paint_time)"/>
+          <circle cx="280" cy="150" r="4" fill="url(#paint_time)"/>
+          <circle cx="120" cy="150" r="4" fill="url(#paint_time)"/>
+          <defs>
+            <linearGradient id="paint_time" x1="120" y1="150" x2="280" y2="150" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#0F1011" />
+              <stop offset="1" stopColor="#FFFCFC" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
+    },
+    {
+      title: "Goals",
+      description: "Set and achieve your objectives",
+      svg: (
+        <svg
+          width="200"
+          height="140"
+          viewBox="0 0 400 300"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="transition-opacity duration-300 group-hover:opacity-80"
+        >
+          <circle cx="200" cy="150" r="60" stroke="url(#paint_goals)" strokeWidth="3" fill="none"/>
+          <circle cx="200" cy="150" r="40" stroke="url(#paint_goals)" strokeWidth="2" fill="none"/>
+          <circle cx="200" cy="150" r="20" stroke="url(#paint_goals)" strokeWidth="2" fill="none"/>
+          <circle cx="200" cy="150" r="8" fill="url(#paint_goals)"/>
+          <path d="M180 130 L195 145 L220 120" stroke="url(#paint_goals)" strokeWidth="3" fill="none"/>
+          <defs>
+            <linearGradient id="paint_goals" x1="140" y1="150" x2="260" y2="150" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#0F1011" />
+              <stop offset="1" stopColor="#FFFCFC" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center py-6 md:py-12 px-4">
-      {/* Main Heading - Updates based on selected shape */}
-      <h1 className="text-3xl md:text-5xl lg:text-7xl font-light text-white mb-6 md:mb-12 text-center">
-        {activeShape ? activeShape.heading : "Heading"}
-      </h1>
-      
-      {/* Desktop view (hidden on mobile) */}
-      <div className="hidden md:block w-full mb-16 relative">
-        {/* Top dashed line */}
-        <div className="absolute top-0 left-0 right-0 border-t-2 border-dashed border-gray-600"></div>
-        
-        {/* Bottom dashed line */}
-        <div className="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-gray-600"></div>
-        
-        {/* Vertical dashed lines */}
-        {Array(shapesData.length + 1).fill(0).map((_, index) => (
-          <div 
-            key={`divider-${index}`}
-            className="absolute top-0 bottom-0 border-l-2 border-dashed border-gray-600"
-            style={{ left: `${(index * 100) / shapesData.length}%` }}
-          ></div>
-        ))}
-        
-        {/* Grid content - shapes (horizontal) */}
-        <div className="flex flex-row justify-center items-center px-8 py-12">
-          {shapesData.map((shape) => (
-            <div 
-              key={shape.id}
-              className={`cursor-pointer transition-all duration-300 px-8 ${
-                activeShapeId === shape.id ? "text-white" : "text-gray-600"
-              }`}
-              onClick={() => handleShapeClick(shape.id)}
+    <div className="w-full bg-black text-white">
+      <div className="px-4 py-8 md:px-8 lg:px-12">
+        <header className="mb-12 text-center md:text-left max-w-7xl mx-auto">
+          <h1 className="text-4xl font-bold md:text-5xl lg:text-6xl">Productivity</h1>
+          <p className="mt-4 text-lg text-gray-400 md:text-xl">
+            Manage your tasks and schedule efficiently
+          </p>
+          <p className="mt-2 text-sm text-gray-500">
+            Scroll vertically to explore all features horizontally • Use ← → keys for precise control
+          </p>
+        </header>
+      </div>
+
+      <div ref={containerRef} className="relative h-screen w-full overflow-hidden flex items-center">
+        <div 
+          ref={cardsRef}
+          className="flex gap-8 px-8 will-change-transform"
+          style={{ width: 'fit-content' }}
+        >
+          {cardData.map((card, index) => (
+            <div
+              key={index}
+              className="group flex-shrink-0 transform rounded-xl border-2 border-[#5B5B5C] bg-gradient-to-br from-gray-900 to-black p-6 shadow-2xl transition-all duration-300 hover:scale-105 hover:border-gray-400 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+              style={{ width: '380px', height: '500px' }}
             >
-              <div className="w-20 h-20 flex items-center justify-center">
-                <div className="transform scale-[0.85]">
-                  {shape.svg}
-                </div>
+              <div className="mb-6">
+                <h2 className="mb-3 font-serif text-3xl font-bold text-white">{card.title}</h2>
+                <p className="text-sm text-[#5B5B5C] md:text-base">
+                  {card.description}
+                </p>
+              </div>
+              <div className="flex justify-center items-center h-64">
+                {card.svg}
               </div>
             </div>
           ))}
         </div>
       </div>
-      
-      {/* Mobile view (hidden on desktop) - Now using a 2x3 grid */}
-      <div className="md:hidden w-full mb-8 relative">
-        <div className="relative border-2 border-dashed border-gray-600 rounded-lg px-2 py-3">
-          {/* Create grid rows */}
-          <div className="grid grid-cols-3 gap-2">
-            {/* First row: first 3 shapes */}
-            <div className="col-span-3 grid grid-cols-3 border-b-2 border-dashed border-gray-600">
-              {shapesData.slice(0, 3).map((shape, index) => (
-                <React.Fragment key={shape.id}>
-                  <div 
-                    className={`cursor-pointer transition-all duration-300 py-4 flex justify-center items-center ${
-                      index !== 2 ? 'border-r-2 border-dashed border-gray-600' : ''
-                    } ${activeShapeId === shape.id ? "text-white" : "text-gray-600"}`}
-                    onClick={() => handleShapeClick(shape.id)}
-                  >
-                    <div className="w-14 h-14 flex items-center justify-center">
-                      <div className="transform scale-75">
-                        {shape.svg}
-                      </div>
-                    </div>
-                  </div>
-                </React.Fragment>
-              ))}
-            </div>
-            
-            {/* Second row: remaining shapes */}
-            <div className="col-span-3 grid grid-cols-3">
-              {shapesData.slice(3).map((shape, index, arr) => (
-                <React.Fragment key={shape.id}>
-                  <div 
-                    className={`cursor-pointer transition-all duration-300 py-4 flex justify-center items-center ${
-                      index !== arr.length - 1 ? 'border-r-2 border-dashed border-gray-600' : ''
-                    } ${activeShapeId === shape.id ? "text-white" : "text-gray-600"}`}
-                    onClick={() => handleShapeClick(shape.id)}
-                  >
-                    <div className="w-14 h-14 flex items-center justify-center">
-                      <div className="transform scale-75">
-                        {shape.svg}
-                      </div>
-                    </div>
-                  </div>
-                </React.Fragment>
-              ))}
-              
-              {/* If we need to add an empty cell to complete the grid */}
-              {shapesData.length % 3 !== 0 && (
-                <div className="flex justify-center items-center py-4">
-                  {/* Empty cell */}
-                </div>
-              )}
-            </div>
+
+      {/* Scroll indicator */}
+      <div className="fixed bottom-8 right-8 text-sm text-gray-400 z-10">
+        <div className="flex flex-col items-center gap-2">
+          <span>Scroll ↓↑</span>
+          <div className="flex gap-1">
+            <div className="w-2 h-2 bg-gray-600 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-gray-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-2 h-2 bg-gray-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
           </div>
+          <span className="text-xs">← → Keys</span>
         </div>
-      </div>
-      
-      {/* Paragraph Section */}
-      <div className="max-w-5xl text-xl md:text-2xl lg:text-4xl text-gray-500 text-center px-4">
-        {activeShape ? (
-          <p>{activeShape.paragraph}</p>
-        ) : (
-          <p>paragaph - sjhdawejksvnalksvn aslkvnasnvnasndiv salnv asjdnvnanjdfvbadjnfvbasjnbnafslnbna dfnjlb</p>
-        )}
       </div>
     </div>
   );

@@ -1,18 +1,21 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import DOMPurify from "dompurify";
 import ReactMarkdown from "react-markdown";
+
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import remarkEmoji from "remark-emoji";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
-import rehypeHighlight from "rehype-highlight";
 import rehypeExternalLinks from "rehype-external-links";
+
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import GrammarRenderer from "./GrammarRenderer";
@@ -23,13 +26,97 @@ import TypogramRenderer from "./TypogramRenderer";
 import AutomataRenderer from "./AutomataRenderer";
 import CitationRenderer from "./CitationRenderer";
 
+// Extract static plugin configurations outside component for React Compiler optimization
+const REMARK_PLUGINS = [
+  remarkGfm,
+  remarkBreaks,
+  remarkEmoji,
+  [
+    remarkMath,
+    { singleDollarTextMath: true, doubleBacktickMathDisplay: false },
+  ],
+];
+
+const REHYPE_PLUGINS = [
+  rehypeHighlight,
+  [
+    rehypeKatex,
+    {
+      strict: false,
+      trust: true,
+      throwOnError: false,
+      errorColor: "#cc0000",
+      displayMode: false,
+      fleqn: false,
+      macros: {
+        // Vector notation
+        "\\vec": "\\overrightarrow{#1}",
+        "\\vect": "\\mathbf{#1}",
+
+        // Common mathematical shortcuts
+        "\\R": "\\mathbb{R}",
+        "\\N": "\\mathbb{N}",
+        "\\Z": "\\mathbb{Z}",
+        "\\Q": "\\mathbb{Q}",
+        "\\C": "\\mathbb{C}",
+
+        // Derivatives and differentials
+        "\\dd": "\\,\\mathrm{d}",
+        "\\dv": "\\frac{\\mathrm{d}#1}{\\mathrm{d}#2}",
+        "\\pdv": "\\frac{\\partial#1}{\\partial#2}",
+
+        // Common functions
+        "\\abs": "\\left|#1\\right|",
+        "\\norm": "\\left\\|#1\\right\\|",
+        "\\floor": "\\left\\lfloor#1\\right\\rfloor",
+        "\\ceil": "\\left\\lceil#1\\right\\rceil",
+
+        // Probability and statistics
+        "\\Pr": "\\mathrm{Pr}",
+        "\\E": "\\mathrm{E}",
+        "\\Var": "\\mathrm{Var}",
+        "\\Cov": "\\mathrm{Cov}",
+
+        // Linear algebra
+        "\\tr": "\\mathrm{tr}",
+        "\\rank": "\\mathrm{rank}",
+        "\\det": "\\mathrm{det}",
+
+        // Limits and big operators
+        "\\lim": "\\lim",
+        "\\limsup": "\\limsup",
+        "\\liminf": "\\liminf",
+
+        // Set theory
+        "\\powerset": "\\mathcal{P}",
+
+        // Complex analysis
+        "\\Re": "\\mathrm{Re}",
+        "\\Im": "\\mathrm{Im}",
+
+        // Number theory
+        "\\gcd": "\\mathrm{gcd}",
+        "\\lcm": "\\mathrm{lcm}",
+
+        // Logic
+        "\\land": "\\wedge",
+        "\\lor": "\\vee",
+        "\\lnot": "\\neg",
+      },
+    },
+  ],
+  rehypeRaw,
+  rehypeSlug,
+  [
+    rehypeExternalLinks,
+    { target: "_blank", rel: ["nofollow", "noopener", "noreferrer"] },
+  ],
+];
+
 // Dynamic import for CircuitBricksRenderer to avoid SSR issues
-const CircuitBricksRenderer = dynamic(
-  () => import("./CircuitBricksRenderer"),
-  { ssr: false }
-);
-
-
+const CircuitBricksRenderer = dynamic(() => import("./CircuitBricksRenderer"), {
+  ssr: false,
+});
 
 // Fix interface to include className, width and height props
 interface MarkdownRendererProps {
@@ -103,8 +190,8 @@ const preprocessMathNotation = (content: string): string => {
   // Now process mathematical expressions in regular text
   content = content
     // Handle already formatted expressions like 3^{4} that need math delimiters
-    .replace(/\b([a-zA-Z0-9]+)\^(\{[^}]+\})/g, "$$$1^$2$$")  // 3^{4} -> $3^{4}$
-    .replace(/\b([a-zA-Z0-9]+)_(\{[^}]+\})/g, "$$$1_$2$$")   // x_{1} -> $x_{1}$
+    .replace(/\b([a-zA-Z0-9]+)\^(\{[^}]+\})/g, "$$$1^$2$$") // 3^{4} -> $3^{4}$
+    .replace(/\b([a-zA-Z0-9]+)_(\{[^}]+\})/g, "$$$1_$2$$") // x_{1} -> $x_{1}$
 
     // Handle only very specific mathematical superscripts and subscripts
 
@@ -118,7 +205,10 @@ const preprocessMathNotation = (content: string): string => {
     .replace(/\bφ\((\d+)\)/g, "$$\\phi($1)$$")
 
     // Handle modular arithmetic only when clearly formatted
-    .replace(/(\d+)\s*≡\s*(\d+)\s*\(mod\s*(\d+)\)/g, "$$$1 \\equiv $2 \\pmod{$3}$$")
+    .replace(
+      /(\d+)\s*≡\s*(\d+)\s*\(mod\s*(\d+)\)/g,
+      "$$$1 \\equiv $2 \\pmod{$3}$$",
+    )
 
     // Handle fractions
     .replace(/\b(\d+)\/(\d+)\b/g, "$$\\frac{$1}{$2}$$")
@@ -127,7 +217,10 @@ const preprocessMathNotation = (content: string): string => {
     // Handle modular arithmetic
     .replace(/\b(\d+)\s+mod\s+(\d+)/g, "$$$1 \\bmod $2$$")
     .replace(/≡\s*(\d+)\s+mod\s+(\d+)/g, "$$\\equiv $1 \\pmod{$2}$$")
-    .replace(/([^$]+)\s*≡\s*([^$]+)\s+mod\s+(\d+)/g, "$$$1 \\equiv $2 \\pmod{$3}$$")
+    .replace(
+      /([^$]+)\s*≡\s*([^$]+)\s+mod\s+(\d+)/g,
+      "$$$1 \\equiv $2 \\pmod{$3}$$",
+    )
 
     // Handle square roots
     .replace(/sqrt\(([^)]+)\)/g, "$$\\sqrt{$1}$$")
@@ -154,18 +247,36 @@ const preprocessMathNotation = (content: string): string => {
     .replace(/\bpi\b/g, "$$\\pi$$")
 
     // Handle summation and product notation
-    .replace(/sum\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, "$$\\sum_{$1=$2}^{$3}$$")
-    .replace(/prod\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, "$$\\prod_{$1=$2}^{$3}$$")
+    .replace(
+      /sum\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g,
+      "$$\\sum_{$1=$2}^{$3}$$",
+    )
+    .replace(
+      /prod\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g,
+      "$$\\prod_{$1=$2}^{$3}$$",
+    )
 
     // Handle limit notation
     .replace(/lim\s*\(([^,]+)\s*->\s*([^)]+)\)/g, "$$\\lim_{$1 \\to $2}$$")
 
     // Handle integral notation
-    .replace(/int\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, "$$\\int_{$1}^{$2} $3$$")
+    .replace(
+      /int\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g,
+      "$$\\int_{$1}^{$2} $3$$",
+    )
 
     // Handle matrix notation shortcuts
     .replace(/matrix\s*\(\s*([^)]+)\s*\)/g, (_, content) => {
-      const rows = content.split(';').map((row: string) => row.trim().split(',').map((cell: string) => cell.trim()).join(' & ')).join(' \\\\ ');
+      const rows = content
+        .split(";")
+        .map((row: string) =>
+          row
+            .trim()
+            .split(",")
+            .map((cell: string) => cell.trim())
+            .join(" & "),
+        )
+        .join(" \\\\ ");
       return `$$\\begin{pmatrix} ${rows} \\end{pmatrix}$$`;
     })
 
@@ -175,7 +286,7 @@ const preprocessMathNotation = (content: string): string => {
 
   // Restore protected math expressions
   mathExpressions.forEach((expr, index) => {
-    if (expr.startsWith('$$')) {
+    if (expr.startsWith("$$")) {
       content = content.replace(`__MATH_BLOCK_${index}__`, expr);
     } else {
       content = content.replace(`__MATH_INLINE_${index}__`, expr);
@@ -205,18 +316,29 @@ const isAutomataAscii = (code: string): boolean => {
 // Function to check if a code block should be rendered on the right panel (diagrams + code blocks)
 const isDiagramCodeBlock = (language: string, codeString: string): boolean => {
   // Explicit diagram languages
-  if (['mermaid', 'typogram', 'grammar', 'automata', 'cct', 'circuit-bricks', 'circuit'].includes(language)) {
+  if (
+    [
+      "mermaid",
+      "typogram",
+      "grammar",
+      "automata",
+      "cct",
+      "circuit-bricks",
+      "circuit",
+    ].includes(language)
+  ) {
     return true;
   }
 
   // ALL code blocks with language specified should go to right panel
-  if (language && language.trim() !== '') {
+  if (language && language.trim() !== "") {
     return true;
   }
 
   // Detect Mermaid diagrams by keywords even if no language tag is provided
   const trimmed = codeString.trim();
-  const mermaidKeywords = /^(graph|flowchart|sequenceDiagram|stateDiagram|classDiagram|gantt|pie|erDiagram)/;
+  const mermaidKeywords =
+    /^(graph|flowchart|sequenceDiagram|stateDiagram|classDiagram|gantt|pie|erDiagram)/;
   const isMermaid = mermaidKeywords.test(trimmed);
 
   if (isMermaid) {
@@ -234,24 +356,27 @@ const isDiagramCodeBlock = (language: string, codeString: string): boolean => {
   const hasFlowchartElements = /\[.*\]\s*--+>\s*\[.*\]/.test(codeString);
 
   // Treat as diagram if it has specific diagram patterns
-  const isSpecificDiagram = hasStateTransitions || hasBoxDrawing || hasFlowchartElements;
+  const isSpecificDiagram =
+    hasStateTransitions || hasBoxDrawing || hasFlowchartElements;
 
   return isSpecificDiagram;
 };
 
 // Function to separate content into text and code/diagrams (for right panel)
-const separateContentAndDiagrams = (content: string): { textContent: string; diagramContent: string } => {
+const separateContentAndDiagrams = (
+  content: string,
+): { textContent: string; diagramContent: string } => {
   const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
   let textContent = content;
-  let diagramContent = '';
+  let diagramContent = "";
   let match;
 
   // Extract all code blocks and check if they're diagrams
   const codeBlocks: Array<{ match: RegExpExecArray; isDiagram: boolean }> = [];
 
   while ((match = codeBlockRegex.exec(content)) !== null) {
-    const language = match[1] || '';
-    const codeString = (match[2] ?? '').trim();
+    const language = match[1] || "";
+    const codeString = (match[2] ?? "").trim();
     const isDiagram = isDiagramCodeBlock(language, codeString);
 
     codeBlocks.push({ match, isDiagram });
@@ -261,61 +386,392 @@ const separateContentAndDiagrams = (content: string): { textContent: string; dia
   codeBlocks.reverse().forEach(({ match, isDiagram }) => {
     if (isDiagram) {
       // Add to diagram content
-      diagramContent = match[0] + '\n\n' + diagramContent;
+      diagramContent = match[0] + "\n\n" + diagramContent;
       // Remove from text content
-      textContent = textContent.substring(0, match.index) + textContent.substring(match.index + match[0].length);
+      textContent =
+        textContent.substring(0, match.index) +
+        textContent.substring(match.index + match[0].length);
     }
   });
 
-  return { textContent: textContent.trim(), diagramContent: diagramContent.trim() };
+  return {
+    textContent: textContent.trim(),
+    diagramContent: diagramContent.trim(),
+  };
 };
 
 // Function to separate citations from content
-const separateContentAndCitations = (content: string): { mainContent: string; citations: string } => {
+const separateContentAndCitations = (
+  content: string,
+): { mainContent: string; citations: string } => {
   // First check for ```citations blocks
   const citationBlockRegex = /```citations\n([\s\S]*?)```/g;
   let mainContent = content;
-  let citations = '';
+  let citations = "";
   let match;
 
   // Process citation code blocks
   while ((match = citationBlockRegex.exec(content)) !== null) {
-    citations += (match[1] ?? '').trim() + '\n';
+    citations += (match[1] ?? "").trim() + "\n";
     // Remove citation block from main content
-    mainContent = mainContent.replace(match[0], '');
+    mainContent = mainContent.replace(match[0], "");
   }
 
   // Then check for References or References sections
-  const referencesRegex = /(?:^|\n)(?:##?\s*)?References?\s*\n((?:[-*•]?\s*.*(?:\n|$))*)/gim;
+  const referencesRegex =
+    /(?:^|\n)(?:##?\s*)?References?\s*\n((?:[-*•]?\s*.*(?:\n|$))*)/gim;
   while ((match = referencesRegex.exec(content)) !== null) {
     // Convert bullets/dashes to citation format
-    const referenceLines = (match[1] ?? '').split('\n')
-      .filter(line => line.trim())
-      .map(line => {
-        line = line.replace(/^[-*•]\s*/, '').trim(); // Remove bullets
-        return line ? ` | ${line} | Reference` : ''; // Convert to citation format
+    const referenceLines = (match[1] ?? "")
+      .split("\n")
+      .filter((line) => line.trim())
+      .map((line) => {
+        line = line.replace(/^[-*•]\s*/, "").trim(); // Remove bullets
+        return line ? ` | ${line} | Reference` : ""; // Convert to citation format
       })
       .filter(Boolean)
-      .join('\n');
+      .join("\n");
 
     if (referenceLines) {
-      citations += (citations ? '\n' : '') + referenceLines;
+      citations += (citations ? "\n" : "") + referenceLines;
       // Remove the references section from main content
-      mainContent = mainContent.replace(match[0], '');
+      mainContent = mainContent.replace(match[0], "");
     }
   }
 
   return {
     mainContent: mainContent.trim(),
-    citations: citations.trim()
+    citations: citations.trim(),
   };
+};
+
+// Create completely stable components object outside component scope
+const STABLE_MARKDOWN_COMPONENTS = {
+  code(props: any) {
+    const { className, children, ...restProps } = props as {
+      className?: string;
+      children: React.ReactNode;
+      [key: string]: unknown;
+    };
+    const isInline = !className || !/language-(\w+)/.test(className);
+    if (isInline) {
+      return (
+        <code
+          className={`${className || ''} text-base md:text-lg bg-[#50636a2d] text-[#617D82] px-1 py-0.5 rounded`}
+          {...restProps}
+          data-oid="cqf0ne7"
+        >
+          {children}
+        </code>
+      );
+    }
+    const match = /language-(\w+)/.exec(className || "");
+    const codeString = String(children).replace(/\n$/, "");
+    const language = match ? match[1] : "";
+
+    // Citations rendering
+    if (language === "citations") {
+      return <CitationRenderer citations={codeString} />;
+    }
+
+    // Typogram rendering for ASCII diagrams
+    if (language === "typogram") {
+      return (
+        <TypogramRenderer
+          source={codeString}
+          zoom={0.3}
+          debug={false}
+          data-oid="5ot1p9l"
+        />
+      );
+    }
+    // Grammar rendering for automata languages
+    if (language === "grammar") {
+      return (
+        <GrammarRenderer grammar={codeString} data-oid="x0f:jrz" />
+      );
+    }
+    // Automata rendering for finite state machines
+    if (language === "automata") {
+      return (
+        <AutomataRenderer automata={codeString} data-oid="xxbh19:" />
+      );
+    }
+    // Detect Mermaid diagrams by keywords even if no language tag is provided
+    const trimmed = codeString.trim();
+    const mermaidKeywords =
+      /^(graph|flowchart|sequenceDiagram|stateDiagram|classDiagram|gantt|pie|erDiagram)/;
+    const isMermaid =
+      language === "mermaid" ||
+      (!language && mermaidKeywords.test(trimmed));
+    if (isMermaid) {
+      return <MermaidRenderer chart={codeString} data-oid="tji:5pw" />;
+    }
+
+    // Circuit-Bricks circuit diagram rendering
+    if (language === "circuit-bricks" || language === "circuit") {
+      // Verify the circuit data is valid JSON before attempting to render
+      let isValidJSON = true;
+      try {
+        JSON.parse(codeString);
+      } catch {
+        isValidJSON = false;
+      }
+
+      return (
+        <div className="relative my-6" data-oid="circuit-bricks-container">
+          {isValidJSON ? (
+            <div>
+              <CircuitBricksRenderer circuitData={codeString} />
+            </div>
+          ) : (
+            <div className="p-4 text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-b-md bg-red-50 dark:bg-red-900 dark:bg-opacity-20">
+              <strong>Invalid Circuit JSON:</strong> Could not parse the circuit data.
+              <div className="mt-2">
+                Please ensure your circuit definition is valid JSON and includes proper component and wire definitions.
+              </div>
+              <pre className="mt-3 p-3 bg-gray-900 rounded text-gray-300 text-xs overflow-auto">
+                {codeString}
+              </pre>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Enhanced ASCII FSM/automata diagram detection
+    if (!language && isAutomataAscii(codeString)) {
+      return (
+        <div className="relative my-6" data-oid="hp1.teh">
+          <div
+            className="px-3 py-1.5 bg-gray-800 text-xs text-gray-300 rounded-t-md border-b border-gray-700 flex justify-between items-center"
+            data-oid="4l4h924"
+          >
+            <span data-oid="a8m7p1o">
+              Finite State Machine / Automaton Diagram (ASCII)
+            </span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(codeString);
+              }}
+              className="p-1 rounded hover:bg-gray-700 transition-colors"
+              aria-label="Copy diagram"
+              data-oid="brz05dt"
+            >
+              <Copy
+                className="h-3.5 w-3.5 text-gray-400"
+                data-oid="5sazyxv"
+              />
+            </button>
+          </div>
+          <pre
+            className="p-4 bg-gray-900 font-mono text-sm overflow-x-auto rounded-b-md whitespace-pre leading-snug text-gray-200 border border-gray-700"
+            data-oid="1by4g82"
+          >
+            <code data-oid="vqoj6aa">{codeString}</code>
+          </pre>
+        </div>
+      );
+    }
+
+    // Very restrictive ASCII diagram detection - only for very specific patterns
+    // Only consider it a diagram if it has very specific diagram characteristics
+    const hasStateTransitions = /q\d+\s*--+>\s*q\d+/.test(codeString);
+    const hasBoxDrawing = /[┌┐└┘├┤┬┴┼─│]/.test(codeString);
+    const hasFlowchartElements = /\[.*\]\s*--+>\s*\[.*\]/.test(codeString);
+
+    // Only treat as ASCII diagram if it has very specific diagram patterns AND no language is specified
+    const isSpecificAsciiDiagram = !language && (hasStateTransitions || hasBoxDrawing || hasFlowchartElements);
+
+    // Render ASCII diagrams with preserved whitespace and monospace font
+    if (isSpecificAsciiDiagram) {
+      return (
+        <div className="relative group my-6" data-oid="6b4n4bt">
+          <div
+            className="px-3 py-1.5 bg-gray-800 text-xs text-gray-300 rounded-t-md border-b border-gray-700 flex justify-between items-center"
+            data-oid="35l5yv6"
+          >
+            <span data-oid="1ejpw7n">ASCII Diagram</span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(codeString);
+              }}
+              className="p-1 rounded hover:bg-gray-700 transition-colors"
+              aria-label="Copy diagram"
+              data-oid="o3uy1i1"
+            >
+              <Copy
+                className="h-3.5 w-3.5 text-gray-400"
+                data-oid=":w1wdeg"
+              />
+            </button>
+          </div>
+          <pre
+            className="p-4 bg-gray-900 font-mono text-sm overflow-x-auto rounded-b-md whitespace-pre leading-snug text-gray-200 border border-gray-700"
+            data-oid="d.yfjpc"
+          >
+            <code data-oid="qn-uqv4">{codeString}</code>
+          </pre>
+        </div>
+      );
+    }
+
+    if (match) {
+      return (
+        <div className="relative group my-6" data-oid="ysa:q4e">
+          <div
+            className="px-3 py-1.5 bg-[#42595D] text-xs text-gray-300 rounded-t-md border-2 border-[#42595D] flex justify-between items-center"
+            data-oid="xgm02at"
+          >
+            <span data-oid="s0xzq2k">
+              {language
+                ? language.charAt(0).toUpperCase() +
+                  language.slice(1) +
+                  (language.toLowerCase() === "typescript"
+                    ? " (TS)"
+                    : language.toLowerCase() === "javascript"
+                    ? " (JS)"
+                    : "")
+                : "Code"}
+            </span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(codeString);
+              }}
+              className="p-1 rounded hover:bg-gray-700 transition-colors"
+              aria-label="Copy code"
+              data-oid="qjn7tun"
+            >
+              <Copy
+                className="h-3.5 w-3.5 text-gray-400"
+                data-oid="3qe5x-0"
+              />
+            </button>
+          </div>
+          <SyntaxHighlighter
+            language={language || "text"}
+            style={vscDarkPlus}
+            className="rounded-t-none !mt-0 !bg-[#252D31] rounded-b-md"
+            customStyle={{
+              marginTop: 0,
+              border: "2px solid rgb(66, 89, 93)",
+              borderTop: "none",
+            }}
+            data-oid="9.6yjrk"
+          >
+            {codeString}
+          </SyntaxHighlighter>
+        </div>
+      );
+    }
+    return (
+      <code className={className} {...restProps} data-oid="gj5ilnz">
+        {children}
+      </code>
+    );
+  },
+  pre({ children }: any) {
+    return <>{children}</>;
+  },
+  table({ children }: any) {
+    return (
+      <div className="overflow-x-auto my-4" data-oid="f1d:qqk">
+        <table className="border-collapse w-full" data-oid="2tl4x:d">
+          {children}
+        </table>
+      </div>
+    );
+  },
+  th({ children }: any) {
+    return (
+      <th className="border border-gray-300 dark:border-[#919191] px-4 py-2 text-left bg-gray-100 dark:bg-[#202020] ">
+        {children}
+      </th>
+    );
+  },
+  td({ children }: any) {
+    return (
+      <td className="border border-gray-300 dark:border-[#919191] px-4 py-2">
+        {children}
+      </td>
+    );
+  },
+  blockquote({ children }: any) {
+    return (
+      <blockquote className="border-l-4  bg-yellow-500 pl-4  my-4">
+        {children}
+      </blockquote>
+    );
+  },
+  h1({ children }: any) {
+    return (
+      <h1
+        className="text-3xl font-bold mt-6 mb-4 pb-2 border-b border-gray-200 dark:border-gray-800"
+        data-oid="5mw00sa"
+      >
+        {children}
+      </h1>
+    );
+  },
+  h2({ children }: any) {
+    return (
+      <h2
+        className="text-2xl font-bold text-[#99C5CB] border-t border-[#23545D] my-3 py-3"
+        data-oid="19rjxuk"
+      >
+        {children}
+      </h2>
+    );
+  },
+  h3({ children }: any) {
+    return (
+      <h3 className="text-xl font-semibold text-[#99C5CB] mt-4 mb-2" data-oid="k2n:wqm">
+        {children}
+      </h3>
+    );
+  },
+  ul({ children }: any) {
+    return (
+      <ul className="my-4" data-oid="swyr7.k">
+        {children}
+      </ul>
+    );
+  },
+  ol({ children }: any) {
+    return (
+      <ol className="my-4" data-oid="6yjdj89">
+        {children}
+      </ol>
+    );
+  },
+  li({ children }: any) {
+    return (
+      <li className="my-1" data-oid="l8rvb-5">
+        {children}
+      </li>
+    );
+  },
+  p({ children }: any) {
+    return (
+      <p className="my-4  " data-oid="v06:sbi">
+        {children}
+      </p>
+    );
+  },
+  strong({ children }: any) {
+    return (
+      <strong className="font-bold" style={{ fontWeight: 'bold' }} data-oid="bold-text">
+        {children}
+      </strong>
+    );
+  },
 };
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   content,
   onlyText = false,
   onlyDiagrams = false,
-  excludeCitations = false
+  excludeCitations = false,
 }) => {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -326,7 +782,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   let processedContent = mainContent;
 
   if (onlyText || onlyDiagrams) {
-    const { textContent, diagramContent } = separateContentAndDiagrams(mainContent);
+    const { textContent, diagramContent } =
+      separateContentAndDiagrams(mainContent);
     processedContent = onlyText ? textContent : diagramContent;
   }
 
@@ -351,10 +808,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   // Enhanced mathematical expression processing
   processedContent = processedContent
     // First, handle display math blocks
-    .replace(
-      /\$\$([\s\S]*?)\$\$/g,
-      (_, math) => `\n\n$$${math.trim()}$$\n\n`,
-    )
+    .replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => `\n\n$$${math.trim()}$$\n\n`)
     // Handle LaTeX-style delimiters
     .replace(/\\\(/g, "$$")
     .replace(/\\\)/g, "$$")
@@ -369,10 +823,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     )
 
     // Enhanced superscript and subscript handling
-    .replace(/([a-zA-Z0-9])\^([a-zA-Z0-9]+)/g, "$1^{$2}")  // a^n -> a^{n}
-    .replace(/([a-zA-Z0-9])\^(\([^)]+\))/g, "$1^{$2}")     // a^(n+1) -> a^{(n+1)}
-    .replace(/([a-zA-Z0-9])_([a-zA-Z0-9]+)/g, "$1_{$2}")   // x_i -> x_{i}
-    .replace(/([a-zA-Z0-9])_(\([^)]+\))/g, "$1_{$2}")      // x_(i+1) -> x_{(i+1)}
+    .replace(/([a-zA-Z0-9])\^([a-zA-Z0-9]+)/g, "$1^{$2}") // a^n -> a^{n}
+    .replace(/([a-zA-Z0-9])\^(\([^)]+\))/g, "$1^{$2}") // a^(n+1) -> a^{(n+1)}
+    .replace(/([a-zA-Z0-9])_([a-zA-Z0-9]+)/g, "$1_{$2}") // x_i -> x_{i}
+    .replace(/([a-zA-Z0-9])_(\([^)]+\))/g, "$1_{$2}") // x_(i+1) -> x_{(i+1)}
 
     // Complex superscript/subscript combinations
     .replace(/([a-zA-Z0-9])\^([a-zA-Z0-9]+)_([a-zA-Z0-9]+)/g, "$1^{$2}_{$3}")
@@ -393,20 +847,38 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       /\\frac\{\\partial\}\{\\partial ([a-zA-Z])\}/g,
       "\\frac{\\partial}{\\partial $1}",
     )
-    .replace(/\\frac\{\\partial([^}]*)\}\{\\partial ([a-zA-Z])\}/g, "\\frac{\\partial$1}{\\partial $2}")
+    .replace(
+      /\\frac\{\\partial([^}]*)\}\{\\partial ([a-zA-Z])\}/g,
+      "\\frac{\\partial$1}{\\partial $2}",
+    )
 
     // Roots and powers
     .replace(/\\sqrt\{([^}]*)\}/g, "\\sqrt{$1}")
     .replace(/\\sqrt\[([^\]]*)\]\{([^}]*)\}/g, "\\sqrt[$1]{$2}")
 
     // Matrix environments
-    .replace(/\\begin\{matrix\}([\s\S]*?)\\end\{matrix\}/g, "\\begin{matrix}$1\\end{matrix}")
-    .replace(/\\begin\{pmatrix\}([\s\S]*?)\\end\{pmatrix\}/g, "\\begin{pmatrix}$1\\end{pmatrix}")
-    .replace(/\\begin\{bmatrix\}([\s\S]*?)\\end\{bmatrix\}/g, "\\begin{bmatrix}$1\\end{bmatrix}")
-    .replace(/\\begin\{vmatrix\}([\s\S]*?)\\end\{vmatrix\}/g, "\\begin{vmatrix}$1\\end{vmatrix}")
+    .replace(
+      /\\begin\{matrix\}([\s\S]*?)\\end\{matrix\}/g,
+      "\\begin{matrix}$1\\end{matrix}",
+    )
+    .replace(
+      /\\begin\{pmatrix\}([\s\S]*?)\\end\{pmatrix\}/g,
+      "\\begin{pmatrix}$1\\end{pmatrix}",
+    )
+    .replace(
+      /\\begin\{bmatrix\}([\s\S]*?)\\end\{bmatrix\}/g,
+      "\\begin{bmatrix}$1\\end{bmatrix}",
+    )
+    .replace(
+      /\\begin\{vmatrix\}([\s\S]*?)\\end\{vmatrix\}/g,
+      "\\begin{vmatrix}$1\\end{vmatrix}",
+    )
 
     // Trigonometric and logarithmic functions
-    .replace(/\\(sin|cos|tan|sec|csc|cot|sinh|cosh|tanh|arcsin|arccos|arctan)\{([^}]*)\}/g, "\\$1($2)")
+    .replace(
+      /\\(sin|cos|tan|sec|csc|cot|sinh|cosh|tanh|arcsin|arccos|arctan)\{([^}]*)\}/g,
+      "\\$1($2)",
+    )
     .replace(/\\(log|ln|exp)\{([^}]*)\}/g, "\\$1($2)")
 
     // Set notation and logic
@@ -570,470 +1042,25 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           display: none !important;
         }
 
-        
+
       `}</style>
       <div
-        className="markdown-content max-w-none [&_.katex]:my-4 [&_.katex]:text-lg [&_.katex-display]:my-6 [&_.katex-display]:text-xl [&_.katex-display]:py-4 [&_.katex-display]:px-2 [&_.katex]:leading-relaxed [&_.katex-mathml]:hidden"
+        className="markdown-content max-w-none [&_.katex-display]:my-6 [&_.katex-display]:px-2 [&_.katex-display]:py-4 [&_.katex-display]:text-xl [&_.katex-mathml]:hidden [&_.katex]:my-4 [&_.katex]:text-lg [&_.katex]:leading-relaxed"
         data-oid="e3n597w"
       >
-      <ReactMarkdown
-        remarkPlugins={[
-          remarkGfm,
-          remarkBreaks,
-          remarkEmoji,
-          [
-            remarkMath,
-            { singleDollarTextMath: true, doubleBacktickMathDisplay: false },
-          ],
-        ]}
-        rehypePlugins={[
-          rehypeHighlight,
-          [
-            rehypeKatex,
-            {
-              strict: false,
-              trust: true,
-              throwOnError: false,
-              errorColor: "#cc0000",
-              displayMode: false,
-              fleqn: false,
-              macros: {
-                // Vector notation
-                "\\vec": "\\overrightarrow{#1}",
-                "\\vect": "\\mathbf{#1}",
+        <ReactMarkdown
+          remarkPlugins={REMARK_PLUGINS as any}
+          rehypePlugins={REHYPE_PLUGINS as any}
+          components={STABLE_MARKDOWN_COMPONENTS}
+          data-oid=".54vk3j"
+        >
+          {processedContent}
+        </ReactMarkdown>
 
-                // Common mathematical shortcuts
-                "\\R": "\\mathbb{R}",
-                "\\N": "\\mathbb{N}",
-                "\\Z": "\\mathbb{Z}",
-                "\\Q": "\\mathbb{Q}",
-                "\\C": "\\mathbb{C}",
-
-                // Derivatives and differentials
-                "\\dd": "\\,\\mathrm{d}",
-                "\\dv": "\\frac{\\mathrm{d}#1}{\\mathrm{d}#2}",
-                "\\pdv": "\\frac{\\partial#1}{\\partial#2}",
-
-                // Common functions
-                "\\abs": "\\left|#1\\right|",
-                "\\norm": "\\left\\|#1\\right\\|",
-                "\\floor": "\\left\\lfloor#1\\right\\rfloor",
-                "\\ceil": "\\left\\lceil#1\\right\\rceil",
-
-                // Probability and statistics
-                "\\Pr": "\\mathrm{Pr}",
-                "\\E": "\\mathrm{E}",
-                "\\Var": "\\mathrm{Var}",
-                "\\Cov": "\\mathrm{Cov}",
-
-                // Linear algebra
-                "\\tr": "\\mathrm{tr}",
-                "\\rank": "\\mathrm{rank}",
-                "\\det": "\\mathrm{det}",
-
-                // Limits and big operators
-                "\\lim": "\\lim",
-                "\\limsup": "\\limsup",
-                "\\liminf": "\\liminf",
-
-                // Set theory
-                "\\powerset": "\\mathcal{P}",
-
-                // Complex analysis
-                "\\Re": "\\mathrm{Re}",
-                "\\Im": "\\mathrm{Im}",
-
-                // Number theory
-                "\\gcd": "\\mathrm{gcd}",
-                "\\lcm": "\\mathrm{lcm}",
-
-                // Logic
-                "\\land": "\\wedge",
-                "\\lor": "\\vee",
-                "\\lnot": "\\neg",
-              },
-            },
-          ],
-
-          rehypeRaw,
-          rehypeSlug,
-          [
-            rehypeExternalLinks,
-            { target: "_blank", rel: ["nofollow", "noopener", "noreferrer"] },
-          ],
-        ]}
-        components={{
-          code(props) {
-            const { className, children, ...restProps } = props as {
-              className?: string;
-              children: React.ReactNode;
-              [key: string]: unknown;
-            };
-            const isInline = !className || !/language-(\w+)/.test(className);
-            if (isInline) {
-              return (
-                <code
-                  className={`${className || ''} text-base md:text-lg bg-[#50636a2d] text-[#617D82] px-1 py-0.5 rounded`}
-                  {...restProps}
-                  data-oid="cqf0ne7"
-                >
-                  {children}
-                </code>
-              );
-            }
-            const match = /language-(\w+)/.exec(className || "");
-            const codeString = String(children).replace(/\n$/, "");
-            const language = match ? match[1] : "";
-
-            // Citations rendering
-            if (language === "citations") {
-              return <CitationRenderer citations={codeString} />;
-            }
-
-            // Typogram rendering for ASCII diagrams
-            if (language === "typogram") {
-              return (
-                <TypogramRenderer
-                  source={codeString}
-                  zoom={0.3}
-                  debug={false}
-                  data-oid="5ot1p9l"
-                />
-              );
-            }
-            // Grammar rendering for automata languages
-            if (language === "grammar") {
-              return (
-                <GrammarRenderer grammar={codeString} data-oid="x0f:jrz" />
-              );
-            }
-            // Automata rendering for finite state machines
-            if (language === "automata") {
-              return (
-                <AutomataRenderer automata={codeString} data-oid="xxbh19:" />
-              );
-            }
-            // Detect Mermaid diagrams by keywords even if no language tag is provided
-            const trimmed = codeString.trim();
-            const mermaidKeywords =
-              /^(graph|flowchart|sequenceDiagram|stateDiagram|classDiagram|gantt|pie|erDiagram)/;
-            const isMermaid =
-              language === "mermaid" ||
-              (!language && mermaidKeywords.test(trimmed));
-            if (isMermaid) {
-              return <MermaidRenderer chart={codeString} data-oid="tji:5pw" />;
-            }
-
-
-            
-
-            // Circuit-Bricks circuit diagram rendering
-            if (language === "circuit-bricks" || language === "circuit") {
-              // Verify the circuit data is valid JSON before attempting to render
-              let isValidJSON = true;
-              try {
-                JSON.parse(codeString);
-              } catch {
-                isValidJSON = false;
-              }
-
-              return (
-                <div className="relative my-6" data-oid="circuit-bricks-container">
-
-
-                  {isValidJSON ? (
-                    <div>
-                      <CircuitBricksRenderer circuitData={codeString} />
-                    </div>
-                  ) : (
-                    <div className="p-4 text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-b-md bg-red-50 dark:bg-red-900 dark:bg-opacity-20">
-                      <strong>Invalid Circuit JSON:</strong> Could not parse the circuit data.
-                      <div className="mt-2">
-                        Please ensure your circuit definition is valid JSON and includes proper component and wire definitions.
-                      </div>
-                      <pre className="mt-3 p-3 bg-gray-900 rounded text-gray-300 text-xs overflow-auto">
-                        {codeString}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              );
-            }
-
-            // Enhanced ASCII FSM/automata diagram detection
-            if (!language && isAutomataAscii(codeString)) {
-              return (
-                <div className="relative my-6" data-oid="hp1.teh">
-                  <div
-                    className="px-3 py-1.5 bg-gray-800 text-xs text-gray-300 rounded-t-md border-b border-gray-700 flex justify-between items-center"
-                    data-oid="4l4h924"
-                  >
-                    <span data-oid="a8m7p1o">
-                      Finite State Machine / Automaton Diagram (ASCII)
-                    </span>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(codeString);
-                        setCopiedCode(codeString);
-                        setTimeout(() => setCopiedCode(null), 2000);
-                      }}
-                      className="p-1 rounded hover:bg-gray-700 transition-colors"
-                      aria-label="Copy diagram"
-                      data-oid="brz05dt"
-                    >
-                      {copiedCode === codeString ? (
-                        <Check
-                          className="h-3.5 w-3.5 text-green-500"
-                          data-oid="hfwy-el"
-                        />
-                      ) : (
-                        <Copy
-                          className="h-3.5 w-3.5 text-gray-400"
-                          data-oid="5sazyxv"
-                        />
-                      )}
-                    </button>
-                  </div>
-                  <pre
-                    className="p-4 bg-gray-900 font-mono text-sm overflow-x-auto rounded-b-md whitespace-pre leading-snug text-gray-200 border border-gray-700"
-                    data-oid="1by4g82"
-                  >
-                    <code data-oid="vqoj6aa">{codeString}</code>
-                  </pre>
-                </div>
-              );
-            }
-
-            // Very restrictive ASCII diagram detection - only for very specific patterns
-            // Only consider it a diagram if it has very specific diagram characteristics
-            const hasStateTransitions = /q\d+\s*--+>\s*q\d+/.test(codeString);
-            const hasBoxDrawing = /[┌┐└┘├┤┬┴┼─│]/.test(codeString);
-            const hasFlowchartElements = /\[.*\]\s*--+>\s*\[.*\]/.test(codeString);
-
-            // Only treat as ASCII diagram if it has very specific diagram patterns AND no language is specified
-            const isSpecificAsciiDiagram = !language && (hasStateTransitions || hasBoxDrawing || hasFlowchartElements);
-
-            // Render ASCII diagrams with preserved whitespace and monospace font
-            if (isSpecificAsciiDiagram) {
-              return (
-                <div className="relative group my-6" data-oid="6b4n4bt">
-                  <div
-                    className="px-3 py-1.5 bg-gray-800 text-xs text-gray-300 rounded-t-md border-b border-gray-700 flex justify-between items-center"
-                    data-oid="35l5yv6"
-                  >
-                    <span data-oid="1ejpw7n">ASCII Diagram</span>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(codeString);
-                        setCopiedCode(codeString);
-                        setTimeout(() => setCopiedCode(null), 2000);
-                      }}
-                      className="p-1 rounded hover:bg-gray-700 transition-colors"
-                      aria-label="Copy diagram"
-                      data-oid="o3uy1i1"
-                    >
-                      {copiedCode === codeString ? (
-                        <Check
-                          className="h-3.5 w-3.5 text-green-500"
-                          data-oid="o-uihc-"
-                        />
-                      ) : (
-                        <Copy
-                          className="h-3.5 w-3.5 text-gray-400"
-                          data-oid=":w1wdeg"
-                        />
-                      )}
-                    </button>
-                  </div>
-                  <pre
-                    className="p-4 bg-gray-900 font-mono text-sm overflow-x-auto rounded-b-md whitespace-pre leading-snug text-gray-200 border border-gray-700"
-                    data-oid="d.yfjpc"
-                  >
-                    <code data-oid="qn-uqv4">{codeString}</code>
-                  </pre>
-                </div>
-              );
-            }
-
-            if (match) {
-              return (
-                <div className="relative group my-6" data-oid="ysa:q4e">
-                  <div
-                    className="px-3 py-1.5 bg-[#42595D] text-xs text-gray-300 rounded-t-md border-2 border-[#42595D] flex justify-between items-center"
-                    data-oid="xgm02at"
-                  >
-                    <span data-oid="s0xzq2k">
-                      {language
-                        ? language.charAt(0).toUpperCase() +
-                          language.slice(1) +
-                          (language.toLowerCase() === "typescript"
-                            ? " (TS)"
-                            : language.toLowerCase() === "javascript"
-                            ? " (JS)"
-                            : "")
-                        : "Code"}
-                    </span>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(codeString);
-                        setCopiedCode(codeString);
-                        setTimeout(() => setCopiedCode(null), 2000);
-                      }}
-                      className="p-1 rounded hover:bg-gray-700 transition-colors"
-                      aria-label="Copy code"
-                      data-oid="qjn7tun"
-                    >
-                      {copiedCode === codeString ? (
-                        <Check
-                          className="h-3.5 w-3.5 text-green-500"
-                          data-oid="bjl8pir"
-                        />
-                      ) : (
-                        <Copy
-                          className="h-3.5 w-3.5 text-gray-400"
-                          data-oid="3qe5x-0"
-                        />
-                      )}
-                    </button>
-                  </div>
-                  <SyntaxHighlighter
-                    language={language || "text"}
-                    style={vscDarkPlus}
-                    className="rounded-t-none !mt-0 !bg-[#252D31] rounded-b-md"
-                    customStyle={{
-                      marginTop: 0,
-                      border: "2px solid rgb(66, 89, 93)",
-                      borderTop: "none",
-                    }}
-                    data-oid="9.6yjrk"
-                  >
-                    {codeString}
-                  </SyntaxHighlighter>
-                </div>
-              );
-            }
-            return (
-              <code className={className} {...restProps} data-oid="gj5ilnz">
-                {children}
-              </code>
-            );
-          },
-          pre({ children }) {
-            return <>{children}</>;
-          },
-
-          table({ children }) {
-            return (
-              <div className="overflow-x-auto my-4" data-oid="f1d:qqk">
-                <table className="border-collapse w-full" data-oid="2tl4x:d">
-                  {children}
-                </table>
-              </div>
-            );
-          },
-          th({ children }) {
-            return (
-              <th
-                className="border border-gray-300 dark:border-[#919191] px-4 py-2 text-left bg-gray-100 dark:bg-[#202020] "
-
-              >
-                {children}
-              </th>
-            );
-          },
-          td({ children }) {
-            return (
-              <td
-                className="border border-gray-300 dark:border-[#919191] px-4 py-2">
-                {children}
-              </td>
-            );
-          },
-          blockquote({ children }) {
-            return (
-              <blockquote
-                className="border-l-4  bg-yellow-500 pl-4  my-4"
-
-              >
-                {children}
-              </blockquote>
-            );
-          },
-          h1({ children }) {
-            return (
-              <h1
-                className="text-3xl font-bold mt-6 mb-4 pb-2 border-b border-gray-200 dark:border-gray-800"
-                data-oid="5mw00sa"
-              >
-                {children}
-              </h1>
-            );
-          },
-          h2({ children }) {
-            return (
-              <h2
-                className="text-2xl font-bold text-[#99C5CB] border-t border-[#23545D] my-3 py-3"
-                data-oid="19rjxuk"
-              >
-                {children}
-              </h2>
-            );
-          },
-          h3({ children }) {
-            return (
-              <h3 className="text-xl font-semibold text-[#99C5CB] mt-4 mb-2" data-oid="k2n:wqm">
-                {children}
-              </h3>
-            );
-          },
-          ul({ children }) {
-            return (
-              <ul className="my-4" data-oid="swyr7.k">
-                {children}
-              </ul>
-            );
-          },
-          ol({ children }) {
-            return (
-              <ol
-                className="my-4"
-                data-oid="6yjdj89"
-              >
-                {children}
-              </ol>
-            );
-          },
-          li({ children }) {
-            return (
-              <li className="my-1" data-oid="l8rvb-5">
-                {children}
-              </li>
-            );
-          },
-          p({ children }) {
-            return (
-              <p className="my-4  " data-oid="v06:sbi">
-                {children}
-              </p>
-            );
-          },
-          strong({ children }) {
-            return (
-              <strong className="font-bold" style={{ fontWeight: 'bold' }} data-oid="bold-text">
-                {children}
-              </strong>
-            );
-          },
-        }}
-        data-oid=".54vk3j"
-      >
-        {processedContent}
-      </ReactMarkdown>
-
-      {/* Render citations at the bottom if they exist and we're not filtering content */}
-      {!onlyText && !onlyDiagrams && !excludeCitations && citations && (
-        <CitationRenderer citations={citations} />
-      )}
+        {/* Render citations at the bottom if they exist and we're not filtering content */}
+        {!onlyText && !onlyDiagrams && !excludeCitations && citations && (
+          <CitationRenderer citations={citations} />
+        )}
       </div>
     </>
   );

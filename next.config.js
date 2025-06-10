@@ -6,6 +6,9 @@ await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
 const config = {
+    experimental: {
+      reactCompiler: true,
+    },
     images: {
       remotePatterns: [
         {
@@ -33,8 +36,10 @@ const config = {
             pathname: '/**',
           },
       ],
-  
+
       },
+    
+    
     
       
       async rewrites() {

@@ -9,6 +9,7 @@ export default {
 			fontFamily: {
 				sans: ['Geist'], // GeistSans as the default font-sans
 				serif: ['Instrument Serif', 'serif'], // Instrument_Serif as font-serif
+				handwriting: ['Kalam', 'Comic Sans MS', 'cursive'], // For handwritten-style labels
 			  },
 			borderRadius: {
 				lg: 'var(--radius)',

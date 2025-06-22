@@ -5,7 +5,7 @@ import Image from "next/image";
 const Header = () => {
   return (
     <main className="flex justify-center items-center ">
-      <nav className="bg-[#1F1F1F] gap-2 border border-[#4a4a4a]  rounded-full z-[99999] fixed top-0  m-2 p-2  flex justify-center item-center">
+      <nav className="bg-black/40 backdrop-blur-md gap-2 border border-white/20  rounded-full z-[99999] fixed top-0  m-2 p-2  flex justify-center item-center shadow-lg">
         <button>
 
           <Image

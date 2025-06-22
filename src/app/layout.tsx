@@ -1,3 +1,4 @@
+import { Monitoring } from "react-scan/monitoring/next";
 import "~/styles/globals.css";
 import "~/styles/circuit-bricks.css"; // Import Circuit-Bricks styles
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/nextjs";
@@ -12,9 +13,11 @@ import CommandPlate from "~/components/ui/CommandPlate";
 import { TimeProvider } from "~/providers/TimerProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from "next/head";
+import Script from "next/script";
 import RoleRedirect from "~/components/ui/RoleRedirect";
 import SpecialRoutes from "~/components/ui/SpecialRoutes";
 import ThemeScript from "~/components/ui/ThemeScript";
+// import ReactScan from "~/components/ui/ReactScan";
 
 export const metadata: Metadata = {
   title: "Sphere",
@@ -31,10 +34,24 @@ export default function RootLayout({
         <html lang="en" className={`font-sans`} suppressHydrationWarning>
           <Head>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            <link
+              rel="preconnect"
+              href="https://fonts.gstatic.com"
+              crossOrigin="anonymous"
+            />
           </Head>
+          <Script
+            src="https://unpkg.com/react-scan/dist/auto.global.js"
+            strategy="afterInteractive"
+          />
           <body>
             {/* Theme script moved to a client component to avoid hydration issues */}
+            <Monitoring
+              apiKey="demo" // Safe to expose publically
+              url="https://monitoring.react-scan.com/api/v1/ingest"
+              commit={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA} // optional but recommended
+              branch={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF} // optional but recommended
+            />
             <ThemeScript />
 
             <SignedOut>
@@ -47,7 +64,7 @@ export default function RootLayout({
               <SpeedInsights />
 
               <TimeProvider>
-                <div className="bg-[#000000] ">
+                <div className="bg-[#000000]">
                   <CommandPlate />
                   <FolderProvider>
                     <NextSSRPlugin

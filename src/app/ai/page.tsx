@@ -797,8 +797,8 @@ export default function Page() {
     [setCurrentMessageId],
   );
 
-  // Add QuestionMessage component for user questions
-  function QuestionMessage({ content }: { content: string }) {
+  // Add QuestionMessage component for user questions - memoized to prevent re-renders during typing
+  const QuestionMessage = React.memo(function QuestionMessage({ content }: { content: string }) {
     const lines = content.split("\n");
     const isLong = lines.length > 3;
     const [expanded, setExpanded] = useState(false);
@@ -820,7 +820,174 @@ export default function Page() {
         )}
       </div>
     );
-  }
+  });
+
+  // Memoized message list to prevent re-renders during typing
+  const MessageList = React.memo(function MessageList({
+    messages,
+    messageRefs,
+    copiedMessageId,
+    copyMessage,
+    isMobile,
+    handleDiagramsChange,
+    QuestionMessage,
+    messageDiagrams,
+    handleDiagramClick,
+    activeDiagramMessageId,
+  }: {
+    messages: Message[];
+    messageRefs: React.MutableRefObject<{ [key: string]: HTMLDivElement | null }>;
+    copiedMessageId: string | null;
+    copyMessage: (content: string, messageId: string) => void;
+    isMobile: boolean;
+    handleDiagramsChange: (hasDiagrams: boolean, diagramContent: string, messageId?: string) => void;
+    QuestionMessage: React.ComponentType<{ content: string }>;
+    messageDiagrams: { [key: string]: string };
+    handleDiagramClick: (messageId: string) => void;
+    activeDiagramMessageId: string | null;
+  }) {
+    return (
+      <>
+        {messages.map((m, index) => {
+          const previousUserMessage =
+            m.role === "assistant" &&
+              index > 0 &&
+              messages[index - 1]?.role === "user"
+              ? (messages[index - 1]?.content ?? "")
+              : "";
+          console.log(previousUserMessage);
+          return m.role === "user" ? (
+            <div
+              key={m.id}
+              ref={(el) => {
+                messageRefs.current[m.id] = el;
+              }} // Fix ref callback to not return a value
+              className="animate-slide-in group relative p-2 mx-2 flex flex-col md:mx-0"
+              style={{ animationDelay: `${index * 0.1}s` }}
+              data-oid="h9:.sd3"
+            >
+              <>
+                {/* user question */}
+                <div className="flex justify-start " data-oid="zgnwoog">
+                  <QuestionMessage content={m.content} data-oid="4a3-5gr" />
+                </div>
+
+
+              </>
+              <div className="mt-1 flex justify-start opacity-0 group-hover:opacity-100 transition-opacity" >
+                <button
+                  onClick={() => copyMessage(m.content, m.id)}
+                  className="p-1 rounded-full dark:text-white text-[#000000] hover:bg-[#646464] hover:text-[#48AAFF]"
+                  data-oid="efva4nq"
+                >
+                  {copiedMessageId === m.id ? (
+                    <Check className="h-5 w-5" data-oid="pzynuvl" />
+                  ) : (
+                    <Copy className="h-5 w-5" data-oid="zvtke.l" />
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              key={m.id}
+              className="animate-slide-in group relative flex flex-col md:mx-0"
+
+            >
+
+              {/* answers*/}
+              <div
+                className="relative max-w-[95vw] sm:max-w-[90vw] overflow-x-hidden rounded-xl  text-[1.1rem] sm:text-[1.2rem] tracking-tight dark:text-[#99C5CB]/50 text-[#99C5CB]/50 md:max-w-2xl md:p-2 md:text-[1.4rem] ">
+
+                <div
+                  className="flex-col w-full gap-4 justify-start cursor-pointer " >
+
+                  <div className="flex items-center sm:p-3 dark:text-[#99C5CB] text-[#000000] transition-colors   " >
+
+                    <button
+                      className="flex gap-2 text-base md:text-lg"
+                    >
+
+                      <BookOpenText
+                        className="h-8 w-8"
+                        data-oid="-7rk6d."
+                      />
+
+                      <p >Response</p>
+                    </button>
+                  </div>
+
+                  <div className="flex w-full gap-4 border-t-[1px] border-[#484848] justify-start cursor-pointer "  >
+                  </div>
+                </div>
+
+
+                <div
+                  className="flex animate-fade-in transition-opacity duration-500">
+                  <SplitScreenLayout
+                    content={m.content}
+                    isMobile={isMobile}
+                    messageId={m.id}
+                    onDiagramsChange={handleDiagramsChange}
+                  />
+                </div>
+
+                {/* Diagram indicator - appears after the response */}
+                {messageDiagrams[m.id] && (
+                  <div className="mt-4 flex justify-start">
+                    <button
+                      onClick={() => {
+                        console.log('Button clicked for messageId:', m.id);
+                        handleDiagramClick(m.id);
+                      }}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${activeDiagramMessageId === m.id
+                        ? 'bg-[#5C767B] text-[#242D33] border-blue-400/30'
+                        : 'bg-[#5C767B] text-[#242D33] border border-gray-400/20 hover:bg-gray-500/20 hover:text-gray-300'
+                        }`}
+                    >
+                      <ScanEye />
+                      {activeDiagramMessageId === m.id ? 'Viewing Diagram' : 'View Diagram'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Message action buttons... */}
+                <div
+                  className="mb-14 flex flex-wrap gap-1 sm:gap-2">
+
+
+                  <div
+                    className="flex items-center justify-center rounded-full   p-2 sm:p-3 dark:text-white text-[#000000] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
+                    <button
+                      onClick={() => copyMessage(m.content, m.id)}
+                      className="text-base md:text-lg" >
+
+                      {copiedMessageId === m.id ? (
+                        <Check
+                          className="h-5 w-5 text-[#48AAFF]"
+
+                        />
+                      ) : (
+                        <Copy
+                          className="h-5 w-5 dark:text-[#f7eee3] text-[#000000] hover:text-[#48AAFF]"
+                          data-oid="gp4p:1y"
+                        />
+                      )}
+                    </button>
+                  </div>
+
+                  <div
+                    className="w-full h-[1px] bg-[#484848]"
+                    data-oid="0pqkos0"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </>
+    );
+  });
 
   return (
 
@@ -975,144 +1142,18 @@ export default function Page() {
             >
               <div
                 className="flex-1 space-y-4 overflow-y-auto  px-3 sm:px-3 py-4 pb-24 md:space-y-6 md:px-0 md:py-6" >
-                {messages.map((m, index) => {
-                  const previousUserMessage =
-                    m.role === "assistant" &&
-                      index > 0 &&
-                      messages[index - 1]?.role === "user"
-                      ? (messages[index - 1]?.content ?? "")
-                      : "";
-                  console.log(previousUserMessage);
-                  return m.role === "user" ? (
-                    <div
-                      key={m.id}
-                      ref={(el) => {
-                        messageRefs.current[m.id] = el;
-                      }} // Fix ref callback to not return a value
-                      className="animate-slide-in group relative p-2 mx-2 flex flex-col md:mx-0"
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                      data-oid="h9:.sd3"
-                    >
-                      <>
-                        {/* user question */}
-                        <div className="flex justify-start " data-oid="zgnwoog">
-                          <QuestionMessage content={m.content} data-oid="4a3-5gr" />
-                        </div>
-
-
-                      </>
-                      <div className="mt-1 flex justify-start opacity-0 group-hover:opacity-100 transition-opacity" >
-                        <button
-                          onClick={() => copyMessage(m.content, m.id)}
-                          className="p-1 rounded-full dark:text-white text-[#000000] hover:bg-[#646464] hover:text-[#48AAFF]"
-                          data-oid="efva4nq"
-                        >
-                          {copiedMessageId === m.id ? (
-                            <Check className="h-5 w-5" data-oid="pzynuvl" />
-                          ) : (
-                            <Copy className="h-5 w-5" data-oid="zvtke.l" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      key={m.id}
-                      className="animate-slide-in group relative flex flex-col md:mx-0"
-
-                    >
-
-                      {/* answers*/}
-                      <div
-                        className="relative max-w-[95vw] sm:max-w-[90vw] overflow-x-hidden rounded-xl  text-[1.1rem] sm:text-[1.2rem] tracking-tight dark:text-[#99C5CB]/50 text-[#99C5CB]/50 md:max-w-2xl md:p-2 md:text-[1.4rem] ">
-
-                        <div
-                          className="flex-col w-full gap-4 justify-start cursor-pointer " >
-
-                          <div className="flex items-center sm:p-3 dark:text-[#99C5CB] text-[#000000] transition-colors   " >
-
-                            <button
-                              className="flex gap-2 text-base md:text-lg"
-                            >
-
-                              <BookOpenText
-                                className="h-8 w-8"
-                                data-oid="-7rk6d."
-                              />
-
-                              <p >Response</p>
-                            </button>
-                          </div>
-
-                          <div className="flex w-full gap-4 border-t-[1px] border-[#484848] justify-start cursor-pointer "  >
-                          </div>
-                        </div>
-
-
-                        <div
-                          className="flex animate-fade-in transition-opacity duration-500">
-                          <SplitScreenLayout
-                            content={m.content}
-                            isMobile={isMobile}
-                            messageId={m.id}
-                            onDiagramsChange={handleDiagramsChange}
-                          />
-                        </div>
-
-                        {/* Diagram indicator - appears after the response */}
-                        {messageDiagrams[m.id] && (
-                          <div className="mt-4 flex justify-start">
-                            <button
-                              onClick={() => {
-                                console.log('Button clicked for messageId:', m.id);
-                                handleDiagramClick(m.id);
-                              }}
-                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${activeDiagramMessageId === m.id
-                                ? 'bg-[#5C767B] text-[#242D33] border-blue-400/30'
-                                : 'bg-[#5C767B] text-[#242D33] border border-gray-400/20 hover:bg-gray-500/20 hover:text-gray-300'
-                                }`}
-                            >
-                              <ScanEye />
-                              {activeDiagramMessageId === m.id ? 'Viewing Diagram' : 'View Diagram'}
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Message action buttons... */}
-                        <div
-                          className="mb-14 flex flex-wrap gap-1 sm:gap-2">
-
-
-                          <div
-                            className="flex items-center justify-center rounded-full   p-2 sm:p-3 dark:text-white text-[#000000] transition-colors dark:hover:bg-[#294A6D] hover:bg-[#e0e0e0] dark:hover:text-[#48AAFF] hover:text-[#48AAFF]">
-                            <button
-                              onClick={() => copyMessage(m.content, m.id)}
-                              className="text-base md:text-lg" >
-
-                              {copiedMessageId === m.id ? (
-                                <Check
-                                  className="h-5 w-5 text-[#48AAFF]"
-
-                                />
-                              ) : (
-                                <Copy
-                                  className="h-5 w-5 dark:text-[#f7eee3] text-[#000000] hover:text-[#48AAFF]"
-                                  data-oid="gp4p:1y"
-                                />
-                              )}
-                            </button>
-                          </div>
-
-                          <div
-                            className="w-full h-[1px] bg-[#484848]"
-                            data-oid="0pqkos0"
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-
+                <MessageList 
+                  messages={messages}
+                  messageRefs={messageRefs}
+                  copiedMessageId={copiedMessageId}
+                  copyMessage={copyMessage}
+                  isMobile={isMobile}
+                  handleDiagramsChange={handleDiagramsChange}
+                  QuestionMessage={QuestionMessage}
+                  messageDiagrams={messageDiagrams}
+                  handleDiagramClick={handleDiagramClick}
+                  activeDiagramMessageId={activeDiagramMessageId}
+                />
                 <div ref={messagesEndRef} data-oid="xsdo_32" />
               </div>
 

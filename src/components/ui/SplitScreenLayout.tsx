@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useEffect, useRef } from "react";
 import MarkdownRenderer, { separateContentAndDiagrams } from "./MarkdownRenderer";
 
@@ -61,13 +62,13 @@ const hasAnyDiagrams = (content: string): boolean => {
   return false;
 };
 
-const SplitScreenLayout: React.FC<SplitScreenLayoutProps> = ({
+const SplitScreenLayout: React.FC<SplitScreenLayoutProps> = React.memo(function SplitScreenLayout({
   content,
   isMobile,
   className = "",
   messageId,
   onDiagramsChange
-}) => {
+}) {
   const hasDiagrams = hasAnyDiagrams(content);
   const prevDataRef = useRef<string>("");
 
@@ -126,6 +127,6 @@ const SplitScreenLayout: React.FC<SplitScreenLayoutProps> = ({
       />
     </div>
   );
-};
+});
 
 export default SplitScreenLayout;

@@ -55,15 +55,14 @@ const Knowledge = () => {
         <h1 className="text-2xl">Personalized learning</h1>
       </div>
 
-      <div className="mt-8 flex w-full items-center justify-center font-light">
-        <div className="w-full max-w-2xl p-3">
-          <p className="break-words text-center text-4xl leading-snug">
-            Sphereai is a knowledge management system that focuses on two
-            things:
-            <br />
-            improving the productivity of students and teachers and reimagining
-            how knowledge is shared between students and teachers with the help
-            of GenAI.
+      <div className="flex w-full items-center justify-center font-light">
+        <div className="w-full max-w-3xl p-3">
+          <p className="text-pretty break-words text-center text-3xl leading-snug">
+            Sphereai is a next-generation knowledge management system dedicated
+            to transforming productivity for students and teachers. By
+            harnessing the power of GenAI, Sphereai reimagines the way knowledge
+            is created, shared, and experienced—empowering educators and
+            learners to connect, collaborate, and achieve more together.
           </p>
         </div>
       </div>

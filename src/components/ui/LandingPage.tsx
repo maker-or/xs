@@ -30,10 +30,12 @@ const LandingPage = () => {
           <button>Contact us</button>
         </div>
       </div>
-      <Knowledge />
-      {/* <div className="h-screen w-full items-center justify-center">
+      <div className="h-screen w-full items-center justify-center">
         <StackedLayers3D />
-      </div> */}
+      </div>
+      <div className="h-screen w-full items-center justify-center">
+        <Knowledge />
+      </div>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { PostHog } from "posthog-node";
 import { auth } from "@clerk/nextjs/server";
 import { createOpenAI } from "@ai-sdk/openai";
 import { withTracing } from "@posthog/ai";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+// import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { getEmbedding } from "~/utils/embeddings";
 import { type ConvertibleMessage } from "~/utils/types";

@@ -20,11 +20,11 @@ export default function RoleRedirect() {
       pathname.startsWith("/onboarding") ||
       pathname.startsWith("/repo") ||
       pathname.startsWith("/calendar") ||
-      pathname.startsWith("/test")
+      pathname.startsWith("/test") ||
+      pathname.startsWith("/sentry-example-page")
     ) {
       return;
     }
-
     // Redirect /folder/[id] to /student/folder/[id]
     if (pathname.startsWith("/folder/")) {
       const folderId = pathname.split("/")[2];

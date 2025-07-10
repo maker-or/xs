@@ -61,7 +61,7 @@ function StackedLayers3D() {
         start: "top 50%",
         end: "bottom 90%",
         scrub: 1,
-        markers: true,
+        markers: false,
       },
     });
 

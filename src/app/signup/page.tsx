@@ -20,7 +20,7 @@ export default function SignUpPage() {
   );
 
   // Get the invitation token from the URL
-  const invitationToken = searchParams.get("invitation_id");
+  const invitationToken = searchParams.get("__clerk_ticket");
 
   useEffect(() => {
     // Check if we have an invitation token

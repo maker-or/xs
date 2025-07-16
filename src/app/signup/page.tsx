@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { SignUp, useSignUp } from '@clerk/nextjs';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
-import Image from 'next/image';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { dark } from '@clerk/themes'
+import { SignUp, useSignUp } from "@clerk/nextjs";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { dark } from "@clerk/themes";
 
 export default function SignUpPage() {
   const { isSignedIn, isLoaded } = useUser();
@@ -15,21 +15,23 @@ export default function SignUpPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [organizationId, setOrganizationId] = useState<string | null>(null);
-  const [isValidInvitation, setIsValidInvitation] = useState<boolean | null>(null);
+  const [isValidInvitation, setIsValidInvitation] = useState<boolean | null>(
+    null,
+  );
 
   // Get the invitation token from the URL
-  const invitationToken = searchParams.get('__clerk_ticket');
+  const invitationToken = searchParams.get("invitation_id");
 
   useEffect(() => {
     // Check if we have an invitation token
     if (signUpLoaded && invitationToken) {
       // Verify the invitation token format
-      if (invitationToken.startsWith('dvb_')) {
-        console.log('Valid Clerk invitation token found:', invitationToken);
-        setOrganizationId('invitation-based'); // Placeholder - will be resolved after signup
+      if (invitationToken.startsWith("dvb_")) {
+        console.log("Valid Clerk invitation token found:", invitationToken);
+        setOrganizationId("invitation-based"); // Placeholder - will be resolved after signup
         setIsValidInvitation(true);
       } else {
-        console.warn('Invalid invitation token format');
+        console.warn("Invalid invitation token format");
         setIsValidInvitation(false);
       }
     } else if (signUpLoaded && !invitationToken) {
@@ -39,16 +41,16 @@ export default function SignUpPage() {
 
     // If user is already signed in, redirect to onboarding
     if (isLoaded && isSignedIn) {
-      router.replace('/onboarding');
+      router.replace("/onboarding");
     }
   }, [isSignedIn, isLoaded, router, signUpLoaded, invitationToken]);
 
   // Show loading while checking invitation validity
   if (isValidInvitation === null) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#050A06] text-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#050A06] text-white">
         <div className="text-center">
-          <div className="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mb-4 mx-auto"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-t-4 border-solid border-blue-500"></div>
           <p>Validating invitation...</p>
         </div>
       </div>
@@ -58,19 +60,19 @@ export default function SignUpPage() {
   // Show error for invalid invitation
   if (!isValidInvitation) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#050A06] text-white">
-        <div className="text-center max-w-md p-8">
-          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="flex min-h-screen items-center justify-center bg-[#050A06] text-white">
+        <div className="max-w-md p-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-500">
             <span className="text-2xl">⚠️</span>
           </div>
-          <h1 className="text-2xl font-serif mb-4">Invalid Invitation</h1>
-          <p className="text-[#d0cfcf] mb-6">
-            This signup link is invalid or missing required information.
-            Please contact your administrator for a valid invitation link.
+          <h1 className="mb-4 font-serif text-2xl">Invalid Invitation</h1>
+          <p className="mb-6 text-[#d0cfcf]">
+            This signup link is invalid or missing required information. Please
+            contact your administrator for a valid invitation link.
           </p>
-          <Link 
+          <Link
             href="/"
-            className="inline-block px-6 py-2 bg-[#FF5E00] text-white rounded-md hover:bg-[#e54d00] transition-colors"
+            className="inline-block rounded-md bg-[#FF5E00] px-6 py-2 text-white transition-colors hover:bg-[#e54d00]"
           >
             Return to Home
           </Link>
@@ -82,9 +84,9 @@ export default function SignUpPage() {
   // Don't render the sign-up form if user is already signed in
   if (isSignedIn) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#050A06] text-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#050A06] text-white">
         <div className="text-center">
-          <div className="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mb-4 mx-auto"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-t-4 border-solid border-blue-500"></div>
           <p>Redirecting to your dashboard...</p>
         </div>
       </div>
@@ -94,78 +96,84 @@ export default function SignUpPage() {
   return (
     <div className="flex h-screen w-full bg-[#050A06]">
       {/* Back button to landing page */}
-      <Link 
-        href="/" 
-        className="absolute top-6 left-6 flex items-center text-sm text-[#d0cfcf] hover:text-[#f7eee3] transition-colors duration-200 z-20"
+      <Link
+        href="/"
+        className="absolute left-6 top-6 z-20 flex items-center text-sm text-[#d0cfcf] transition-colors duration-200 hover:text-[#f7eee3]"
         aria-label="Back to landing page"
       >
         <ArrowLeft size={24} className="mr-1" />
         Back
       </Link>
-      
+
       {/* Left side - Cloud Background */}
-      <div className="relative hidden md:block md:w-1/2 h-full overflow-hidden">
+      <div className="relative hidden h-full overflow-hidden md:block md:w-1/2">
         {/* Background Image with clouds */}
-        <div className="absolute inset-0 bg-[#050A06] rounded-2xl">
-          <Image 
+        <div className="absolute inset-0 rounded-2xl bg-[#050A06]">
+          <Image
             src="https://sf2jdmaodp.ufs.sh/f/orc4evzyNtrgPaiz9ylVUBCkXwNQOpI5g7lzEM8eoKYtH6i3"
             alt="Clouds Background"
             fill
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: "cover" }}
             priority
           />
         </div>
-        
+
         {/* Welcome Text */}
-        <div className="relative z-10 flex flex-col items-center justify-start h-full p-16">
-          <h1 className="text-5xl font-serif italic text-[#f7eee3] text-center tracking-wide">
+        <div className="relative z-10 flex h-full flex-col items-center justify-start p-16">
+          <h1 className="text-center font-serif text-5xl italic tracking-wide text-[#f7eee3]">
             Join Your Team
           </h1>
-          <p className="text-xl text-[#d0cfcf] mt-4 text-center">
+          <p className="mt-4 text-center text-xl text-[#d0cfcf]">
             You&apos;ve been invited to join an organization
           </p>
           {organizationId && (
-            <div className="mt-6 p-4 bg-[#1a1a1a] rounded-lg border border-[#333]">
-              <p className="text-sm text-[#d0cfcf]">Valid invitation detected</p>
-              <p className="text-[#FF5E00] text-sm">✓ Ready to join organization</p>
+            <div className="mt-6 rounded-lg border border-[#333] bg-[#1a1a1a] p-4">
+              <p className="text-sm text-[#d0cfcf]">
+                Valid invitation detected
+              </p>
+              <p className="text-sm text-[#FF5E00]">
+                ✓ Ready to join organization
+              </p>
             </div>
           )}
         </div>
       </div>
-      
+
       {/* Right side - Sign Up */}
-      <div className="w-full md:w-1/2 h-full bg-[#050A06] flex flex-col items-center justify-center p-6">
+      <div className="flex h-full w-full flex-col items-center justify-center bg-[#050A06] p-6 md:w-1/2">
         {/* Show cloud image on mobile */}
-        <div className="md:hidden relative w-full h-40 mb-6 rounded-lg overflow-hidden">
-          <Image 
+        <div className="relative mb-6 h-40 w-full overflow-hidden rounded-lg md:hidden">
+          <Image
             src="https://sf2jdmaodp.ufs.sh/f/orc4evzyNtrgtZ08Ke5EmkbQ2MF9PAfO5i3logRYxzSHVZdu"
             alt="Logo"
             fill
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: "cover" }}
             priority
           />
         </div>
 
         <div className="w-full max-w-md">
           <div className="mb-8 text-center md:hidden">
-            <h2 className="text-3xl font-serif text-[#f7eee3] mb-2">Join Your Team</h2>
+            <h2 className="mb-2 font-serif text-3xl text-[#f7eee3]">
+              Join Your Team
+            </h2>
             <p className="text-[#d0cfcf]">You&apos;ve been invited to join</p>
             {organizationId && (
-              <div className="mt-4 p-3 bg-[#1a1a1a] rounded-lg border border-[#333]">
-                <p className="text-xs text-[#d0cfcf]">Valid invitation detected</p>
-                <p className="text-[#FF5E00] text-sm">✓ Ready to join</p>
+              <div className="mt-4 rounded-lg border border-[#333] bg-[#1a1a1a] p-3">
+                <p className="text-xs text-[#d0cfcf]">
+                  Valid invitation detected
+                </p>
+                <p className="text-sm text-[#FF5E00]">✓ Ready to join</p>
               </div>
             )}
           </div>
 
           {/* Clerk SignUp Component */}
           <div className="flex justify-center">
-            <SignUp 
+            <SignUp
               appearance={{
-       baseTheme: dark,
-
+                baseTheme: dark,
               }}
-
             />
           </div>
         </div>

@@ -17,6 +17,7 @@ import Script from "next/script";
 import RoleRedirect from "~/components/ui/RoleRedirect";
 import SpecialRoutes from "~/components/ui/SpecialRoutes";
 import ThemeScript from "~/components/ui/ThemeScript";
+import ConvexClientProvider from "~/components/ConvexClientProvider";
 // import ReactScan from "~/components/ui/ReactScan";
 
 export const metadata: Metadata = {
@@ -30,54 +31,56 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <ClerkProvider>
-      <CSPostHogProvider>
-        <html lang="en" className={`font-sans`} suppressHydrationWarning>
-          <Head>
-            <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link
-              rel="preconnect"
-              href="https://fonts.gstatic.com"
-              crossOrigin="anonymous"
+      <ConvexClientProvider>
+        <CSPostHogProvider>
+          <html lang="en" className={`font-sans`} suppressHydrationWarning>
+            <Head>
+              <link rel="preconnect" href="https://fonts.googleapis.com" />
+              <link
+                rel="preconnect"
+                href="https://fonts.gstatic.com"
+                crossOrigin="anonymous"
+              />
+            </Head>
+            <Script
+              src="https://unpkg.com/react-scan/dist/auto.global.js"
+              strategy="afterInteractive"
             />
-          </Head>
-          <Script
-            src="https://unpkg.com/react-scan/dist/auto.global.js"
-            strategy="afterInteractive"
-          />
-          <body>
-            {/* Theme script moved to a client component to avoid hydration issues */}
-            <Monitoring
-              apiKey="demo" // Safe to expose publically
-              url="https://monitoring.react-scan.com/api/v1/ingest"
-              commit={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA} // optional but recommended
-              branch={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF} // optional but recommended
-            />
-            <ThemeScript />
+            <body>
+              {/* Theme script moved to a client component to avoid hydration issues */}
+              <Monitoring
+                apiKey="demo" // Safe to expose publically
+                url="https://monitoring.react-scan.com/api/v1/ingest"
+                commit={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA} // optional but recommended
+                branch={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF} // optional but recommended
+              />
+              <ThemeScript />
 
-            <SignedOut>
-              <SpecialRoutes>{children}</SpecialRoutes>
-            </SignedOut>
+              <SignedOut>
+                <SpecialRoutes>{children}</SpecialRoutes>
+              </SignedOut>
 
-            <SignedIn>
-              <RoleRedirect />
-              <Analytics />
-              <SpeedInsights />
+              <SignedIn>
+                <RoleRedirect />
+                <Analytics />
+                <SpeedInsights />
 
-              <TimeProvider>
-                <div className="bg-[#000000]">
-                  <CommandPlate />
-                  <FolderProvider>
-                    <NextSSRPlugin
-                      routerConfig={extractRouterConfig(ourFileRouter)}
-                    />
-                    {children}
-                  </FolderProvider>
-                </div>
-              </TimeProvider>
-            </SignedIn>
-          </body>
-        </html>
-      </CSPostHogProvider>
+                <TimeProvider>
+                  <div className="bg-[#000000]">
+                    <CommandPlate />
+                    <FolderProvider>
+                      <NextSSRPlugin
+                        routerConfig={extractRouterConfig(ourFileRouter)}
+                      />
+                      {children}
+                    </FolderProvider>
+                  </div>
+                </TimeProvider>
+              </SignedIn>
+            </body>
+          </html>
+        </CSPostHogProvider>
+      </ConvexClientProvider>
     </ClerkProvider>
   );
 }

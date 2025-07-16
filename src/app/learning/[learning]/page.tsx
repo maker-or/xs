@@ -1,0 +1,344 @@
+"use client";
+
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useQuery, useMutation, useAction } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
+import { useForm } from "@tanstack/react-form";
+import { Id } from "convex/_generated/dataModel";
+import { z } from "zod";
+import {
+  ArrowUpIcon,
+  ArrowClockwiseIcon,
+  ArrowLeftIcon,
+} from "@phosphor-icons/react";
+import ChatCommandPalette from "~/components/ui/ChatCommandPalette";
+
+const messageSchema = z.object({
+  message: z.string().trim().min(1, { message: "Message cannot be empty" }),
+});
+
+type MessageFormValues = z.infer<typeof messageSchema>;
+
+const LearningPage = () => {
+  const params = useParams<{ learning: string }>();
+  const chatId = params.learning;
+  const router = useRouter();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showChatPalette, setShowChatPalette] = useState(false);
+  const convexChatId = chatId as Id<"chats">;
+
+  // Convex hooks
+  const chat = useQuery(api.chats.getChat, {
+    chatId: convexChatId,
+  });
+
+  const messages = useQuery(api.message.getMessages, {
+    chatId: convexChatId,
+  });
+
+  // Mutations
+  const addMessage = useMutation(api.message.addMessage);
+  const streamChatCompletion = useAction(api.ai.streamChatCompletion);
+
+  // Form for new messages
+  const form = useForm({
+    defaultValues: {
+      message: "",
+    } as MessageFormValues,
+    onSubmit: async ({ value }) => {
+      if (!chat) return;
+
+      try {
+        // Add user message
+        const userMessageId = await addMessage({
+          chatId: convexChatId,
+          content: value.message,
+          role: "user",
+        });
+
+        // Clear form
+        form.reset();
+
+        // Stream AI response
+        await streamChatCompletion({
+          chatId: convexChatId,
+          messages: value.message,
+          parentMessageId: userMessageId,
+        });
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
+    },
+    validators: {
+      onSubmit: messageSchema,
+    },
+  });
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Update document title when chat data is loaded
+  useEffect(() => {
+    if (chat && chat.title) {
+      document.title = `${chat.title}`;
+    } else if (chatId) {
+      document.title = `Learning Session ${chatId} `;
+    }
+  }, [chat, chatId]);
+
+  // Keyboard shortcuts for command palette
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setShowChatPalette(true);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Handle loading state
+  if (chat === undefined || messages === undefined) {
+    return (
+      <div className="relative flex h-[100svh] w-[100svw] items-center justify-center">
+        {/* Background */}
+        <div className="absolute inset-0 z-0 bg-black" />
+
+        {/* Noise overlay */}
+        <div
+          className="absolute inset-0 z-10 opacity-20"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            backgroundRepeat: "repeat",
+            backgroundSize: "256px 256px",
+          }}
+        />
+
+        <div className="relative z-20 text-center">
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-white/60"></div>
+          <p className="text-white/80">Loading conversation...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle chat not found
+  if (chat === null) {
+    return (
+      <div className="relative flex h-[100svh] w-[100svw] items-center justify-center">
+        {/* Background */}
+        <div className="absolute inset-0 z-0 bg-black" />
+
+        {/* Noise overlay */}
+        <div
+          className="absolute inset-0 z-10 opacity-20"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            backgroundRepeat: "repeat",
+            backgroundSize: "256px 256px",
+          }}
+        />
+
+        <div className="relative z-20 text-center">
+          <h1 className="mb-4 text-2xl font-bold text-white">Chat Not Found</h1>
+          <p className="mb-4 text-white/70">
+            The learning session you are looking for does not exist or you do
+            not have access to it.
+          </p>
+          <button
+            onClick={() => router.push("/learning")}
+            className="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-white transition-colors hover:bg-white/20"
+          >
+            Go to Learning
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative flex h-[100svh] w-[100svw] flex-col">
+      {/* Background */}
+      <div className="absolute inset-0 z-0 bg-black" />
+
+      {/* Noise overlay */}
+      <div
+        className="absolute inset-0 z-10 opacity-20"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "256px 256px",
+        }}
+      />
+
+      {/* Grid lines */}
+      <div className="z-15 pointer-events-none absolute inset-0">
+        {/* Vertical lines */}
+        <div className="absolute left-[20%] top-0 h-full w-px bg-white/20"></div>
+        <div className="absolute left-[80%] top-0 h-full w-px bg-white/20"></div>
+        {/* Horizontal lines */}
+
+        {/* Corner circles */}
+        <div className="absolute left-[20%] top-[9%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
+        <div className="absolute left-[80%] top-[9%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
+        <div className="absolute left-[20%] top-[90%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
+        <div className="absolute left-[80%] top-[90%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
+      </div>
+
+      {/* Header */}
+      <div className="relative z-20 flex-shrink-0 border-b border-white/10">
+        <div className="mx-auto max-w-4xl px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => router.push("/learning")}
+                className="text-white/60 transition-colors hover:text-white"
+              >
+                <ArrowLeftIcon size={20} />
+              </button>
+              <div>
+                <h1 className="text-xl font-medium text-white">{chat.title}</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Messages - Scrollable area */}
+      <div className="relative z-20 flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-4xl px-6 py-8">
+          <div className="space-y-6">
+            {messages && messages.length > 0 ? (
+              messages.map((message, _index) => (
+                <div
+                  key={message._id}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-lg px-4 py-3 ${
+                      message.role === "user"
+                        ? "border border-white/20 bg-white/10 text-white"
+                        : "border border-white/10 bg-white/5 text-white/90"
+                    }`}
+                  >
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                      {message.content}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center text-white/40">
+                <p>No messages yet. Start the conversation!</p>
+              </div>
+            )}
+
+            {/* Streaming indicator */}
+            {/* {streamingSession && streamingSession.isActive && (
+                            <div className="flex justify-start">
+                                <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 max-w-[80%]">
+                                    <div className="text-xs font-medium mb-2 text-white/60 uppercase tracking-wider">Assistant</div>
+                                    <div className="flex items-center space-x-2">
+                                        <div className="text-white/60">Thinking...</div>
+                                        <div className="flex space-x-1">
+                                            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                                            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                                            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )} */}
+
+            {/* Scroll anchor */}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+      </div>
+
+      {/* Input area - Fixed at bottom */}
+      <div className="relative z-20 flex-shrink-0 border-t border-white/10">
+        <div className="mx-auto max-w-4xl px-6 py-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void form.handleSubmit();
+            }}
+            className="flex items-end space-x-4"
+          >
+            <div className="flex-1">
+              <form.Field name="message">
+                {({ state, handleBlur, handleChange }) => (
+                  <div className="relative">
+                    <textarea
+                      placeholder="Continue the conversation..."
+                      className="w-full resize-none rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-sm text-white backdrop-blur-sm placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20"
+                      rows={1}
+                      value={state.value}
+                      onBlur={handleBlur}
+                      onChange={(e) => handleChange(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          void form.handleSubmit();
+                        }
+                      }}
+                      style={{
+                        minHeight: "44px",
+                        maxHeight: "120px",
+                        height: "auto",
+                      }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = "auto";
+                        target.style.height = `${target.scrollHeight}px`;
+                      }}
+                    />
+
+                    {/* Error message */}
+                    {state.meta.errors.length > 0 && (
+                      <div className="absolute -bottom-6 left-0 text-xs text-red-400">
+                        {String(state.meta.errors[0])}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </form.Field>
+            </div>
+
+            <form.Subscribe
+              selector={(state) => [state.canSubmit, state.isSubmitting]}
+            >
+              {([canSubmit, isSubmitting]) => (
+                <button
+                  type="submit"
+                  disabled={!canSubmit || isSubmitting}
+                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <ArrowClockwiseIcon size={20} className="animate-spin" />
+                  ) : (
+                    <ArrowUpIcon size={20} />
+                  )}
+                </button>
+              )}
+            </form.Subscribe>
+          </form>
+        </div>
+      </div>
+
+      {/* Chat Command Palette */}
+      <ChatCommandPalette
+        isOpen={showChatPalette}
+        onClose={() => setShowChatPalette(false)}
+      />
+    </div>
+  );
+};
+
+export default LearningPage;

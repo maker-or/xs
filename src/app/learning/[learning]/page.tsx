@@ -146,10 +146,7 @@ const LearningPage = () => {
 
         <div className="relative z-20 text-center">
           <h1 className="mb-4 text-2xl font-bold text-white">Chat Not Found</h1>
-          <p className="mb-4 text-white/70">
-            The learning session you are looking for does not exist or you do
-            not have access to it.
-          </p>
+          <p className="mb-4 text-white/70">tey again after some time</p>
           <button
             onClick={() => router.push("/learning")}
             className="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-white transition-colors hover:bg-white/20"
@@ -237,23 +234,6 @@ const LearningPage = () => {
                 <p>No messages yet. Start the conversation!</p>
               </div>
             )}
-
-            {/* Streaming indicator */}
-            {/* {streamingSession && streamingSession.isActive && (
-                            <div className="flex justify-start">
-                                <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 max-w-[80%]">
-                                    <div className="text-xs font-medium mb-2 text-white/60 uppercase tracking-wider">Assistant</div>
-                                    <div className="flex items-center space-x-2">
-                                        <div className="text-white/60">Thinking...</div>
-                                        <div className="flex space-x-1">
-                                            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                                            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                                            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )} */}
 
             {/* Scroll anchor */}
             <div ref={messagesEndRef} />

@@ -21,7 +21,9 @@ export default function RoleRedirect() {
       pathname.startsWith("/repo") ||
       pathname.startsWith("/calendar") ||
       pathname.startsWith("/test") ||
-      pathname.startsWith("/sentry-example-page")
+      pathname.startsWith("/learning") ||
+      pathname.startsWith("/sentry-example-page") ||
+      pathname.startsWith("/role-selection")
     ) {
       return;
     }

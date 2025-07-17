@@ -22,7 +22,8 @@ export default function RoleRedirect() {
       pathname.startsWith("/calendar") ||
       pathname.startsWith("/test") ||
       pathname.startsWith("/learning") ||
-      pathname.startsWith("/role-selection")
+      pathname.startsWith("/role-selection") ||
+      pathname.startsWith("/accept-invitation")
     ) {
       return;
     }

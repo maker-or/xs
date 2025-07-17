@@ -10,18 +10,22 @@ const isPublicRoute = createRouteMatcher([
   "/signup",
   "/sign-in",
   "/sign-up",
+  "/accept-invitation/",
+  "/privacy-policy",
+  "/terms-of-service",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId, redirectToSignIn } = await auth();
 
-  // Check for invitation link parameters (Clerk adds a __clerk_ticket param)
-  const isInvitationLink = req.nextUrl.searchParams.has("__clerk_ticket");
+  // // Check for invitation link parameters (Clerk adds a __clerk_ticket param)
+  // const isInvitationLink = req.nextUrl.searchParams.has("__clerk_ticket");
+  // const isAcceptInvitationRoute = req.nextUrl.pathname === "/accept-invitation";
 
-  // Special handling for invitation links - let Clerk handle these without interference
-  if (isInvitationLink) {
-    return NextResponse.next();
-  }
+  // // Special handling for invitation links - let Clerk handle these without interference
+  // if (isInvitationLink || isAcceptInvitationRoute) {
+  //   return NextResponse.next();
+  // }
 
   // Unauthenticated user trying to access a protected route → redirect to sign-in
   if (!userId && !isPublicRoute(req)) {
@@ -48,9 +52,9 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    // Skip static and internal files
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Include API routes
-    "/(api|trpc)(.*)",
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
   ],
 };

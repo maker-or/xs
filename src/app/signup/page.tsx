@@ -6,7 +6,7 @@ import { SignUp, useSignUp } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import Image from "next/image";
+
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { dark } from "@clerk/themes";
@@ -23,12 +23,12 @@ export default function SignUpPage() {
 
   // Get the invitation token from the URL
   const invitationToken = searchParams.get("__clerk_ticket");
+  const orgId = searchParams.get("organization");
+  setOrganizationId(orgId);
 
   useEffect(() => {
     if (signUpLoaded) {
       if (invitationToken) {
-        // Just check if the token exists, don't validate its format
-        setOrganizationId("invitation-based"); // Placeholder, can be used for UI
         setIsValidInvitation(true);
       } else {
         setIsValidInvitation(false);
@@ -103,17 +103,6 @@ export default function SignUpPage() {
 
       {/* Left side - Cloud Background */}
       <div className="relative hidden h-full overflow-hidden md:block md:w-1/2">
-        {/* Background Image with clouds */}
-        <div className="absolute inset-0 rounded-2xl bg-[#050A06]">
-          <Image
-            src="https://sf2jdmaodp.ufs.sh/f/orc4evzyNtrgPaiz9ylVUBCkXwNQOpI5g7lzEM8eoKYtH6i3"
-            alt="Clouds Background"
-            fill
-            style={{ objectFit: "cover" }}
-            priority
-          />
-        </div>
-
         {/* Welcome Text */}
         <div className="relative z-10 flex h-full flex-col items-center justify-start p-16">
           <h1 className="text-center font-serif text-5xl italic tracking-wide text-[#f7eee3]">
@@ -137,17 +126,6 @@ export default function SignUpPage() {
 
       {/* Right side - Sign Up */}
       <div className="flex h-full w-full flex-col items-center justify-center bg-[#050A06] p-6 md:w-1/2">
-        {/* Show cloud image on mobile */}
-        <div className="relative mb-6 h-40 w-full overflow-hidden rounded-lg md:hidden">
-          <Image
-            src="https://sf2jdmaodp.ufs.sh/f/orc4evzyNtrgtZ08Ke5EmkbQ2MF9PAfO5i3logRYxzSHVZdu"
-            alt="Logo"
-            fill
-            style={{ objectFit: "cover" }}
-            priority
-          />
-        </div>
-
         <div className="w-full max-w-md">
           <div className="mb-8 text-center md:hidden">
             <h2 className="mb-2 font-serif text-3xl text-[#f7eee3]">

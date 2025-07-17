@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     
     // Parse the request body
     const requestBody = await request.json();
-    const { email, organisationId } = requestBody;
+    const { email, organisationId, role: requestRole } = requestBody;
 
     // Check if user already exists in our database
     const existingUser = await db.query.users.findFirst({
@@ -36,29 +36,82 @@ export async function POST(request: Request) {
     }
 
     // New user - create their account
-    // Determine role from Clerk session claims
-    const orgRole = sessionClaims?.org_role;
-    const role = orgRole === 'admin' ? 'admin' : 'member';
+    // Enhanced role determination logic
+    let finalRole = 'member'; // Default role
+    
+    // Priority order for role determination:
+    // 1. From request body (passed from organization invitation)
+    // 2. From Clerk session claims (organization role)
+    // 3. Default to 'member'
+    if (requestRole) {
+      // Map common organization roles to our system roles
+      const roleMapping: { [key: string]: string } = {
+        'admin': 'admin',
+        'org:admin': 'admin',
+        'teacher': 'admin',
+        'member': 'member',
+        'org:member': 'member',
+        'student': 'member',
+      };
+      
+      finalRole = roleMapping[requestRole.toLowerCase()] || 'member';
+    } else if (sessionClaims?.org_role) {
+      // Fallback to session claims
+      finalRole = sessionClaims.org_role === 'admin' ? 'admin' : 'member';
+    }
 
+    // Enhanced organization ID resolution
+    let finalOrgId = 'default-org'; // Fallback
+    
     // Priority order for organization ID:
-    // 1. From request body (signup with invitation)
-    // 2. From session claims (Clerk organization)
+    // 1. From request body (most reliable for invitations)
+    // 2. From session claims (current active organization)
     // 3. Default fallback
-    const finalOrgId = organisationId || sessionClaims?.org_id || 'default-org';
+    if (organisationId && organisationId !== 'default-org') {
+      finalOrgId = organisationId;
+    } else if (sessionClaims?.org_id) {
+      finalOrgId = sessionClaims.org_id;
+    }
 
-    console.log('Organization ID resolution:', {
-      fromRequest: organisationId,
-      fromSession: sessionClaims?.org_id,
-      finalOrgId,
+    console.log('Organization and role resolution:', {
+      fromRequest: { organisationId, role: requestRole },
+      fromSession: { 
+        org_id: sessionClaims?.org_id, 
+        org_role: sessionClaims?.org_role 
+      },
+      finalValues: { organisationId: finalOrgId, role: finalRole },
       userEmail: Array.isArray(email) ? email[0]?.emailAddress : email
     });
+
+    // Enhanced email processing
+    let emailValue = '';
+    
+    if (email) {
+      if (Array.isArray(email)) {
+        // Handle Clerk email array format
+        if (email.length > 0) {
+          const primaryEmail = email.find(e => e.id) || email[0];
+          emailValue = primaryEmail?.emailAddress || primaryEmail?.email || '';
+        }
+      } else if (typeof email === 'string') {
+        emailValue = email;
+      } else if (email && typeof email === 'object') {
+        emailValue = email.emailAddress || email.email || '';
+      }
+    }
+    
+    // Fallback email generation if needed
+    if (!emailValue) {
+      emailValue = `${authUserId}@unknown.com`;
+      console.log('No email found, using fallback:', emailValue);
+    }
     
     // Create new user record
     const newUser = await db.insert(users).values({
       userid: authUserId,
-      email: Array.isArray(email) ? email[0]?.emailAddress || '' : email || '',
+      email: emailValue,
       organisation_id: finalOrgId,
-      role: role,
+      role: finalRole,
       created_at: new Date(),
     }).returning();
 
@@ -66,9 +119,16 @@ export async function POST(request: Request) {
       throw new Error('Failed to create user record');
     }
 
+    console.log('Successfully created user:', {
+      userId: authUserId,
+      email: emailValue,
+      organisationId: finalOrgId,
+      role: finalRole
+    });
+
     return NextResponse.json({
       isExistingUser: false,
-      role: role,
+      role: finalRole,
       organisationId: finalOrgId,
       message: 'User successfully onboarded'
     });

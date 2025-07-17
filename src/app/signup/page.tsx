@@ -1,3 +1,5 @@
+// SignUpPage.tsx
+
 "use client";
 
 import { SignUp, useSignUp } from "@clerk/nextjs";
@@ -23,20 +25,14 @@ export default function SignUpPage() {
   const invitationToken = searchParams.get("__clerk_ticket");
 
   useEffect(() => {
-    // Check if we have an invitation token
-    if (signUpLoaded && invitationToken) {
-      // Verify the invitation token format
-      if (invitationToken.startsWith("dvb_")) {
-        console.log("Valid Clerk invitation token found:", invitationToken);
-        setOrganizationId("invitation-based"); // Placeholder - will be resolved after signup
+    if (signUpLoaded) {
+      if (invitationToken) {
+        // Just check if the token exists, don't validate its format
+        setOrganizationId("invitation-based"); // Placeholder, can be used for UI
         setIsValidInvitation(true);
       } else {
-        console.warn("Invalid invitation token format");
         setIsValidInvitation(false);
       }
-    } else if (signUpLoaded && !invitationToken) {
-      // No invitation token - invalid invitation
-      setIsValidInvitation(false);
     }
 
     // If user is already signed in, redirect to onboarding

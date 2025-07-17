@@ -22,7 +22,10 @@ export default function AcceptInvitationPage() {
 
   useEffect(() => {
     const completeSignUp = async () => {
-      if (!ticket || !signUpLoaded) return;
+      if (!ticket || !signUpLoaded)
+        return console.error(
+          "either the ticket or the sign-up process is not loaded",
+        );
 
       try {
         const result = await signUp.create({ strategy: "ticket", ticket });

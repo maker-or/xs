@@ -49,9 +49,10 @@ export default function AcceptInvitationPage() {
         } else {
           console.error('Sign-in incomplete:', JSON.stringify(signInAttempt, null, 2))
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Check if the error is because user is already signed in
-        if (err.errors?.[0]?.code === 'session_exists') {
+        if (err && typeof err === 'object' && 'errors' in err && 
+            Array.isArray(err.errors) && err.errors[0]?.code === 'session_exists') {
           // User is already signed in, redirect to onboarding
           const redirectUrl = orgId ? `/onboarding?orgId=${orgId}` : '/onboarding'
           router.push(redirectUrl)

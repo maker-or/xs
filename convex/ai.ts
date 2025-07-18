@@ -149,7 +149,7 @@ export const streamChatCompletion = action({
       );
 
       const response = await client.chat.completions.create({
-        model: "moonshotai/kimi-k2:free",
+        model: "google/gemini-2.5-flash",
         messages: allMessages,
         stream: true,
         temperature: 0.7,

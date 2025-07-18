@@ -204,7 +204,7 @@ Analyze the following query: "${query}" and return the appropriate tag.
 
   try {
     const subjectModel = withTracing(
-      openrouter("qwen/qwen3-0.6b-04-28"),
+      openrouter("google/gemini-2.5-flash"),
       phClient,
       {
         posthogDistinctId: userId,

@@ -741,7 +741,7 @@ const ContentBlock: React.FC<{
     td({ children }) {
       const content = sanitizeContent(children);
       return (
-        <td className="border-r border-gray-700/50 px-6 py-4 text-sm text-[#f7eee3] last:border-r-0">
+        <td className="border-r border-gray-700/50 px-6 py-4 text-sm text-white last:border-r-0">
           {content}
         </td>
       );
@@ -749,7 +749,7 @@ const ContentBlock: React.FC<{
 
     tr({ children }) {
       return (
-        <tr className="border-b border-gray-700/50 transition-colors duration-200 last:border-b-0 hover:bg-[#0c0c0c]/40">
+        <tr className="border-b border-gray-700/50 transition-colors duration-200 last:border-b-0 hover:bg-black/40">
           {children}
         </tr>
       );
@@ -810,7 +810,7 @@ const ContentBlock: React.FC<{
     blockquote({ children }) {
       const content = sanitizeContent(children);
       return (
-        <blockquote className="my-4 border-l-4 border-blue-400 pl-4 italic text-[#f7eee3]/80">
+        <blockquote className="my-4 border-l-4 border-blue-400 pl-4 italic text-white/80">
           {content}
         </blockquote>
       );
@@ -819,7 +819,7 @@ const ContentBlock: React.FC<{
     // Enhanced lists
     ul({ children }) {
       return (
-        <ul className="my-4 list-inside list-disc space-y-1 text-[#f7eee3]">
+        <ul className="my-4 list-inside list-disc space-y-1 text-white">
           {children}
         </ul>
       );
@@ -827,7 +827,7 @@ const ContentBlock: React.FC<{
 
     ol({ children }) {
       return (
-        <ol className="my-4 list-inside list-decimal space-y-1 text-[#f7eee3]">
+        <ol className="my-4 list-inside list-decimal space-y-1 text-white">
           {children}
         </ol>
       );
@@ -835,14 +835,14 @@ const ContentBlock: React.FC<{
 
     li({ children }) {
       const content = sanitizeContent(children);
-      return <li className="text-[#f7eee3]">{content}</li>;
+      return <li className="text-white">{content}</li>;
     },
 
     // Enhanced paragraphs
     p({ children }) {
       const content = sanitizeContent(children);
       return (
-        <p className="text-3xl font-light tracking-tight text-[#f7eee3]">
+        <p className="text-3xl font-light tracking-tight text-white">
           {content}
         </p>
       );
@@ -852,14 +852,14 @@ const ContentBlock: React.FC<{
     h1({ children }) {
       const content = sanitizeContent(children);
       return (
-        <h1 className="mb-4 text-3xl font-bold text-[#f7eee3]">{content}</h1>
+        <h1 className="mb-4 text-3xl font-bold text-white">{content}</h1>
       );
     },
 
     h2({ children }) {
       const content = sanitizeContent(children);
       return (
-        <h2 className="mb-3 text-2xl font-semibold text-[#f7eee3]">
+        <h2 className="mb-3 text-2xl font-semibold text-white">
           {content}
         </h2>
       );
@@ -868,26 +868,26 @@ const ContentBlock: React.FC<{
     h3({ children }) {
       const content = sanitizeContent(children);
       return (
-        <h3 className="mb-2 text-xl font-medium text-[#f7eee3]">{content}</h3>
+        <h3 className="mb-2 text-xl font-medium text-white">{content}</h3>
       );
     },
 
     h4({ children }) {
       const content = sanitizeContent(children);
       return (
-        <h4 className="mb-2 text-lg font-medium text-[#f7eee3]">{content}</h4>
+        <h4 className="mb-2 text-lg font-medium text-white">{content}</h4>
       );
     },
 
     // Enhanced text elements
     strong({ children }) {
       const content = sanitizeContent(children);
-      return <strong className="text-[#f7eee3]">{content}</strong>;
+      return <strong className="text-white">{content}</strong>;
     },
 
     em({ children }) {
       const content = sanitizeContent(children);
-      return <em className="italic text-[#f7eee3]">{content}</em>;
+      return <em className="italic text-white">{content}</em>;
     },
   };
 
@@ -973,15 +973,15 @@ const ContentBlock: React.FC<{
         {/* Centered Header */}
         <div className="mb-8 px-6 text-center">
           <div className="mb-4">
-            <span className="text-sm font-medium text-[#f7eee3]">
+            <span className="text-sm font-medium text-white/60">
               {index + 1} of {total}
             </span>
           </div>
-          <h1 className="mb-4 font-serif text-5xl italic tracking-tight text-[#f7eee3]">
+          <h1 className="mb-4 font-serif text-5xl italic tracking-tight text-white">
             {slide.title}
           </h1>
           {slide.subTitles && (
-            <p className="mx-auto max-w-3xl text-xl text-[#f7eee3]">
+            <p className="mx-auto max-w-3xl text-xl text-white/80">
               {slide.subTitles}
             </p>
           )}
@@ -1000,7 +1000,7 @@ const ContentBlock: React.FC<{
 
           {/* Additional content below test if any */}
           {textContent && textContent !== slide.title && (
-            <div className="prose prose-lg prose-invert mt-6 max-w-none text-[#f7eee3]">
+            <div className="prose prose-lg prose-invert mt-6 max-w-none text-white">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeKatex, rehypeHighlight, rehypeRaw]}
@@ -1022,15 +1022,15 @@ const ContentBlock: React.FC<{
         {/* Centered Header */}
         <div className="mb-8 px-6 text-center">
           <div className="mb-4">
-            <span className="text-sm font-medium text-[#f7eee3]">
+            <span className="text-sm font-medium text-white/60">
               {index + 1} of {total}
             </span>
           </div>
-          <h1 className="mb-4 font-serif text-5xl italic tracking-tight text-[#f7eee3]">
+          <h1 className="mb-4 font-serif text-5xl italic tracking-tight text-white">
             {slide.title}
           </h1>
           {slide.subTitles && (
-            <p className="mx-auto max-w-3xl text-xl text-[#f7eee3]/80">
+            <p className="mx-auto max-w-3xl text-xl text-white/80">
               {slide.subTitles}
             </p>
           )}
@@ -1044,7 +1044,7 @@ const ContentBlock: React.FC<{
 
           {/* Additional content below flashcards if any */}
           {textContent && textContent !== slide.title && (
-            <div className="prose prose-lg prose-invert mt-6 max-w-none text-[#f7eee3]">
+            <div className="prose prose-lg prose-invert mt-6 max-w-none text-white">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeKatex, rehypeHighlight, rehypeRaw]}
@@ -1066,15 +1066,15 @@ const ContentBlock: React.FC<{
         {/* Centered Header */}
         <div className="mb-8 px-6 text-center">
           <div className="mb-4">
-            <span className="text-sm font-medium text-[#f7eee3]">
+            <span className="text-sm font-medium text-white/60">
               {index + 1} of {total}
             </span>
           </div>
-          <h1 className="mb-4 font-serif text-5xl italic tracking-tight text-[#f7eee3]">
+          <h1 className="mb-4 font-serif text-5xl italic tracking-tight text-white">
             {slide.title}
           </h1>
           {slide.subTitles && (
-            <p className="mx-auto max-w-3xl text-xl text-[#f7eee3]/80">
+            <p className="mx-auto max-w-3xl text-xl text-white/80">
               {slide.subTitles}
             </p>
           )}
@@ -1095,7 +1095,7 @@ const ContentBlock: React.FC<{
 
           {/* Additional content below table if any */}
           {textContent && textContent !== slide.title && (
-            <div className="prose prose-lg prose-invert max-w-none text-[#f7eee3]">
+            <div className="prose prose-lg prose-invert max-w-none text-white">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeKatex, rehypeHighlight, rehypeRaw]}
@@ -1116,11 +1116,11 @@ const ContentBlock: React.FC<{
       {/* Centered Header */}
       <div className="mb-8 px-6 text-center">
         <div className="mb-4">
-          <span className="text-sm font-medium text-[#f7eee3]">
+          <span className="text-sm font-medium text-white/60">
             {index + 1} of {total}
           </span>
         </div>
-        <h1 className="mb-4 font-serif text-5xl italic tracking-tight text-[#f7eee3]">
+        <h1 className="mb-4 font-serif text-5xl italic tracking-tight text-white">
           {slide.title}
         </h1>
       </div>
@@ -1131,7 +1131,7 @@ const ContentBlock: React.FC<{
         <div
           className={`${hasVisualContent ? "w-1/2" : "w-full"} overflow-y-auto p-8`}
         >
-          <div className="prose prose-lg prose-invert max-w-none text-[#f7eee3]">
+          <div className="prose prose-lg prose-invert max-w-none text-white">
             {/* Main text content */}
             {textContent && textContent !== slide.title && (
               <div className="mb-6">
@@ -1157,7 +1157,7 @@ const ContentBlock: React.FC<{
                         !className && !childrenText.includes("\n");
                       if (isInlineCode) {
                         return (
-                          <code className="z-2 rounded border-4 border-[#f7eee3] bg-[#0c0c0c] py-1 text-sm text-[#f7eee3]">
+                          <code className="z-2 rounded border-2 border-white/30 bg-black/60 px-2 py-1 text-sm text-white">
                             {childrenText}
                           </code>
                         );
@@ -1179,7 +1179,7 @@ const ContentBlock: React.FC<{
                   {slide.bulletPoints.map((point, idx) => (
                     <div key={idx} className="flex items-start gap-3 p-4">
                       <div className="mt-3 h-2 w-2 flex-shrink-0 rounded-full bg-[#CBF8FE]" />
-                      <span className="text-3xl font-light leading-relaxed tracking-tight text-[#f7eee3]">
+                      <span className="text-3xl font-light leading-relaxed tracking-tight text-white">
                         {point}
                       </span>
                     </div>
@@ -1192,7 +1192,7 @@ const ContentBlock: React.FC<{
 
         {/* Right Panel - Visual Content */}
         {hasVisualContent && (
-          <div className="w-1/2 overflow-y-auto border-l border-[#f7eee3] p-8">
+          <div className="w-1/2 overflow-y-auto border-l border-white/20 p-8">
             <div className="flex h-full flex-col justify-start">
               {/* Picture */}
               {slide.picture && (
@@ -1348,7 +1348,7 @@ const LoadingSequence: React.FC = () => {
         }
         return prev; // Stay at the last step
       });
-    }, 6000); // 3 seconds per step
+    }, 4000); // 4 seconds per step
 
     return () => clearInterval(timer);
   }, [learningSteps.length]);
@@ -1379,18 +1379,50 @@ const LoadingSequence: React.FC = () => {
   };
 
   return (
-    <main className="flex h-[100svh] w-[100svw] flex-col items-center justify-center bg-[#0c0c0c]">
-      <div className="w-full max-w-2xl px-8">
+    <main className="relative flex h-[100svh] w-[100svw] flex-col items-center justify-center">
+      {/* Black background */}
+      <div className="absolute inset-0 z-0 bg-black" />
+
+      {/* Noise overlay */}
+      <div
+        className="absolute inset-0 z-10 opacity-20"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "256px 256px",
+        }}
+      />
+
+      {/* Grid lines */}
+      <div className="pointer-events-none absolute inset-0 z-15">
+        {/* Vertical lines */}
+        <div className="absolute left-[25%] top-0 h-full w-px bg-white/20"></div>
+        <div className="absolute left-[50%] top-0 h-full w-px bg-white/20"></div>
+        <div className="absolute left-[75%] top-0 h-full w-px bg-white/20"></div>
+        {/* Horizontal lines */}
+        <div className="absolute left-0 top-[25%] h-px w-full bg-white/20"></div>
+        <div className="absolute left-0 top-[50%] h-px w-full bg-white/20"></div>
+        <div className="absolute left-0 top-[75%] h-px w-full bg-white/20"></div>
+        {/* Corner circles */}
+        <div className="absolute left-[25%] top-[25%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
+        <div className="absolute left-[75%] top-[25%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
+        <div className="absolute left-[25%] top-[75%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
+        <div className="absolute left-[75%] top-[75%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
+        <div className="absolute left-[50%] top-[50%] h-3 w-3 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/80"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-20 w-full max-w-2xl px-8">
         <div className="mb-12 text-center">
-          <h1 className="mb-4 text-3xl font-light text-[#f7eee3]">
-            Creating your learning experience
+          <h1 className="mb-4 text-4xl font-light text-white">
+            Creating your <span className="font-serif italic">learning</span> experience
           </h1>
-          <p className="text-sm text-[#f7eee3]/60">
+          <p className="text-sm text-white/60">
             Please wait while we craft your personalized learning journey
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-[#f7eee3]/20 bg-[#0c0c0c] shadow">
+        <div className="overflow-hidden rounded-lg border border-white/20 bg-black/40 backdrop-blur-sm shadow-2xl">
           <div className="p-6">
             <ul className="space-y-1">
               {learningSteps.map((step, stepIndex) => {
@@ -1404,7 +1436,7 @@ const LoadingSequence: React.FC = () => {
                     className={`${stepIndex !== 0 ? "mt-1 pt-2" : ""}`}
                   >
                     {/* Task row */}
-                    <div className="group flex items-center rounded-md px-3 py-1.5 transition-colors hover:bg-[#f7eee3]/5">
+                    <div className="group flex items-center rounded-md px-3 py-1.5 transition-colors hover:bg-white/5">
                       <div className="mr-2 flex-shrink-0">
                         <div className="transition-all duration-300">
                           {stepStatus === "completed" ? (
@@ -1412,7 +1444,7 @@ const LoadingSequence: React.FC = () => {
                           ) : stepStatus === "in-progress" ? (
                             <CircleDotDashed className="h-4.5 w-4.5 animate-pulse text-blue-400" />
                           ) : (
-                            <Circle className="h-4.5 w-4.5 text-[#f7eee3]/60" />
+                            <Circle className="h-4.5 w-4.5 text-white/60" />
                           )}
                         </div>
                       </div>
@@ -1420,12 +1452,12 @@ const LoadingSequence: React.FC = () => {
                       <div className="flex min-w-0 flex-grow items-center justify-between">
                         <div className="mr-2 flex-1">
                           <span
-                            className={`${isCompleted ? "text-[#f7eee3]/50 line-through" : "text-[#f7eee3]"} font-medium transition-all duration-300`}
+                            className={`${isCompleted ? "text-white/50 line-through" : "text-white"} font-medium transition-all duration-300`}
                           >
                             {step.title}
                           </span>
                           <p
-                            className={`text-sm ${isCompleted ? "text-[#f7eee3]/30" : "text-[#f7eee3]/60"} transition-all duration-300`}
+                            className={`text-sm ${isCompleted ? "text-white/30" : "text-white/60"} transition-all duration-300`}
                           >
                             {step.description}
                           </p>
@@ -1437,7 +1469,7 @@ const LoadingSequence: React.FC = () => {
                               ? "border border-green-400/30 bg-green-400/20 text-green-400"
                               : stepStatus === "in-progress"
                                 ? "border border-blue-400/30 bg-blue-400/20 text-blue-400"
-                                : "border border-[#f7eee3]/20 bg-[#f7eee3]/10 text-[#f7eee3]/60"
+                                : "border border-white/20 bg-white/10 text-white/60"
                           }`}
                         >
                           {stepStatus}
@@ -1448,7 +1480,7 @@ const LoadingSequence: React.FC = () => {
                     {/* Subtasks */}
                     {isExpanded && (
                       <div className="relative overflow-hidden transition-all duration-300">
-                        <div className="absolute bottom-0 left-[20px] top-0 border-l-2 border-dashed border-[#f7eee3]/30" />
+                        <div className="absolute bottom-0 left-[20px] top-0 border-l-2 border-dashed border-white/30" />
                         <ul className="mb-1.5 ml-3 mr-2 mt-1 space-y-0.5">
                           {step.subtasks.map((subtask, subtaskIndex) => {
                             const subtaskStatus = getStepStatus(
@@ -1461,7 +1493,7 @@ const LoadingSequence: React.FC = () => {
                                 key={subtask.id}
                                 className="group flex flex-col py-0.5 pl-6"
                               >
-                                <div className="hover:bg-[#f7eee3]/3 flex flex-1 items-center rounded-md p-1 transition-colors">
+                                <div className="hover:bg-white/3 flex flex-1 items-center rounded-md p-1 transition-colors">
                                   <div className="mr-2 flex-shrink-0">
                                     <div className="transition-all duration-300">
                                       {subtaskStatus === "completed" ? (
@@ -1469,19 +1501,19 @@ const LoadingSequence: React.FC = () => {
                                       ) : subtaskStatus === "in-progress" ? (
                                         <CircleDotDashed className="h-3.5 w-3.5 animate-pulse text-blue-400" />
                                       ) : (
-                                        <Circle className="h-3.5 w-3.5 text-[#f7eee3]/60" />
+                                        <Circle className="h-3.5 w-3.5 text-white/60" />
                                       )}
                                     </div>
                                   </div>
 
                                   <div className="flex-1">
                                     <span
-                                      className={`text-sm transition-all duration-300 ${subtaskStatus === "completed" ? "text-[#f7eee3]/50 line-through" : subtaskStatus === "in-progress" ? "animate-pulse text-[#f7eee3]" : "text-[#f7eee3]"}`}
+                                      className={`text-sm transition-all duration-300 ${subtaskStatus === "completed" ? "text-white/50 line-through" : subtaskStatus === "in-progress" ? "animate-pulse text-white" : "text-white"}`}
                                     >
                                       {subtask.title}
                                     </span>
                                     <p
-                                      className={`text-xs transition-all duration-300 ${subtaskStatus === "completed" ? "text-[#f7eee3]/30" : "text-[#f7eee3]/50"}`}
+                                      className={`text-xs transition-all duration-300 ${subtaskStatus === "completed" ? "text-white/30" : "text-white/50"}`}
                                     >
                                       {subtask.description}
                                     </p>
@@ -1513,7 +1545,7 @@ const SlideNavigation: React.FC<{
 }> = ({ currentIndex, totalSlides, currentSlide, onPrevious, onNext }) => {
   return (
     <div className="fixed bottom-8 left-1/2 w-auto -translate-x-1/2 transform">
-      <div className="flex items-center gap-2 rounded-full bg-[#1F1F1F] p-2 shadow-2xl">
+      <div className="flex items-center gap-2 rounded-full border border-white/20 bg-black/60 p-2 shadow-2xl backdrop-blur-md">
         {/* Links Section */}
         {currentSlide.links && currentSlide.links.length > 0 ? (
           <>
@@ -1523,8 +1555,9 @@ const SlideNavigation: React.FC<{
                 href={link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-full bg-[#262729] px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-[#1A324A]"
+                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-white/20 hover:border-white/30"
               >
+                <LinkIcon className="mr-2 inline h-3 w-3" />
                 Link {index + 1}
               </a>
             ))}
@@ -1536,8 +1569,9 @@ const SlideNavigation: React.FC<{
             )}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full bg-red-600/80 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-red-500/80"
+            className="rounded-full border border-red-500/30 bg-red-600/20 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-red-600/30 hover:border-red-500/50"
           >
+            <LinkIcon className="mr-2 inline h-3 w-3" />
             YouTube
           </a>
         ) : null}
@@ -1547,14 +1581,14 @@ const SlideNavigation: React.FC<{
           <button
             onClick={onPrevious}
             disabled={currentIndex === 0}
-            className="rounded-full border border-transparent bg-[#121719] p-3 text-white transition-all duration-200 hover:bg-[#1A1A1A] disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-full border border-white/20 bg-white/10 p-3 text-white transition-all duration-200 hover:bg-white/20 hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <button
             onClick={onNext}
             disabled={currentIndex === totalSlides - 1}
-            className="rounded-full border border-transparent bg-[#121719] p-3 text-white transition-all duration-200 hover:bg-[#1A1A1A] disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-full border border-white/20 bg-white/10 p-3 text-white transition-all duration-200 hover:bg-white/20 hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ArrowRightIcon className="h-5 w-5" />
           </button>
@@ -1565,30 +1599,101 @@ const SlideNavigation: React.FC<{
 };
 
 const Learning = () => {
-  const { chatId } = useParams();
+  const params = useParams();
+  const chatId = params.learn || params.chatId; // Try both param names
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  
+  console.log("Learning component - all params:", params);
+  console.log("Learning component - chatId from params:", chatId);
+  
   const messages = useQuery(
     api.message.getMessages,
     chatId ? { chatId: chatId as Id<"chats"> } : "skip",
   );
+  
+  console.log("Learning component - useQuery result:", {
+    messages,
+    messagesType: typeof messages,
+    messagesIsArray: Array.isArray(messages),
+    messagesLength: messages?.length,
+  });
 
   const slides = useMemo(() => {
-    if (!messages || messages.length === 0) return [];
+    console.log("Learning component - messages:", messages);
+    
+    if (!messages || messages.length === 0) {
+      console.log("Learning component - no messages found");
+      return [];
+    }
 
-    const assistantMessage = messages.find((msg) => msg.role === "assistant");
-    if (!assistantMessage || !assistantMessage.content) return [];
+    const assistantMessages = messages.filter((msg) => msg.role === "assistant");
+    console.log("Learning component - all assistant messages:", assistantMessages);
+    
+    // Try to find an assistant message that contains slides data
+    let assistantMessage = assistantMessages.find((msg) => {
+      try {
+        const parsed = JSON.parse(msg.content);
+        return parsed && parsed.slides && Array.isArray(parsed.slides);
+      } catch {
+        return false;
+      }
+    });
+    
+    // Fallback to the last assistant message if no slides found
+    if (!assistantMessage && assistantMessages.length > 0) {
+      assistantMessage = assistantMessages[assistantMessages.length - 1];
+    }
+    
+    console.log("Learning component - selected assistant message:", assistantMessage);
+    
+    if (!assistantMessage || !assistantMessage.content) {
+      console.log("Learning component - no assistant message or content");
+      return [];
+    }
 
     try {
-      const parsedData = JSON.parse(assistantMessage.content) as {
-        slides: Record<string, unknown>[]; // Loosen type to handle malformed data
-      };
+      console.log("Learning component - parsing content:", assistantMessage.content);
+      
+      // First, let's try to parse as JSON
+      let parsedData;
+      try {
+        parsedData = JSON.parse(assistantMessage.content) as {
+          slides: Record<string, unknown>[]; // Loosen type to handle malformed data
+        };
+      } catch (parseError) {
+        console.log("Learning component - JSON parse failed, trying to extract JSON from content");
+        
+        // Try to extract JSON from markdown code blocks or other formats
+        const jsonMatch = assistantMessage.content.match(/```json\s*\n([\s\S]*?)\n```/) ||
+                         assistantMessage.content.match(/```\s*\n([\s\S]*?)\n```/) ||
+                         assistantMessage.content.match(/\{[\s\S]*\}/);
+        
+        if (jsonMatch) {
+          try {
+            parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+            console.log("Learning component - extracted JSON from content");
+          } catch (extractError) {
+            console.error("Learning component - failed to parse extracted JSON:", extractError);
+            throw parseError; // Throw original error
+          }
+        } else {
+          throw parseError; // Throw original error
+        }
+      }
 
-      if (!Array.isArray(parsedData.slides)) return [];
+      console.log("Learning component - parsed data:", parsedData);
+
+      if (!parsedData || !Array.isArray(parsedData.slides)) {
+        console.log("Learning component - slides is not an array:", parsedData?.slides);
+        return [];
+      }
+
+      console.log("Learning component - found slides array with length:", parsedData.slides.length);
 
       // TEMP FIX: Transform the slide data to fix the nested `code` object bug.
       // The AI is returning `code: { content: '...', language: '...' }`
       // but the frontend expects `codeContent: '...'` and `codeLanguage: '...'`.
-      return parsedData.slides.map((slide) => {
+      const transformedSlides = parsedData.slides.map((slide: Record<string, unknown>) => {
         // Ensure all required fields are present with defaults
         const transformedSlide: Slide = {
           name: (slide.name as string) || "slide 1",
@@ -1624,8 +1729,12 @@ const Learning = () => {
 
         return transformedSlide;
       });
+
+      console.log("Learning component - transformed slides:", transformedSlides);
+      return transformedSlides;
     } catch (error) {
       console.error("Error parsing and transforming slides:", error);
+      console.error("Raw content that failed to parse:", assistantMessage.content);
       return [];
     }
   }, [messages]);
@@ -1656,17 +1765,90 @@ const Learning = () => {
 
   const currentSlide = slides[currentSlideIndex];
 
-  if (!currentSlide) {
+  console.log("Learning component - render decision:", {
+    messages,
+    messagesUndefined: messages === undefined,
+    messagesLength: messages?.length,
+    slides,
+    slidesLength: slides.length,
+    currentSlide,
+    currentSlideIndex,
+  });
+
+  // Show loading state if messages are still loading
+  if (messages === undefined) {
+    console.log("Learning component - showing LoadingSequence (messages undefined)");
+    return <LoadingSequence />;
+  }
+
+  // Show error state if no slides could be parsed
+  if (!currentSlide && messages && messages.length > 0) {
+    console.log("Learning component - showing error state (no slides but messages exist)");
     return (
-      <main className="flex min-h-screen w-full items-center justify-center bg-[#0c0c0c]">
-        <p className="text-white">Loading...</p>
+      <main className="relative flex min-h-screen w-full items-center justify-center">
+        {/* Black background */}
+        <div className="absolute inset-0 z-0 bg-black" />
+
+        {/* Noise overlay */}
+        <div
+          className="absolute inset-0 z-10 opacity-20"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            backgroundRepeat: "repeat",
+            backgroundSize: "256px 256px",
+          }}
+        />
+
+        <div className="relative z-20 text-center">
+          <h1 className="mb-4 text-2xl font-light text-white">Unable to load <span className="font-serif italic">learning</span> content</h1>
+          <p className="text-white/60 text-sm mb-2">Check the console for more details</p>
+          <p className="text-white/40 text-xs mb-6">
+            Messages: {messages.length}, Slides: {slides.length}
+          </p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="rounded-full border border-white/20 bg-white/10 px-6 py-2 text-white transition-all duration-200 hover:bg-white/20 hover:border-white/30"
+          >
+            Retry
+          </button>
+        </div>
       </main>
     );
   }
 
+  // Show loading if no messages yet
+  if (!currentSlide) {
+    console.log("Learning component - showing LoadingSequence (no current slide)");
+    return <LoadingSequence />;
+  }
+
   return (
-    <main className="min-h-[100svh] w-[100svw] bg-[#0c0c0c] px-4 py-4">
-      <div className="h-full w-full">
+    <main className="relative min-h-[100svh] w-[100svw] px-4 py-4">
+      {/* Black background */}
+      <div className="absolute inset-0 z-0 bg-black" />
+
+      {/* Noise overlay */}
+      <div
+        className="absolute inset-0 z-10 opacity-15"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "256px 256px",
+        }}
+      />
+
+      {/* Subtle grid lines for content area */}
+      <div className="pointer-events-none absolute inset-0 z-15">
+        {/* Vertical lines */}
+        <div className="absolute left-[20%] top-0 h-full w-px bg-white/10"></div>
+        <div className="absolute left-[80%] top-0 h-full w-px bg-white/10"></div>
+        {/* Horizontal lines */}
+        <div className="absolute left-0 top-[15%] h-px w-full bg-white/10"></div>
+        <div className="absolute left-0 top-[85%] h-px w-full bg-white/10"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-20 h-full w-full">
         <ContentBlock
           slide={currentSlide}
           index={currentSlideIndex}

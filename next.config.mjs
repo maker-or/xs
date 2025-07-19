@@ -37,6 +37,18 @@ const config = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.synopsys.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "developer-blogs.nvidia.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 

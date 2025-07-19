@@ -22,12 +22,22 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
+import dynamic from "next/dynamic";
+import Image from "next/image";
 
 interface Slide {
   name: string;
   title: string;
   content: string;
-  type: "markdown" | "code" | "video" | "quiz" | "table" | "flashcard" | "test";
+  type:
+    | "markdown"
+    | "code"
+    | "video"
+    | "quiz"
+    | "table"
+    | "flashcard"
+    | "test"
+    | "circuit";
   subTitles: string;
   picture: string;
   links: string[];
@@ -39,6 +49,7 @@ interface Slide {
   audioScript: string;
   testQuestions: string | TestQuestion[];
   flashcardData: FlashcardQuestion[];
+  circuitData: string;
 }
 
 interface TestQuestion {
@@ -757,12 +768,14 @@ const ContentBlock: React.FC<{
 
     // Enhanced image rendering
     img({ src, alt }) {
-      if (!src) return null;
+      if (!src || typeof src !== 'string') return null;
       return (
         <div className="my-4 text-center">
-          <img
+          <Image
             src={src}
             alt={alt || ""}
+            width={800}
+            height={600}
             className="mx-auto h-auto max-w-full rounded-lg shadow-lg"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -851,32 +864,24 @@ const ContentBlock: React.FC<{
     // Enhanced headings
     h1({ children }) {
       const content = sanitizeContent(children);
-      return (
-        <h1 className="mb-4 text-3xl font-bold text-white">{content}</h1>
-      );
+      return <h1 className="mb-4 text-3xl font-bold text-white">{content}</h1>;
     },
 
     h2({ children }) {
       const content = sanitizeContent(children);
       return (
-        <h2 className="mb-3 text-2xl font-semibold text-white">
-          {content}
-        </h2>
+        <h2 className="mb-3 text-2xl font-semibold text-white">{content}</h2>
       );
     },
 
     h3({ children }) {
       const content = sanitizeContent(children);
-      return (
-        <h3 className="mb-2 text-xl font-medium text-white">{content}</h3>
-      );
+      return <h3 className="mb-2 text-xl font-medium text-white">{content}</h3>;
     },
 
     h4({ children }) {
       const content = sanitizeContent(children);
-      return (
-        <h4 className="mb-2 text-lg font-medium text-white">{content}</h4>
-      );
+      return <h4 className="mb-2 text-lg font-medium text-white">{content}</h4>;
     },
 
     // Enhanced text elements
@@ -912,6 +917,14 @@ const ContentBlock: React.FC<{
     Array.isArray(slide.flashcardData) &&
     slide.flashcardData.length > 0;
 
+  // Check if slide has circuit data
+  const hasCircuitData =
+    slide.circuitData &&
+    typeof slide.circuitData === "string" &&
+    slide.circuitData.trim() !== "";
+
+  const isCircuitSlide = hasCircuitData;
+
   // Debug logging for slide detection
   console.log(`ContentBlock - Slide "${slide.title}":`, {
     type: slide.type,
@@ -925,6 +938,9 @@ const ContentBlock: React.FC<{
     isFlashcardSlide,
     flashcardData: slide.flashcardData,
     isTableSlide,
+    hasCircuitData,
+    isCircuitSlide,
+    circuitData: slide.circuitData,
   });
 
   // Extract visual content (images, code, diagrams)
@@ -1110,6 +1126,55 @@ const ContentBlock: React.FC<{
     );
   }
 
+  // Full-screen layout for circuits
+  if (isCircuitSlide) {
+    return (
+      <div className="flex h-full w-full flex-col">
+        {/* Centered Header */}
+        <div className="mb-8 px-6 text-center">
+          <div className="mb-4">
+            <span className="text-sm font-medium text-white/60">
+              {index + 1} of {total}
+            </span>
+          </div>
+          <h1 className="mb-4 font-serif text-5xl italic tracking-tight text-white">
+            {slide.title}
+          </h1>
+          {slide.subTitles && (
+            <p className="mx-auto max-w-3xl text-xl text-white/80">
+              {slide.subTitles}
+            </p>
+          )}
+        </div>
+
+        <div className="flex-1 px-8">
+          {/* Circuit Component */}
+          {hasCircuitData ? (
+            <CircuitComponent circuitData={slide.circuitData} />
+          ) : (
+            <div className="p-8 text-center text-[#f7eee3]/60">
+              <div className="mb-4 text-4xl">⚡</div>
+              <p>No circuit data available for this slide.</p>
+            </div>
+          )}
+
+          {/* Additional content below circuit if any */}
+          {textContent && textContent !== slide.title && (
+            <div className="prose prose-lg prose-invert mt-6 max-w-none text-white">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeKatex, rehypeHighlight, rehypeRaw]}
+                components={markdownComponents}
+              >
+                {textContent}
+              </ReactMarkdown>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // Two-panel layout for regular content
   return (
     <div className="flex h-full w-full flex-col">
@@ -1197,13 +1262,15 @@ const ContentBlock: React.FC<{
               {/* Picture */}
               {slide.picture && (
                 <div className="mb-6">
-                  <img
+                  <Image
                     src={
                       slide.picture.startsWith("http")
                         ? slide.picture
                         : `https://${slide.picture}`
                     }
                     alt={slide.title}
+                    width={800}
+                    height={600}
                     className="mx-auto max-h-[60vh] w-full max-w-full rounded-lg object-contain shadow-lg"
                     onLoad={() => {
                       console.log("Image loaded successfully:", slide.picture);
@@ -1272,6 +1339,23 @@ const ContentBlock: React.FC<{
     </div>
   );
 };
+
+// Dynamic import for CircuitBricksRenderer to avoid SSR issues
+const CircuitBricksRenderer = dynamic(
+  () => import("./ui/CircuitBricksRenderer"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-64 items-center justify-center rounded-lg border bg-gray-50">
+        <div className="text-center">
+          <div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading circuit canvas...</p>
+        </div>
+      </div>
+    ),
+  },
+);
+
 const LoadingSequence: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [expandedSteps] = useState<string[]>(["1", "2", "3"]);
@@ -1348,7 +1432,7 @@ const LoadingSequence: React.FC = () => {
         }
         return prev; // Stay at the last step
       });
-    }, 4000); // 4 seconds per step
+    }, 3000); // 4 seconds per step
 
     return () => clearInterval(timer);
   }, [learningSteps.length]);
@@ -1394,7 +1478,7 @@ const LoadingSequence: React.FC = () => {
       />
 
       {/* Grid lines */}
-      <div className="pointer-events-none absolute inset-0 z-15">
+      <div className="z-15 pointer-events-none absolute inset-0">
         {/* Vertical lines */}
         <div className="absolute left-[25%] top-0 h-full w-px bg-white/20"></div>
         <div className="absolute left-[50%] top-0 h-full w-px bg-white/20"></div>
@@ -1415,14 +1499,15 @@ const LoadingSequence: React.FC = () => {
       <div className="relative z-20 w-full max-w-2xl px-8">
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-4xl font-light text-white">
-            Creating your <span className="font-serif italic">learning</span> experience
+            Creating your <span className="font-serif italic">learning</span>{" "}
+            experience
           </h1>
           <p className="text-sm text-white/60">
             Please wait while we craft your personalized learning journey
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-white/20 bg-black/40 backdrop-blur-sm shadow-2xl">
+        <div className="overflow-hidden rounded-lg border border-white/20 bg-black/40 shadow-2xl backdrop-blur-sm">
           <div className="p-6">
             <ul className="space-y-1">
               {learningSteps.map((step, stepIndex) => {
@@ -1545,7 +1630,7 @@ const SlideNavigation: React.FC<{
 }> = ({ currentIndex, totalSlides, currentSlide, onPrevious, onNext }) => {
   return (
     <div className="fixed bottom-8 left-1/2 w-auto -translate-x-1/2 transform">
-      <div className="flex items-center gap-2 rounded-full border border-white/20 bg-black/60 p-2 shadow-2xl backdrop-blur-md">
+      <div className="flex items-center gap-2 rounded-3xl border border-white/20 bg-black/60 p-2 shadow-2xl backdrop-blur-md">
         {/* Links Section */}
         {currentSlide.links && currentSlide.links.length > 0 ? (
           <>
@@ -1555,7 +1640,7 @@ const SlideNavigation: React.FC<{
                 href={link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-white/20 hover:border-white/30"
+                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:border-white/30 hover:bg-white/20"
               >
                 <LinkIcon className="mr-2 inline h-3 w-3" />
                 Link {index + 1}
@@ -1569,7 +1654,7 @@ const SlideNavigation: React.FC<{
             )}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full border border-red-500/30 bg-red-600/20 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-red-600/30 hover:border-red-500/50"
+            className="rounded-full border border-red-500/30 bg-red-600/20 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:border-red-500/50 hover:bg-red-600/30"
           >
             <LinkIcon className="mr-2 inline h-3 w-3" />
             YouTube
@@ -1581,14 +1666,14 @@ const SlideNavigation: React.FC<{
           <button
             onClick={onPrevious}
             disabled={currentIndex === 0}
-            className="rounded-full border border-white/20 bg-white/10 p-3 text-white transition-all duration-200 hover:bg-white/20 hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-full border border-white/20 bg-white/10 p-3 text-white transition-all duration-200 hover:border-white/30 hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <button
             onClick={onNext}
             disabled={currentIndex === totalSlides - 1}
-            className="rounded-full border border-white/20 bg-white/10 p-3 text-white transition-all duration-200 hover:bg-white/20 hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-full border border-white/20 bg-white/10 p-3 text-white transition-all duration-200 hover:border-white/30 hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ArrowRightIcon className="h-5 w-5" />
           </button>
@@ -1602,15 +1687,15 @@ const Learning = () => {
   const params = useParams();
   const chatId = params.learn || params.chatId; // Try both param names
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  
+
   console.log("Learning component - all params:", params);
   console.log("Learning component - chatId from params:", chatId);
-  
+
   const messages = useQuery(
     api.message.getMessages,
     chatId ? { chatId: chatId as Id<"chats"> } : "skip",
   );
-  
+
   console.log("Learning component - useQuery result:", {
     messages,
     messagesType: typeof messages,
@@ -1620,124 +1705,100 @@ const Learning = () => {
 
   const slides = useMemo(() => {
     console.log("Learning component - messages:", messages);
-    
+
     if (!messages || messages.length === 0) {
       console.log("Learning component - no messages found");
       return [];
     }
 
-    const assistantMessages = messages.filter((msg) => msg.role === "assistant");
-    console.log("Learning component - all assistant messages:", assistantMessages);
-    
+    const assistantMessage = messages.find((msg) => msg.role === "assistant");
+    if (!assistantMessage || !assistantMessage.content) return [];
+
     // Try to find an assistant message that contains slides data
-    let assistantMessage = assistantMessages.find((msg) => {
-      try {
-        const parsed = JSON.parse(msg.content);
-        return parsed && parsed.slides && Array.isArray(parsed.slides);
-      } catch {
-        return false;
-      }
-    });
-    
-    // Fallback to the last assistant message if no slides found
-    if (!assistantMessage && assistantMessages.length > 0) {
-      assistantMessage = assistantMessages[assistantMessages.length - 1];
-    }
-    
-    console.log("Learning component - selected assistant message:", assistantMessage);
-    
-    if (!assistantMessage || !assistantMessage.content) {
-      console.log("Learning component - no assistant message or content");
-      return [];
-    }
 
     try {
-      console.log("Learning component - parsing content:", assistantMessage.content);
-      
-      // First, let's try to parse as JSON
-      let parsedData;
-      try {
-        parsedData = JSON.parse(assistantMessage.content) as {
-          slides: Record<string, unknown>[]; // Loosen type to handle malformed data
-        };
-      } catch (parseError) {
-        console.log("Learning component - JSON parse failed, trying to extract JSON from content");
-        
-        // Try to extract JSON from markdown code blocks or other formats
-        const jsonMatch = assistantMessage.content.match(/```json\s*\n([\s\S]*?)\n```/) ||
-                         assistantMessage.content.match(/```\s*\n([\s\S]*?)\n```/) ||
-                         assistantMessage.content.match(/\{[\s\S]*\}/);
-        
-        if (jsonMatch) {
-          try {
-            parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
-            console.log("Learning component - extracted JSON from content");
-          } catch (extractError) {
-            console.error("Learning component - failed to parse extracted JSON:", extractError);
-            throw parseError; // Throw original error
+      const parsedData = JSON.parse(assistantMessage.content) as {
+        slides: Record<string, unknown>[]; // Loosen type to handle malformed data
+      };
+      if (!Array.isArray(parsedData.slides)) return [];
+
+      return parsedData.slides.map((slide) => {
+        // Helper function to validate slide type
+        const getValidSlideType = (type: unknown): "markdown" | "code" | "video" | "quiz" | "table" | "flashcard" | "test" | "circuit" => {
+          const validTypes = ["markdown", "code", "video", "quiz", "table", "flashcard", "test", "circuit"] as const;
+          if (typeof type === 'string' && validTypes.includes(type as typeof validTypes[number])) {
+            return type as "markdown" | "code" | "video" | "quiz" | "table" | "flashcard" | "test" | "circuit";
           }
-        } else {
-          throw parseError; // Throw original error
-        }
-      }
+          return "markdown";
+        };
 
-      console.log("Learning component - parsed data:", parsedData);
-
-      if (!parsedData || !Array.isArray(parsedData.slides)) {
-        console.log("Learning component - slides is not an array:", parsedData?.slides);
-        return [];
-      }
-
-      console.log("Learning component - found slides array with length:", parsedData.slides.length);
-
-      // TEMP FIX: Transform the slide data to fix the nested `code` object bug.
-      // The AI is returning `code: { content: '...', language: '...' }`
-      // but the frontend expects `codeContent: '...'` and `codeLanguage: '...'`.
-      const transformedSlides = parsedData.slides.map((slide: Record<string, unknown>) => {
         // Ensure all required fields are present with defaults
-        const transformedSlide: Slide = {
-          name: (slide.name as string) || "slide 1",
-          title: (slide.title as string) || "Learning Module",
-          content: (slide.content as string) || "",
-          type: (slide.type as Slide["type"]) || "markdown",
-          subTitles: (slide.subTitles as string) || "",
-          picture: (slide.picture as string) || "",
-          links: (slide.links as string[]) || [],
-          youtubeSearchText: (slide.youtubeSearchText as string) || "",
-          codeLanguage: (slide.codeLanguage as string) || "",
-          codeContent: (slide.codeContent as string) || "",
-          tables: (slide.tables as string) || "",
-          bulletPoints: (slide.bulletPoints as string[]) || [],
-          audioScript: (slide.audioScript as string) || "",
-          testQuestions: (slide.testQuestions as string | TestQuestion[]) || [],
-          flashcardData: (slide.flashcardData as FlashcardQuestion[]) || [],
+        const transformedSlide = {
+          name: typeof slide.name === 'string' ? slide.name : "slide 1",
+          title: typeof slide.title === 'string' ? slide.title : "Learning Module",
+          content: typeof slide.content === 'string' ? slide.content : "",
+          type: getValidSlideType(slide.type),
+          subTitles: typeof slide.subTitles === 'string' ? slide.subTitles : "",
+          picture: typeof slide.picture === 'string' ? slide.picture : "",
+          links: Array.isArray(slide.links) ? slide.links : [],
+          youtubeSearchText: typeof slide.youtubeSearchText === 'string' ? slide.youtubeSearchText : "",
+          codeLanguage: typeof slide.codeLanguage === 'string' ? slide.codeLanguage : "",
+          codeContent: typeof slide.codeContent === 'string' ? slide.codeContent : "",
+          tables: typeof slide.tables === 'string' ? slide.tables : "",
+          bulletPoints: Array.isArray(slide.bulletPoints) ? slide.bulletPoints : [],
+          audioScript: typeof slide.audioScript === 'string' ? slide.audioScript : "",
+          testQuestions: (typeof slide.testQuestions === 'string' || Array.isArray(slide.testQuestions)) ? slide.testQuestions : [],
+          flashcardData: Array.isArray(slide.flashcardData) ? slide.flashcardData : [],
+          circuitData: typeof slide.circuitData === 'string' ? slide.circuitData : "",
         };
 
         // Handle nested code object if present
-        if (
-          slide.code &&
-          typeof slide.code === "object" &&
-          slide.code !== null &&
-          "content" in slide.code
-        ) {
-          transformedSlide.codeContent = (
-            slide.code as { content: string }
-          ).content;
-          transformedSlide.codeLanguage =
-            (slide.code as { language?: string }).language || "";
+        if (slide.code && typeof slide.code === 'object' && 'content' in slide.code) {
+          transformedSlide.codeContent = (slide.code as { content: string }).content;
+          transformedSlide.codeLanguage = (slide.code as { language?: string }).language || "";
         }
 
         return transformedSlide;
       });
-
-      console.log("Learning component - transformed slides:", transformedSlides);
-      return transformedSlides;
     } catch (error) {
       console.error("Error parsing and transforming slides:", error);
-      console.error("Raw content that failed to parse:", assistantMessage.content);
       return [];
     }
   }, [messages]);
+  // Debug: log the transformed slides
+  useEffect(() => {
+    if (slides.length > 0) {
+      console.log("Transformed slides:", slides);
+      slides.forEach((slide, index) => {
+        console.log(`Slide ${index + 1}:`, {
+          title: slide.title,
+          type: slide.type,
+          picture: slide.picture,
+          pictureExists: !!slide.picture,
+          pictureLength: typeof slide.picture === 'string' ? slide.picture.length : 0,
+          hasVisualContent: !!(
+            slide.picture ||
+            slide.codeContent ||
+            slide.tables
+          ),
+          testQuestions: slide.testQuestions,
+          hasTestQuestions: !!(
+            slide.testQuestions &&
+            ((typeof slide.testQuestions === "string" &&
+              slide.testQuestions.trim() !== "") ||
+              (Array.isArray(slide.testQuestions) &&
+                slide.testQuestions.length > 0))
+          ),
+          flashcardData: slide.flashcardData,
+          hasFlashcards: !!(
+            slide.flashcardData &&
+            Array.isArray(slide.flashcardData) &&
+            slide.flashcardData.length > 0
+          ),
+        });
+      });
+    }
+  }, [slides]);
 
   const handlePrevious = useCallback(() => {
     setCurrentSlideIndex((prev) => Math.max(0, prev - 1));
@@ -1745,7 +1806,7 @@ const Learning = () => {
 
   const handleNext = useCallback(() => {
     setCurrentSlideIndex((prev) => Math.min(slides.length - 1, prev + 1));
-  }, []);
+  }, [slides.length]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1777,48 +1838,52 @@ const Learning = () => {
 
   // Show loading state if messages are still loading
   if (messages === undefined) {
-    console.log("Learning component - showing LoadingSequence (messages undefined)");
+    console.log(
+      "Learning component - showing LoadingSequence (messages undefined)",
+    );
     return <LoadingSequence />;
   }
 
   // Show error state if no slides could be parsed
-  if (!currentSlide && messages && messages.length > 0) {
-    console.log("Learning component - showing error state (no slides but messages exist)");
-    return (
-      <main className="relative flex min-h-screen w-full items-center justify-center">
-        {/* Black background */}
-        <div className="absolute inset-0 z-0 bg-black" />
+  // if (!currentSlide && messages && messages.length > 0) {
+  //   console.log("Learning component - showing error state (no slides but messages exist)");
+  //   return (
+  //     <main className="relative flex min-h-screen w-full items-center justify-center">
+  //       {/* Black background */}
+  //       <div className="absolute inset-0 z-0 bg-black" />
 
-        {/* Noise overlay */}
-        <div
-          className="absolute inset-0 z-10 opacity-20"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            backgroundRepeat: "repeat",
-            backgroundSize: "256px 256px",
-          }}
-        />
+  //       {/* Noise overlay */}
+  //       <div
+  //         className="absolute inset-0 z-10 opacity-20"
+  //         style={{
+  //           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+  //           backgroundRepeat: "repeat",
+  //           backgroundSize: "256px 256px",
+  //         }}
+  //       />
 
-        <div className="relative z-20 text-center">
-          <h1 className="mb-4 text-2xl font-light text-white">Unable to load <span className="font-serif italic">learning</span> content</h1>
-          <p className="text-white/60 text-sm mb-2">Check the console for more details</p>
-          <p className="text-white/40 text-xs mb-6">
-            Messages: {messages.length}, Slides: {slides.length}
-          </p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="rounded-full border border-white/20 bg-white/10 px-6 py-2 text-white transition-all duration-200 hover:bg-white/20 hover:border-white/30"
-          >
-            Retry
-          </button>
-        </div>
-      </main>
-    );
-  }
+  //       <div className="relative z-20 text-center">
+  //         <h1 className="mb-4 text-2xl font-light text-white">Unable to load <span className="font-serif italic">learning</span> content</h1>
+  //         <p className="text-white/60 text-sm mb-2">Check the console for more details</p>
+  //         <p className="text-white/40 text-xs mb-6">
+  //           Messages: {messages.length}, Slides: {slides.length}
+  //         </p>
+  //         <button
+  //           onClick={() => window.location.reload()}
+  //           className="rounded-full border border-white/20 bg-white/10 px-6 py-2 text-white transition-all duration-200 hover:bg-white/20 hover:border-white/30"
+  //         >
+  //           Retry
+  //         </button>
+  //       </div>
+  //     </main>
+  //   );
+  // }
 
   // Show loading if no messages yet
   if (!currentSlide) {
-    console.log("Learning component - showing LoadingSequence (no current slide)");
+    console.log(
+      "Learning component - showing LoadingSequence (no current slide)",
+    );
     return <LoadingSequence />;
   }
 
@@ -1838,7 +1903,7 @@ const Learning = () => {
       />
 
       {/* Subtle grid lines for content area */}
-      <div className="pointer-events-none absolute inset-0 z-15">
+      <div className="z-15 pointer-events-none absolute inset-0">
         {/* Vertical lines */}
         <div className="absolute left-[20%] top-0 h-full w-px bg-white/10"></div>
         <div className="absolute left-[80%] top-0 h-full w-px bg-white/10"></div>
@@ -1866,4 +1931,48 @@ const Learning = () => {
     </main>
   );
 };
+
+// Circuit Component
+const CircuitComponent = ({ circuitData }: { circuitData: string }) => {
+  console.log("CircuitComponent - circuitData:", circuitData);
+
+  if (!circuitData || circuitData.trim() === "") {
+    return (
+      <div className="p-8 text-center text-[#f7eee3]/60">
+        <div className="mb-4 text-4xl">⚡</div>
+        <p>No circuit data available for this slide.</p>
+      </div>
+    );
+  }
+
+  try {
+    // Validate that it's valid JSON
+    JSON.parse(circuitData);
+    return (
+      <div className="w-full">
+        <CircuitBricksRenderer circuitData={circuitData} />
+      </div>
+    );
+  } catch (error) {
+    console.error("Error parsing circuit data:", error);
+    return (
+      <div className="p-8 text-center text-red-400">
+        <div className="mb-4 text-4xl">⚠️</div>
+        <p className="mb-2 text-lg font-semibold">Circuit Error</p>
+        <p className="text-sm">
+          Invalid circuit data format. Please try again.
+        </p>
+        <details className="mt-4 text-left">
+          <summary className="cursor-pointer text-sm text-red-300 hover:text-red-200">
+            Debug Info
+          </summary>
+          <pre className="mt-2 overflow-auto rounded bg-red-900/20 p-2 text-xs">
+            {circuitData}
+          </pre>
+        </details>
+      </div>
+    );
+  }
+};
+
 export default Learning;

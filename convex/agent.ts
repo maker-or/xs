@@ -120,6 +120,7 @@ export const agent = action({
         }),
       ),
     });
+    const circuitSchema = z.object({});
 
     // Define tools using Vercel AI SDK - Fixed inputSchema to parameters
     const getSyllabusTools = tool({
@@ -352,6 +353,26 @@ export const agent = action({
         return JSON.stringify(result.object);
       },
     });
+    const CircuitTools = tool({
+      description: "Create electric circuit diagrams",
+      parameters: z.object({
+        query: z
+          .string()
+          .min(2)
+          .describe("Topic on which the electric circuit must be genrated"),
+      }),
+      execute: async ({ query }) => {
+        console.log("Creating circuit diagram for:", query);
+
+        const result = await generateObject({
+          model: openrouter("google/gemini-2.5-flash"),
+          schema: FlashcardSchema,
+          prompt: `generate the circuit schema for the electric circuit ${query}`,
+        });
+
+        return JSON.stringify(result.object);
+      },
+    });
 
     try {
       // Use generateText with tools, then parse the result
@@ -437,6 +458,7 @@ Your final response must be valid JSON only, no additional text.`,
           getCodeTools,
           testTools,
           flashcardsTools,
+          CircuitTools,
         },
         maxSteps: 10,
       });

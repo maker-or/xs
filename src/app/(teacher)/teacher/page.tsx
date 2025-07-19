@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect as _useEffect, useState } from "react";
 import TagInput from "~/components/ui/TagInput";
 import { UploadButton } from "~/utils/uploadthing";
-import { OurFileRouter } from "../../api/uploadthing/core";
+import { OurFileRouter as _OurFileRouter } from "~/app/api/uploadthing/core";
 import Tnav from "~/components/ui/Tnav";
 
 

@@ -1,26 +1,15 @@
 "use node";
-import {
-  Agent,
-  tool,
-  Runner,
-  setDefaultOpenAIClient,
-  setDefaultOpenAIKey,
-  setTracingDisabled,
-  OpenAIChatCompletionsModel,
-} from "@openai/agents";
-import { z } from "zod";
-import { setOpenAIAPI } from "@openai/agents";
-import { AgentOutputSchema } from "../src/SlidesSchema";
-import Exa from "exa-js";
-import OpenAI from "openai";
-import { api } from "./_generated/api";
-import { getEmbedding } from "../src/utils/embeddings";
-import { Pinecone } from "@pinecone-database/pinecone";
-import { zodResponseFormat } from "openai/helpers/zod";
 import { v } from "convex/values";
 import { action } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
-import { parseNestedJson } from "./parseNestedJson";
+import { api } from "./_generated/api";
+import { AgentOutputSchema } from "../src/SlidesSchema";
+import { generateObject, tool, generateText } from "ai";
+import { createOpenAI } from "@ai-sdk/openai";
+import { z } from "zod";
+import Exa from "exa-js";
+import { getEmbedding } from "../src/utils/embeddings";
+import { Pinecone } from "@pinecone-database/pinecone";
+import { groq } from "@ai-sdk/groq";
 
 export const agent = action({
   args: {
@@ -29,37 +18,30 @@ export const agent = action({
     parentMessageId: v.optional(v.id("messages")),
   },
   handler: async (ctx, args): Promise<any> => {
-    const userId = await getAuthUserId(ctx);
+    const userId = await ctx.auth.getUserIdentity();
     if (!userId) throw new Error("Not authenticated");
-    console.log(
-      "this is from the agent the message i have recived is",
-      args.messages,
-    );
 
-    // Instantiate a chat completions model for the agent
-    // const model = aisdk(openai("o4-mini"));
+    console.log("Agent received message:", args.messages);
 
-    console.log("Calling api.saveApiKey.getkey");
-    // const decryptedKey = await ctx.runQuery(api.saveApiKey.getkey, {});
-
-    // let openRouterKey = decryptedKey || "";
-
-    // Fallback to environment variable if no user key is stored
-
+    // Get API key from environment
     const openRouterKey = process.env.OPENROUTER_API_KEY || "";
-
     if (!openRouterKey) {
       throw new Error(
         "OpenRouter API key is required. Please add your API key in settings.",
       );
     }
 
-    // Validate API key format
     if (!openRouterKey.startsWith("sk-")) {
       throw new Error(
         "Invalid OpenRouter API key format. Key should start with 'sk-'",
       );
     }
+
+    // Create OpenRouter client
+    const openrouter = createOpenAI({
+      baseURL: "https://openrouter.ai/api/v1",
+      apiKey: openRouterKey,
+    });
 
     // Create assistant message
     const assistantMessageId: any = await ctx.runMutation(
@@ -72,112 +54,60 @@ export const agent = action({
       },
     );
 
-    const token = process.env.GITHUB_TOKEN;
-    const endpoint = "https://models.github.ai/inference";
-    //google image search
+    // Environment variables for external services
     const CX = process.env.GOOGLE_CX;
     const API_KEY = process.env.GOOGLE_SEARCH;
+    const EXA_API_KEY = process.env.EXA_API_KEY;
+    const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
 
-    const openrouter = new OpenAI({
-      baseURL: "https://openrouter.ai/api/v1/chat/completions",
-      apiKey: openRouterKey,
-      defaultHeaders: {
-        Referer: "https://sphereai.in", // Optional: for OpenRouter analytics
-        "X-Title": "sphereai.in",
-      },
-    });
-
-    const githubClient = new OpenAI({
-      baseURL: endpoint,
-      apiKey: token,
-    });
-
-    setDefaultOpenAIClient(githubClient);
-    setOpenAIAPI("chat_completions");
-    setDefaultOpenAIKey(openRouterKey);
-    setTracingDisabled(true);
-
-    const chatModel = new OpenAIChatCompletionsModel(
-      githubClient,
-      "openai/o4-mini",
-    );
-    if (!process.env.PINECONE_API_KEY) {
+    if (!PINECONE_API_KEY) {
       throw new Error("Pinecone API key is required");
     }
 
     const PineconeClient = new Pinecone({
-      apiKey: process.env.PINECONE_API_KEY,
+      apiKey: PINECONE_API_KEY,
     });
-    //index name where vector similarity will search
     const index = PineconeClient.index("docling");
-    //*****************************************************************************************************************************
-    //defining the schema for the output for the llm tools
-    //*****************************************************************************************************************************
+
+    // Define schemas for structured outputs
     const GetCodeSchema = z.object({
-      language: z
-        .string()
-        .describe(
-          "it is used to specify the programming language that the actual code must be in ",
-        ),
+      language: z.string().describe("Programming language for the code"),
       code: z
         .string()
         .min(10)
-        .describe("it contain the actaul code in the described language"),
-      explanation: z
-        .string()
-        .describe("it contains the explanation of the code"),
+        .describe("The actual code in the specified language"),
+      explanation: z.string().describe("Explanation of the code"),
     });
 
     const GetSyllabusSchema = z.object({
       query: z
         .string()
         .min(2)
-        .describe(
-          "The subject or concept user wants the syllabus for, e.g., 'Calculus', 'Machine Learning'",
-        ),
-
+        .describe("The subject or concept for the syllabus"),
       syllabus: z.object({
-        previousConcepts: z
-          .array(z.string())
-          .describe(
-            "A list of prerequisite concepts the student should understand before learning the current topic",
-          ),
-
+        previousConcepts: z.array(z.string()).describe("Prerequisite concepts"),
         currentConcepts: z
           .array(
             z.object({
-              topic: z
-                .string()
-                .describe("The main topic under the current subject"),
-
+              topic: z.string().describe("Main topic"),
               subtopics: z
                 .array(z.string())
-                .describe("List of subtopics under this topic"),
+                .describe("Subtopics under this topic"),
             }),
           )
-          .describe(
-            "Topics and their subtopics that the student needs to learn for full understanding of the subject",
-          ),
+          .describe("Current concepts to learn"),
       }),
     });
 
     const TestQuestionSchema = z.object({
       questions: z.array(
         z.object({
-          question: z
-            .string()
-            .describe("this usually contains the actual question"),
+          question: z.string().describe("The actual question"),
           options: z
             .array(z.string())
             .length(4)
-            .describe(
-              "thse usually consist of 4 options which are dispayed with the corressponding question",
-            ),
-          answer: z
-            .string()
-            .describe(
-              "this usually contain the the correct answer or the option corresponding to that particular question",
-            ),
+            .describe("Four answer options"),
+          answer: z.string().describe("The correct answer"),
         }),
       ),
     });
@@ -185,424 +115,511 @@ export const agent = action({
     const FlashcardSchema = z.object({
       flashcards: z.array(
         z.object({
-          front: z
-            .string()
-            .describe(
-              "this usually consists of a question or concept that is displayed at the front of a flashcard",
-            ), // question/concept
-          back: z
-            .string()
-            .describe(
-              "this usually consists of a summary or explanation that is displayed at the back of a flashcard",
-            ), // summary/explanation
+          front: z.string().describe("Question or concept for the front"),
+          back: z.string().describe("Summary or explanation for the back"),
         }),
       ),
     });
-    // ###################################################################################################################################
-    // creating different tools that your agent as use
-    // ###################################################################################################################################
 
-    const getsyllabus = tool({
-      name: "get_syllabus",
-      description: "Get the syllabus for a course.",
+    // Define tools using Vercel AI SDK - Fixed inputSchema to parameters
+    const getSyllabusTools = tool({
+      description: "Get the syllabus for a course or subject",
       parameters: z.object({
-        query: z
-          .string()
-          .min(2)
-          .describe(
-            "The query to search for a particular image that best suits the context.",
-          ),
+        query: z.string().min(2).describe("The subject to get syllabus for"),
       }),
-      async execute({ query }) {
-        console.log("the getsyllabus tool is called to know the syllabus");
-        const result = await openrouter.chat.completions.create({
-          model: "moonshotai/kimi-k2:free",
-          messages: [
-            { role: "user", content: `${query}` },
-            {
-              role: "system",
-              content: `You are an educational assistant helping students master academic subjects. Your goal is to generate a structured syllabus based on a user's query.
+      execute: async ({ query }) => {
+        console.log("Getting syllabus for:", query);
 
-                When the user provides a topic or subject (e.g., "Machine Learning", "Calculus", "Thermodynamics"), return a well-structured JSON object that includes:
-
-                1. **Previous Concepts**
-                   - A list of prerequisite concepts the student should understand before learning the current topic.
-                   - These are foundational ideas that provide necessary context.
-
-                2. **Current Concepts**
-                   - A list of key topics the student needs to learn for this subject.
-                   - Each topic must include a topic name and a list of subtopics that cover the topic thoroughly.
-                   - Subtopics should be concise but meaningful and focused on conceptual clarity and mastery.
-
-                Your response must follow the JSON structure defined`,
-            },
-          ],
-          response_format: zodResponseFormat(
-            GetSyllabusSchema,
-            "GetSyllabusSchema",
-          ),
+        // Use OpenRouter with structured output
+        const result = await generateObject({
+          model: openrouter("google/gemini-2.5-flash"),
+          schema: GetSyllabusSchema,
+          prompt: `Generate a comprehensive syllabus for ${query}. Include prerequisite concepts and current concepts with topics and subtopics.`,
         });
-        console.log(
-          "the reuslt with parsed",
-          result.choices[0].message.content,
-        );
-        console.log("the reuslt", result);
-        return result.choices[0].message.content;
+
+        return JSON.stringify(result.object);
       },
-      strict: true,
     });
 
-    const getimages = tool({
-      name: "getimages",
-      description: "Get images related to a topic.",
+    const getImagesTools = tool({
+      description: "Get images related to a topic",
       parameters: z.object({
-        query: z
-          .string()
-          .min(2)
-          .describe(
-            "The query to search for a particular image that best suits the context.",
-          ),
+        query: z.string().min(2).describe("Query to search for images"),
       }),
-      async execute({ query }) {
-        console.log("the getimages tool is called to get images");
-        const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&cx=${CX}&searchType=image&key=${API_KEY}&num=10`;
+      execute: async ({ query }) => {
+        console.log("Getting images for:", query);
+
+        if (!CX || !API_KEY) {
+          return JSON.stringify({
+            error: "Google Custom Search not configured",
+          });
+        }
+
+        const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&searchType=image&num=10&q=${encodeURIComponent(query)}&imgSize=medium&imgType=photo&safe=active`;
+
         try {
           const res = await fetch(url);
           if (!res.ok) {
-            return {
+            return JSON.stringify({
               error: true,
               status: res.status,
               message: `Failed to fetch images: ${res.statusText}`,
-            };
+            });
           }
+
           const data = await res.json();
-          const images = (data.items || []).map((item: any) => ({
-            title: item.title,
-            link: item.link,
-            thumbnail: item.image?.thumbnailLink,
-            contextLink: item.image?.contextLink,
-            mime: item.mime,
-          }));
-          return {
+
+          // Filter and validate images
+          const images = (data.items || [])
+            .map((item: any) => ({
+              title: item.title,
+              link: item.link,
+              thumbnail: item.image?.thumbnailLink,
+              contextLink: item.image?.contextLink,
+              mime: item.mime,
+              width: item.image?.width,
+              height: item.image?.height,
+            }))
+            .filter((img: any) => {
+              // Filter out invalid or problematic images
+              return (
+                img.link &&
+                (img.link.startsWith("http://") ||
+                  img.link.startsWith("https://")) &&
+                !img.link.includes("x-raw-image") &&
+                !img.link.includes("data:image") &&
+                img.mime &&
+                (img.mime.startsWith("image/") || img.mime.includes("image")) &&
+                img.width &&
+                img.height &&
+                parseInt(img.width) > 100 &&
+                parseInt(img.height) > 100
+              );
+            })
+            .slice(0, 5); // Limit to top 5 valid images
+
+          return JSON.stringify({
             query,
             count: images.length,
             images,
-          };
+          });
         } catch (error: any) {
-          return {
+          return JSON.stringify({
             error: true,
             message:
               error instanceof Error
                 ? `Failed to fetch images: ${error.message}`
                 : "Unknown error",
-          };
+          });
         }
       },
     });
 
-    const websearch = tool({
-      name: "web_search",
-      description: "Search the web to get more information about a topic.",
+    const webSearchTools = tool({
+      description: "Search the web for information about a topic",
       parameters: z.object({
-        query: z.string().min(2).describe("The query to search for."),
+        query: z.string().min(2).describe("Query to search for"),
       }),
-      async execute({ query }) {
-        console.log(`the wrb search tool is called to search ${query}`);
-        const exaApiKeyValue = process.env.EXA_API_KEY;
-        if (!exaApiKeyValue) {
-          throw new Error("EXA API key is required for web search");
+      execute: async ({ query }) => {
+        console.log("Web searching for:", query);
+
+        if (!EXA_API_KEY) {
+          return JSON.stringify({ error: "EXA API key not configured" });
         }
 
         try {
-          const exa = new Exa(exaApiKeyValue);
+          const exa = new Exa(EXA_API_KEY);
           const response = await exa.searchAndContents(query, {
             type: "neural",
             numResults: 5,
             text: true,
-            outputSchema: {
-              title: z.string().min(2).describe("The title of the article."),
-              url: z.string().url().describe("The URL of the article."),
-              content: z
-                .string()
-                .min(10)
-                .describe("The content of the article."),
-            },
           });
-          return `Results for ${query} is ${JSON.stringify(response, null, 2)}`;
+
+          return JSON.stringify({
+            query,
+            results: response.results.map((r: any) => ({
+              title: r.title,
+              url: r.url,
+              content: r.text?.substring(0, 500) + "...",
+            })),
+          });
         } catch (error) {
           console.error("Web search error:", error);
-          return `Web search failed for "${query}": ${error instanceof Error ? error.message : "Unknown error"}`;
+          return JSON.stringify({
+            error: true,
+            message: error instanceof Error ? error.message : "Unknown error",
+          });
         }
       },
     });
 
-    const knowledgesearch = tool({
-      name: "knowledge_search",
-      description:
-        "Search the knowledge base to get more information about a topic.",
+    const knowledgeSearchTools = tool({
+      description: "Search the knowledge base for information",
       parameters: z.object({
-        query: z.string().min(2).describe("The query to search for."),
+        query: z.string().min(2).describe("Query to search knowledge base"),
       }),
-      async execute({ query }) {
+      execute: async ({ query }) => {
+        console.log("Knowledge searching for:", query);
+
         try {
-          console.log(
-            "the knowledge search qurey is called to get info from the knowledge base",
-            query,
-          );
           const embeddings = await getEmbedding(query);
-          const Semantic_search = await index.namespace("__default__").query({
+          const semanticSearch = await index.namespace("__default__").query({
             vector: embeddings,
             topK: 5,
             includeMetadata: true,
             includeValues: false,
           });
-          console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-          console.log("the Semantic_search is : ", Semantic_search);
-          console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 
-          // Extract only the text content from semantic search results
-          const textContent = Semantic_search.matches
+          const textContent = semanticSearch.matches
             .map((match) => match.metadata?.text)
             .filter(Boolean);
-          console.log("the textcontent is : ", textContent);
+
           const resultsString = textContent.join("\n\n");
-          console.log("the resultsString is : ", resultsString);
 
           if (resultsString.trim() === "") {
-            return `No relevant information found for "${query}"`;
+            return JSON.stringify({
+              message: `No relevant information found for "${query}"`,
+            });
           }
 
-          return `Results for ${query} is ${resultsString}`;
+          return JSON.stringify({
+            query,
+            results: resultsString,
+          });
         } catch (error) {
           console.error("Knowledge search error:", error);
-          return `Knowledge search failed for "${query}": ${error instanceof Error ? error.message : "Unknown error"}`;
+          return JSON.stringify({
+            error: true,
+            message: error instanceof Error ? error.message : "Unknown error",
+          });
         }
       },
     });
 
-    const getcode = tool({
-      name: "get_code",
-      description:
-        "Get the code for any Programming topic based on your requried language, if no language is provided then default to python.",
+    const getCodeTools = tool({
+      description: "Get code examples for programming topics",
       parameters: z.object({
-        query: z.string().min(2).describe("The query to search for."),
-        language: z.string().min(1).describe("The Programming language."),
+        query: z.string().min(2).describe("Programming topic to get code for"),
+        language: z.string().min(1).describe("Programming language"),
       }),
-      async execute({ query, language }) {
-        console.log(
-          "Executing get_code tool with query:",
-          query,
-          "and language:",
-          language,
-        );
-        const result = await openrouter.chat.completions.create({
-          model: "moonshotai/kimi-k2:free",
-          messages: [
-            { role: "user", content: `$${query} in ${language}` },
-            {
-              role: "system",
-              content:
-                "You are a highly skilled coding assistant dedicated to helping students fully understand programming concepts. Your primary goal is to ensure clarity and foster mastery of each topic. Always adhere strictly to the provided instructions and output format. For every response, structure your output in the following order: language, code, and explanation. Make sure each section is clearly labeled and that your explanations are concise, accessible, and tailored to the student’s level.",
-            },
-          ],
-          response_format: zodResponseFormat(GetCodeSchema, "codeschema"),
-        });
-        console.log(
-          "the reuslt with parsed",
-          result.choices[0].message.content,
-        );
-        console.log("the reuslt", result);
-        return result.choices[0].message.content;
-      },
-      strict: true,
-    });
+      execute: async ({ query, language }) => {
+        console.log("Getting code for:", query, "in", language);
 
-    const test = tool({
-      name: "test",
-      description:
-        "It is used to generate a test or exam on any concept to test the understanding of the student.",
-      parameters: z.object({
-        topic: z
-          .string()
-          .min(1)
-          .describe("The topic on which the question must be generated"),
-        no: z
-          .number()
-          .min(1)
-          .max(10)
-          .describe("The number of questions to generate"),
-      }),
-      async execute({ topic, no }: { topic: string; no: number }) {
-        console.log(
-          `Generating test for query: ${topic}, number of questions: ${no}`,
-        );
-        const result = await openrouter.chat.completions.create({
-          model: "moonshotai/kimi-k2:free",
-          messages: [
-            {
-              role: "user",
-              content: `create ${no} questions on the topic ${topic}`,
-            },
-            {
-              role: "system",
-              content:
-                "You are a specialized assistant designed to create test questions that help students assess and deepen their understanding of key concepts. Only generate “Choose the correct option” type questions, ensuring that each question has exactly four options with a single correct answer. For every question, provide the question, the four options, and clearly indicate the correct answer. Strictly adhere to the required output schema: questions, options, answer.",
-            },
-          ],
-          response_format: zodResponseFormat(
-            TestQuestionSchema,
-            "testquestion",
-          ),
-        });
-        console.log(
-          "the reuslt with parsed",
-          result.choices[0].message.content,
-        );
-        console.log("the reuslt", result);
-        return result.choices[0].message.content;
-      },
-      strict: true,
-    });
-
-    const flashcards = tool({
-      name: "flash_cards",
-      description:
-        "It is a tool that will create flashcards for students so that they can easily recap and memorize the concept easily",
-      parameters: z.object({
-        query: z
-          .string()
-          .min(2)
-          .describe("The topic on which the question must be generated"),
-        no: z
-          .number()
-          .min(1)
-          .max(3)
-          .describe("The number of flashcards to generate"),
-      }),
-      async execute({ query, no }: { query: string; no: number }) {
-        console.log(`this a forma a flashcard tool with ${query} and ${no}`);
-        const result = await openrouter.chat.completions.create({
-          model: "moonshotai/kimi-k2:free",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a flashcard generator dedicated to helping students efficiently review and memorize concepts. For each flashcard, strictly follow the required output schema: the “front” must contain a clear question or the topic name, while the “back” must provide a concise answer or explanation. Ensure that each flashcard is focused, accurate, and easy to understand.",
-            },
-            {
-              role: "user",
-              content: `Generate ${no} flashcards on the topic ${query}`,
-            },
-          ],
-          response_format: zodResponseFormat(FlashcardSchema, "flashcard"),
+        const result = await generateObject({
+          model: openrouter("google/gemini-2.5-flash"),
+          schema: GetCodeSchema,
+          prompt: `Generate code for ${query} in ${language}. Include the code and a clear explanation.`,
         });
 
-        console.log(
-          "the reuslt with parsed",
-          result.choices[0].message.content,
-        );
-        console.log("the reuslt", result);
-        return result.choices[0].message.content;
+        return JSON.stringify(result.object);
       },
-      strict: true,
     });
-    // ###################################################################################################################################
-    // agent orchestration
-    // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    console.log("oh stated agent orchestration");
 
-    const agent = new Agent({
-      name: "sphereai",
-      instructions: `You are SphereAI, an advanced educational agent. Your mission is to produce a comprehensive, multi-slide learning module for any topic a student asks about.
+    const testTools = tool({
+      description: "Generate test questions on a topic",
+      parameters: z.object({
+        topic: z.string().min(1).describe("Topic for test questions"),
+        no: z.number().min(1).max(10).describe("Number of questions"),
+      }),
+      execute: async ({ topic, no }) => {
+        console.log("Generating test for:", topic, "with", no, "questions");
 
-Your final output MUST be a structured JSON object that conforms to the required schema. To build this output, you must use your available tools to gather all the necessary components.
+        const result = await generateObject({
+          model: openrouter("google/gemini-2.5-flash"),
+          schema: TestQuestionSchema,
+          prompt: `Create ${no} multiple choice questions on the topic ${topic}. Each question should have exactly 4 options with one correct answer.`,
+        });
 
-For any given topic, your response MUST include:
-1.  A detailed **syllabus** (use the \`getsyllabus\` tool).
-2.  At least one relevant **image** (use the \`getimages\` tool).
-3.  **Flashcards** for key concepts (use the \`flashcards\` tool, max 3 per slide).
-4.  A **test** to assess understanding (use the \`test\` tool, max 10 questions per request).
-5.  If the topic is code-related, a **code example** (use the \`getcode\` tool).
-6.  You can use \`websearch\` and \`knowledgesearch\` to enrich your content and provide detailed explanations.
+        return JSON.stringify(result.object);
+      },
+    });
 
-You must orchestrate multiple tool calls as needed in a single run to gather all this information. Do not stop after one tool call. Continue working until you have all the components required to generate the complete, final JSON output. Your goal is to empower students to achieve true mastery. If you fail to provide comprehensive information, you will be penalized.`,
-      model: chatModel,
-      tools: [
-        getsyllabus,
-        getimages,
-        websearch,
-        knowledgesearch,
-        getcode,
-        test,
-        flashcards,
-      ],
-      outputType: AgentOutputSchema,
-      modelSettings: { toolChoice: "auto" },
+    const flashcardsTools = tool({
+      description: "Create flashcards for studying a topic",
+      parameters: z.object({
+        query: z.string().min(2).describe("Topic for flashcards"),
+        no: z.number().min(1).max(3).describe("Number of flashcards"),
+      }),
+      execute: async ({ query, no }) => {
+        console.log("Creating flashcards for:", query, "count:", no);
+
+        const result = await generateObject({
+          model: openrouter("google/gemini-2.5-flash"),
+          schema: FlashcardSchema,
+          prompt: `Generate ${no} flashcards on the topic ${query}. Each flashcard should have a clear question/concept on the front and a concise answer/explanation on the back.`,
+        });
+
+        return JSON.stringify(result.object);
+      },
     });
 
     try {
-      const runner = new Runner();
-      const result = await runner.run(agent, `${args.messages}`);
+      // Use generateText with tools, then parse the result
+      const result = await generateText({
+        // model: groq("moonshotai/kimi-k2-instruct"),
+        model: openrouter("google/gemini-2.5-flash"),
+        system: `You are SphereAI, an advanced educational agent. Your mission is to produce a comprehensive, multi-slide learning module for any topic a student asks about.
 
-      const cleanOutput = parseNestedJson<typeof result.output>(result.output);
-      console.log("Clean result.output:", JSON.stringify(cleanOutput, null, 2));
+You must use your available tools to gather all the necessary components for the learning module. For any given topic, you should:
 
-      if (result.output === null) {
-        throw new Error("Agent returned null output.");
+1. Use "getSyllabusTools" to get a detailed syllabus
+2. Use "getImagesTools" to get relevant images - IMPORTANT: Only use valid image URLs that start with http:// or https://
+3. Use "flashcardsTools" to create flashcards for key concepts (max 3 per slide)
+4. Use "testTools" to create assessment questions (max 10 questions per request)
+5. If the topic is code-related, use "getCodeTools" to get code examples
+6. Use "webSearchTools" and "knowledgeSearchTools" to enrich your content
+
+CRITICAL: After calling tools, you MUST parse their JSON results and extract the data to populate your final JSON response.
+
+When processing images from getImagesTools:
+- CRITICAL: Extract the "link" field from the first valid image in the results
+- Set the "picture" field in your JSON output to this exact URL
+- Ensure the URL starts with http:// or https://
+- Example: If getImagesTools returns {"images": [{"link": "https://example.com/image.jpg"}]}, set "picture": "https://example.com/image.jpg"
+- DO NOT use placeholder URLs like "https://example.com" - use actual URLs from the tool results
+- If no valid images are found, leave the picture field empty ("")
+
+After gathering all information from tools, you must output a valid JSON object that matches this structure:
+{
+  "slides": [
+    {
+      "name": "slide 1",
+      "title": "Main title of the slide",
+      "subTitles": "Brief subtitle or summary",
+      "picture": "https://example.com/image.jpg",
+      "content": "Main explanation in markdown (max 180 words)",
+      "links": ["https://example.com/resource1", "https://example.com/resource2"],
+      "youtubeSearchText": "Search query for YouTube exploration",
+      "code": {
+        "language": "javascript",
+        "content": "console.log('Hello World');"
+      },
+      "tables": "Optional table in markdown format",
+      "bulletPoints": ["Key point 1", "Key point 2"],
+      "flashcardData": [
+        {
+          "question": "What is X?",
+          "answer": "X is..."
+        }
+      ],
+      "testQuestions": [
+        {
+          "question": "What is the correct answer?",
+          "options": ["A", "B", "C", "D"],
+          "answer": "A"
+        }
+      ],
+      "type": "markdown"
+    }
+  ]
+}
+
+IMPORTANT: You must use the results from your tool calls to populate the JSON fields:
+- Use image URLs from getImagesTools results for the "picture" field
+- Use flashcard data from flashcardsTools results for the "flashcardData" field
+- Use test questions from testTools results for the "testQuestions" field
+- Use code examples from getCodeTools results for the "code" field
+- for image or picture don't use any book cover or the images of text book
+- you don't need to show images for test or the flash cards or for the tables or the code
+-try to retrive only relevant images for the topic
+- always make sure that you render the test and flash card in the new slide , so that we can provide better learning experience
+- alway rember that to keep the user expreience high so struture the content in a way that is easy to understand and follow
+- When creating test questions, always create a dedicated slide with type "test" for the test questions
+- When creating flashcards, always create a dedicated slide with type "flashcard" for the flashcards
+- Structure the content so that test questions and flashcards are on separate slides from the main content
+Your final response must be valid JSON only, no additional text.`,
+        prompt: args.messages,
+        tools: {
+          getSyllabusTools,
+          getImagesTools,
+          webSearchTools,
+          knowledgeSearchTools,
+          getCodeTools,
+          testTools,
+          flashcardsTools,
+        },
+        maxSteps: 10,
+      });
+
+      console.log("the final result is", result);
+      console.log("tool results:", result.toolResults);
+
+      // Log tool results for debugging
+      if (result.toolResults) {
+        result.toolResults.forEach((toolResult, index) => {
+          console.log(
+            `Tool ${index + 1} (${toolResult.toolName}):`,
+            toolResult.result,
+          );
+        });
       }
 
-      // Extract structured assistant message if wrapped in function call sequence
-      let structuredOutput: unknown = result.output;
-      if (Array.isArray(result.output)) {
-        const outputArray: any[] = result.output as any;
-        // Find the last assistant message payload
-        // Narrow to assistant messages (guarantees 'content' field)
-        const assistantMsgs = outputArray.filter(
-          (item): item is { content: any[] } =>
-            item.type === "message" &&
-            item.role === "assistant" &&
-            Array.isArray(item.content),
-        );
-        if (assistantMsgs.length === 0) {
-          throw new Error("No assistant message found in agent output.");
-        }
-        const lastMsg: any = assistantMsgs[assistantMsgs.length - 1];
+      // Function to sanitize slide data to match schema
+      const sanitizeSlide = (slide: any) => {
+        return {
+          name: slide.name || "slide 1",
+          title: slide.title || "Learning Module",
+          subTitles: slide.subTitles || slide.subtitle || "",
+          picture:
+            slide.picture && typeof slide.picture === "string"
+              ? slide.picture
+              : "",
+          content: slide.content || "Generated content",
+          links: Array.isArray(slide.links)
+            ? slide.links.filter((link: unknown) => typeof link === "string")
+            : [],
+          youtubeSearchText:
+            slide.youtubeSearchText || "Learn more about this topic",
+          code: {
+            language: slide.code?.language || "",
+            content: slide.code?.content || "",
+          },
+          tables: slide.tables || "",
+          bulletPoints: Array.isArray(slide.bulletPoints)
+            ? slide.bulletPoints.filter(
+                (point: unknown) => typeof point === "string",
+              )
+            : [],
+          flashcardData: Array.isArray(slide.flashcardData)
+            ? slide.flashcardData.map((card: any) => ({
+                question: card.question || card.front || "Question",
+                answer: card.answer || card.back || "Answer",
+              }))
+            : [],
+          testQuestions: Array.isArray(slide.testQuestions)
+            ? slide.testQuestions.map((q: any) => ({
+                question: q.question || "Question",
+                options: Array.isArray(q.options)
+                  ? q.options.slice(0, 4)
+                  : ["A", "B", "C", "D"],
+                answer: q.answer || "A",
+              }))
+            : [],
+          type: slide.type || "markdown",
+        };
+      };
 
-        const contentParts: any[] = lastMsg.content;
+      // Parse the result as JSON
+      let structuredOutput: any;
+      try {
+        structuredOutput = JSON.parse(result.text);
 
-        const textPart = contentParts.find(
-          (part: any) =>
-            part.type === "output_text" && typeof part.text === "string",
-        );
-        if (!textPart) {
-          throw new Error(
-            "Assistant message does not contain valid output_text.",
-          );
+        // Sanitize the parsed output
+        if (structuredOutput && structuredOutput.slides) {
+          structuredOutput.slides = structuredOutput.slides.map(sanitizeSlide);
         }
-        try {
-          structuredOutput = JSON.parse(textPart.text);
-        } catch (err) {
-          throw new Error(
-            `Failed to parse assistant JSON output: ${(err as Error).message}`,
-          );
+      } catch (parseError) {
+        console.error("Failed to parse result as JSON:", parseError);
+
+        // Fallback: construct output from tool results
+        structuredOutput = {
+          slides: [
+            {
+              name: "slide 1",
+              title: "Learning Module",
+              subTitles: "Generated content based on your query",
+              picture: "",
+              content: result.text || "Generated content based on your query",
+              links: [],
+              youtubeSearchText: "Learn more about this topic",
+              code: {
+                language: "javascript",
+                content: "// Code example will be generated",
+              },
+              tables: "",
+              bulletPoints: [],
+              flashcardData: [],
+              testQuestions: [],
+              type: "markdown",
+            },
+          ],
+        };
+
+        // Process tool results if available
+        if (result.toolResults) {
+          for (const toolResult of result.toolResults) {
+            try {
+              const parsedResult = JSON.parse(toolResult.result);
+
+              switch (toolResult.toolName) {
+                case "getImagesTools":
+                  if (parsedResult.images && parsedResult.images.length > 0) {
+                    // Find the first valid image URL
+                    const validImage = parsedResult.images.find(
+                      (img: any) =>
+                        img.link &&
+                        (img.link.startsWith("http://") ||
+                          img.link.startsWith("https://")) &&
+                        !img.link.includes("x-raw-image"),
+                    );
+                    if (validImage) {
+                      structuredOutput.slides[0].picture = validImage.link;
+                    }
+                  }
+                  break;
+                case "flashcardsTools":
+                  structuredOutput.slides[0].flashcardData =
+                    parsedResult.flashcards?.map((card: any) => ({
+                      question: card.front,
+                      answer: card.back,
+                    })) || [];
+                  break;
+                case "testTools":
+                  structuredOutput.slides[0].testQuestions =
+                    parsedResult.questions || [];
+                  break;
+                case "getCodeTools":
+                  structuredOutput.slides[0].code = {
+                    language: parsedResult.language,
+                    content: parsedResult.code,
+                  };
+                  break;
+                case "webSearchTools":
+                case "knowledgeSearchTools":
+                  if (parsedResult.results) {
+                    structuredOutput.slides[0].content +=
+                      "\n\n" +
+                      (typeof parsedResult.results === "string"
+                        ? parsedResult.results
+                        : JSON.stringify(parsedResult.results));
+                  }
+                  break;
+              }
+            } catch (toolParseError) {
+              console.warn(
+                "Failed to parse tool result:",
+                toolResult.toolName,
+                toolParseError,
+              );
+            }
+          }
         }
       }
+
+      // Debug: log the structured output before validation
+      console.log(
+        "Final structured output before validation:",
+        JSON.stringify(structuredOutput, null, 2),
+      );
 
       // Validate against schema
       const parsed = AgentOutputSchema.safeParse(structuredOutput);
       if (!parsed.success) {
-        console.error("❌ Invalid structured output:");
-        console.dir(structuredOutput, { depth: null }); // actual parsed payload
-        console.dir(parsed.error.format(), { depth: null });
-      }
-      // console.log("Structured output:", structuredOutput);
-      console.log("Parsed agent output:", parsed.data);
+        console.error("Invalid structured output:", parsed.error.format());
+        console.error(
+          "Raw structured output:",
+          JSON.stringify(structuredOutput, null, 2),
+        );
 
-      if (!parsed.success) {
+        // Log specific field errors for debugging
+        if (parsed.error.issues) {
+          console.error("Validation issues:", parsed.error.issues);
+        }
+
         throw new Error("Agent returned invalid structured content.");
       }
 
-      // Update message with successful parsed result
+      // Update message with successful result
       await ctx.runMutation(api.message.updateMessage, {
         messageId: assistantMessageId,
         content: JSON.stringify({ slides: parsed.data.slides }),
@@ -617,7 +634,6 @@ You must orchestrate multiple tool calls as needed in a single run to gather all
     } catch (error) {
       console.error("Agent processing error:", error);
 
-      // Update message with error information
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
 
@@ -639,12 +655,7 @@ You must orchestrate multiple tool calls as needed in a single run to gather all
         console.error("Failed to update message with error:", updateError);
       }
 
-      // Provide more detailed error information
-      if (error instanceof Error) {
-        throw new Error(`Agent processing failed: ${error.message}`);
-      } else {
-        throw new Error("Agent processing failed with unknown error");
-      }
+      throw new Error(`Agent processing failed: ${errorMessage}`);
     }
   },
 });

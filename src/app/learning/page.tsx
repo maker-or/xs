@@ -1,9 +1,9 @@
-import Learning from "~/components/Learning";
+import AiHome from "~/components/AiHome";
 
 const Page = () => {
   return (
     <main>
-      <Learning />
+      <AiHome />
     </main>
   );
 };

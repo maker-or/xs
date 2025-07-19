@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useAction } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../convex/_generated/api";
 import { useForm } from "@tanstack/react-form";
 import { Id } from "convex/_generated/dataModel";
 import { z } from "zod";
@@ -20,7 +20,7 @@ const messageSchema = z.object({
 
 type MessageFormValues = z.infer<typeof messageSchema>;
 
-const LearningPage = () => {
+const Chatting = () => {
   const params = useParams<{ learning: string }>();
   const chatId = params.learning;
   const router = useRouter();
@@ -321,4 +321,4 @@ const LearningPage = () => {
   );
 };
 
-export default LearningPage;
+export default Chatting;

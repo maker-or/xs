@@ -49,7 +49,6 @@ interface Slide {
   audioScript: string;
   testQuestions: string | TestQuestion[];
   flashcardData: FlashcardQuestion[];
-  circuitData: string;
 }
 
 interface TestQuestion {
@@ -305,6 +304,7 @@ const TestComponent = ({ testQuestions }: TestComponentProps) => {
       </div>
     );
   }
+
   if (showResults) {
     return (
       <div className="rounded-lg border p-6">
@@ -398,9 +398,6 @@ const TestComponent = ({ testQuestions }: TestComponentProps) => {
     <div className="rounded-lg p-6">
       <div className="mb-6">
         <div className="mb-4 flex items-center justify-between">
-          {/* <h3 className="text-xl font-bold text-[#f7eee3]">
-            Test Your Knowledge
-          </h3> */}
           <span className="text-sm text-[#f7eee3]/60">
             {currentQuestion + 1} of {questions.length}
           </span>
@@ -768,10 +765,10 @@ const ContentBlock: React.FC<{
 
     // Enhanced image rendering
     img({ src, alt }) {
-      if (!src || typeof src !== 'string') return null;
+      if (!src || typeof src !== "string") return null;
       return (
         <div className="my-4 text-center">
-          <Image
+          <img
             src={src}
             alt={alt || ""}
             width={800}
@@ -918,12 +915,6 @@ const ContentBlock: React.FC<{
     slide.flashcardData.length > 0;
 
   // Check if slide has circuit data
-  const hasCircuitData =
-    slide.circuitData &&
-    typeof slide.circuitData === "string" &&
-    slide.circuitData.trim() !== "";
-
-  const isCircuitSlide = hasCircuitData;
 
   // Debug logging for slide detection
   console.log(`ContentBlock - Slide "${slide.title}":`, {
@@ -938,9 +929,6 @@ const ContentBlock: React.FC<{
     isFlashcardSlide,
     flashcardData: slide.flashcardData,
     isTableSlide,
-    hasCircuitData,
-    isCircuitSlide,
-    circuitData: slide.circuitData,
   });
 
   // Extract visual content (images, code, diagrams)
@@ -1127,53 +1115,6 @@ const ContentBlock: React.FC<{
   }
 
   // Full-screen layout for circuits
-  if (isCircuitSlide) {
-    return (
-      <div className="flex h-full w-full flex-col">
-        {/* Centered Header */}
-        <div className="mb-8 px-6 text-center">
-          <div className="mb-4">
-            <span className="text-sm font-medium text-white/60">
-              {index + 1} of {total}
-            </span>
-          </div>
-          <h1 className="mb-4 font-serif text-5xl italic tracking-tight text-white">
-            {slide.title}
-          </h1>
-          {slide.subTitles && (
-            <p className="mx-auto max-w-3xl text-xl text-white/80">
-              {slide.subTitles}
-            </p>
-          )}
-        </div>
-
-        <div className="flex-1 px-8">
-          {/* Circuit Component */}
-          {hasCircuitData ? (
-            <CircuitComponent circuitData={slide.circuitData} />
-          ) : (
-            <div className="p-8 text-center text-[#f7eee3]/60">
-              <div className="mb-4 text-4xl">⚡</div>
-              <p>No circuit data available for this slide.</p>
-            </div>
-          )}
-
-          {/* Additional content below circuit if any */}
-          {textContent && textContent !== slide.title && (
-            <div className="prose prose-lg prose-invert mt-6 max-w-none text-white">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[rehypeKatex, rehypeHighlight, rehypeRaw]}
-                components={markdownComponents}
-              >
-                {textContent}
-              </ReactMarkdown>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   // Two-panel layout for regular content
   return (
@@ -1262,7 +1203,7 @@ const ContentBlock: React.FC<{
               {/* Picture */}
               {slide.picture && (
                 <div className="mb-6">
-                  <Image
+                  <img
                     src={
                       slide.picture.startsWith("http")
                         ? slide.picture
@@ -1711,71 +1652,110 @@ const Learning = () => {
       return [];
     }
 
-    const assistantMessage = messages.find((msg) => msg.role === "assistant");
+    const assistantMessage = messages.find(
+      (msg: any) => msg.role === "assistant",
+    );
     if (!assistantMessage || !assistantMessage.content) return [];
 
-    // Try to find an assistant message that contains slides data
-
     try {
-      const parsedData = JSON.parse(assistantMessage.content) as {
-        slides: Record<string, unknown>[]; // Loosen type to handle malformed data
-      };
-      if (!Array.isArray(parsedData.slides)) return [];
+      // Check if the content is already a JSON string containing slides
+      let parsedData;
 
-      return parsedData.slides.map((slide) => {
-        // Helper function to validate slide type
-        const getValidSlideType = (type: unknown): "markdown" | "code" | "video" | "quiz" | "table" | "flashcard" | "test" | "circuit" => {
-          const validTypes = ["markdown", "code", "video", "quiz", "table", "flashcard", "test", "circuit"] as const;
-          if (typeof type === 'string' && validTypes.includes(type as typeof validTypes[number])) {
-            return type as "markdown" | "code" | "video" | "quiz" | "table" | "flashcard" | "test" | "circuit";
+      if (typeof assistantMessage.content === "string") {
+        // Try to parse the string as JSON
+        parsedData = JSON.parse(assistantMessage.content);
+      } else {
+        // Content is already an object
+        parsedData = assistantMessage.content;
+      }
+
+      // Check if we have a slides array
+      if (!parsedData.slides || !Array.isArray(parsedData.slides)) {
+        console.error("No slides array found in parsed data:", parsedData);
+        return [];
+      }
+
+      console.log("Successfully parsed slides:", parsedData.slides);
+
+      // Transform the slide data to fix the nested `code` object bug.
+      // The AI is returning `code: { content: '...', language: '...' }`
+      // but the frontend expects `codeContent: '...'` and `codeLanguage: '...'`.
+      return parsedData.slides.map(
+        (slide: Record<string, any>, index: number) => {
+          // Ensure all required fields are present with defaults
+          const transformedSlide = {
+            name: slide.name || "slide 1",
+            title: slide.title || "Learning Module",
+            content: slide.content || "",
+            type: slide.type || "markdown",
+            subTitles: slide.subTitles || "",
+            picture: slide.picture || "",
+            links: slide.links || [],
+            youtubeSearchText: slide.youtubeSearchText || "",
+            codeLanguage: slide.codeLanguage || "",
+            codeContent: slide.codeContent || "",
+            tables: slide.tables || "",
+            bulletPoints: slide.bulletPoints || [],
+            audioScript: slide.audioScript || "",
+            testQuestions: slide.testQuestions || [],
+            flashcardData: slide.flashcardData || [],
+          };
+
+          // Handle nested code object if present
+          if (slide.code && typeof slide.code.content !== "undefined") {
+            transformedSlide.codeContent = slide.code.content;
+            transformedSlide.codeLanguage = slide.code.language || "";
           }
-          return "markdown";
-        };
 
-        // Ensure all required fields are present with defaults
-        const transformedSlide = {
-          name: typeof slide.name === 'string' ? slide.name : "slide 1",
-          title: typeof slide.title === 'string' ? slide.title : "Learning Module",
-          content: typeof slide.content === 'string' ? slide.content : "",
-          type: getValidSlideType(slide.type),
-          subTitles: typeof slide.subTitles === 'string' ? slide.subTitles : "",
-          picture: typeof slide.picture === 'string' ? slide.picture : "",
-          links: Array.isArray(slide.links) ? slide.links : [],
-          youtubeSearchText: typeof slide.youtubeSearchText === 'string' ? slide.youtubeSearchText : "",
-          codeLanguage: typeof slide.codeLanguage === 'string' ? slide.codeLanguage : "",
-          codeContent: typeof slide.codeContent === 'string' ? slide.codeContent : "",
-          tables: typeof slide.tables === 'string' ? slide.tables : "",
-          bulletPoints: Array.isArray(slide.bulletPoints) ? slide.bulletPoints : [],
-          audioScript: typeof slide.audioScript === 'string' ? slide.audioScript : "",
-          testQuestions: (typeof slide.testQuestions === 'string' || Array.isArray(slide.testQuestions)) ? slide.testQuestions : [],
-          flashcardData: Array.isArray(slide.flashcardData) ? slide.flashcardData : [],
-          circuitData: typeof slide.circuitData === 'string' ? slide.circuitData : "",
-        };
-
-        // Handle nested code object if present
-        if (slide.code && typeof slide.code === 'object' && 'content' in slide.code) {
-          transformedSlide.codeContent = (slide.code as { content: string }).content;
-          transformedSlide.codeLanguage = (slide.code as { language?: string }).language || "";
-        }
-
-        return transformedSlide;
-      });
+          console.log(`Transformed slide "${slide.title}":`, transformedSlide);
+          return transformedSlide;
+        },
+      );
     } catch (error) {
       console.error("Error parsing and transforming slides:", error);
+      console.error("Raw assistant message content:", assistantMessage.content);
       return [];
     }
   }, [messages]);
-  // Debug: log the transformed slides
+  // Debug: log the œ
   useEffect(() => {
+    console.log("=== SLIDES DEBUG ===");
+    console.log("Messages:", messages);
+    console.log("Messages length:", messages?.length);
+    console.log("Slides:", slides);
+    console.log("Slides length:", slides.length);
+    console.log("Current slide index:", currentSlideIndex);
+    console.log("Current slide:", slides[currentSlideIndex]);
+
+    if (messages && messages.length > 0) {
+      const assistantMessage = messages.find(
+        (msg: any) => msg.role === "assistant",
+      );
+      console.log("Assistant message:", assistantMessage);
+      if (assistantMessage) {
+        console.log(
+          "Assistant message content type:",
+          typeof assistantMessage.content,
+        );
+        console.log(
+          "Assistant message content preview:",
+          typeof assistantMessage.content === "string"
+            ? assistantMessage.content.substring(0, 200) + "..."
+            : assistantMessage.content,
+        );
+      }
+    }
+    console.log("=== END SLIDES DEBUG ===");
+
     if (slides.length > 0) {
-      console.log("Transformed slides:", slides);
-      slides.forEach((slide, index) => {
+      slides.forEach((slide: Slide, index: number) => {
         console.log(`Slide ${index + 1}:`, {
           title: slide.title,
           type: slide.type,
           picture: slide.picture,
           pictureExists: !!slide.picture,
-          pictureLength: typeof slide.picture === 'string' ? slide.picture.length : 0,
+          pictureLength:
+            typeof slide.picture === "string" ? slide.picture.length : 0,
           hasVisualContent: !!(
             slide.picture ||
             slide.codeContent ||
@@ -1798,7 +1778,7 @@ const Learning = () => {
         });
       });
     }
-  }, [slides]);
+  }, [slides, messages, currentSlideIndex]);
 
   const handlePrevious = useCallback(() => {
     setCurrentSlideIndex((prev) => Math.max(0, prev - 1));
@@ -1826,58 +1806,13 @@ const Learning = () => {
 
   const currentSlide = slides[currentSlideIndex];
 
-  console.log("Learning component - render decision:", {
-    messages,
-    messagesUndefined: messages === undefined,
-    messagesLength: messages?.length,
-    slides,
-    slidesLength: slides.length,
-    currentSlide,
-    currentSlideIndex,
-  });
-
-  // Show loading state if messages are still loading
-  if (messages === undefined) {
-    console.log(
-      "Learning component - showing LoadingSequence (messages undefined)",
-    );
-    return <LoadingSequence />;
-  }
-
-  // Show error state if no slides could be parsed
-  // if (!currentSlide && messages && messages.length > 0) {
-  //   console.log("Learning component - showing error state (no slides but messages exist)");
-  //   return (
-  //     <main className="relative flex min-h-screen w-full items-center justify-center">
-  //       {/* Black background */}
-  //       <div className="absolute inset-0 z-0 bg-black" />
-
-  //       {/* Noise overlay */}
-  //       <div
-  //         className="absolute inset-0 z-10 opacity-20"
-  //         style={{
-  //           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-  //           backgroundRepeat: "repeat",
-  //           backgroundSize: "256px 256px",
-  //         }}
-  //       />
-
-  //       <div className="relative z-20 text-center">
-  //         <h1 className="mb-4 text-2xl font-light text-white">Unable to load <span className="font-serif italic">learning</span> content</h1>
-  //         <p className="text-white/60 text-sm mb-2">Check the console for more details</p>
-  //         <p className="text-white/40 text-xs mb-6">
-  //           Messages: {messages.length}, Slides: {slides.length}
-  //         </p>
-  //         <button
-  //           onClick={() => window.location.reload()}
-  //           className="rounded-full border border-white/20 bg-white/10 px-6 py-2 text-white transition-all duration-200 hover:bg-white/20 hover:border-white/30"
-  //         >
-  //           Retry
-  //         </button>
-  //       </div>
-  //     </main>
-  //   );
-  // }
+  console.log("=== RENDER DEBUG ===");
+  console.log("Current slide:", currentSlide);
+  console.log("Current slide index:", currentSlideIndex);
+  console.log("Total slides:", slides.length);
+  console.log("Messages undefined?", messages === undefined);
+  console.log("Should show loading?", !currentSlide);
+  console.log("=== END RENDER DEBUG ===");
 
   // Show loading if no messages yet
   if (!currentSlide) {
@@ -1933,46 +1868,5 @@ const Learning = () => {
 };
 
 // Circuit Component
-const CircuitComponent = ({ circuitData }: { circuitData: string }) => {
-  console.log("CircuitComponent - circuitData:", circuitData);
-
-  if (!circuitData || circuitData.trim() === "") {
-    return (
-      <div className="p-8 text-center text-[#f7eee3]/60">
-        <div className="mb-4 text-4xl">⚡</div>
-        <p>No circuit data available for this slide.</p>
-      </div>
-    );
-  }
-
-  try {
-    // Validate that it's valid JSON
-    JSON.parse(circuitData);
-    return (
-      <div className="w-full">
-        <CircuitBricksRenderer circuitData={circuitData} />
-      </div>
-    );
-  } catch (error) {
-    console.error("Error parsing circuit data:", error);
-    return (
-      <div className="p-8 text-center text-red-400">
-        <div className="mb-4 text-4xl">⚠️</div>
-        <p className="mb-2 text-lg font-semibold">Circuit Error</p>
-        <p className="text-sm">
-          Invalid circuit data format. Please try again.
-        </p>
-        <details className="mt-4 text-left">
-          <summary className="cursor-pointer text-sm text-red-300 hover:text-red-200">
-            Debug Info
-          </summary>
-          <pre className="mt-2 overflow-auto rounded bg-red-900/20 p-2 text-xs">
-            {circuitData}
-          </pre>
-        </details>
-      </div>
-    );
-  }
-};
 
 export default Learning;

@@ -120,7 +120,6 @@ export const agent = action({
         }),
       ),
     });
-    const circuitSchema = z.object({});
 
     // Define tools using Vercel AI SDK - Fixed inputSchema to parameters
     const getSyllabusTools = tool({
@@ -353,31 +352,10 @@ export const agent = action({
         return JSON.stringify(result.object);
       },
     });
-    const CircuitTools = tool({
-      description: "Create electric circuit diagrams",
-      parameters: z.object({
-        query: z
-          .string()
-          .min(2)
-          .describe("Topic on which the electric circuit must be genrated"),
-      }),
-      execute: async ({ query }) => {
-        console.log("Creating circuit diagram for:", query);
-
-        const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash"),
-          schema: FlashcardSchema,
-          prompt: `generate the circuit schema for the electric circuit ${query}`,
-        });
-
-        return JSON.stringify(result.object);
-      },
-    });
 
     try {
       // Use generateText with tools, then parse the result
       const result = await generateText({
-        // model: groq("moonshotai/kimi-k2-instruct"),
         model: openrouter("google/gemini-2.5-flash"),
         system: `You are SphereAI, an advanced educational agent. Your mission is to produce a comprehensive, multi-slide learning module for any topic a student asks about.
 
@@ -390,11 +368,11 @@ You must use your available tools to gather all the necessary components for the
 5. If the topic is code-related, use "getCodeTools" to get code examples
 6. Use "webSearchTools" and "knowledgeSearchTools" to enrich your content
 
-CRITICAL: After calling tools, you MUST parse their JSON results and extract the data to populate your final JSON response.
+CRITICAL: After calling tools, you MUST parse their JSON results and extract the data to populate your final response.
 
 When processing images from getImagesTools:
 - CRITICAL: Extract the "link" field from the first valid image in the results
-- Set the "picture" field in your JSON output to this exact URL
+- Set the "picture" field in your output to this exact URL
 - Ensure the URL starts with http:// or https://
 - Example: If getImagesTools returns {"images": [{"link": "https://example.com/image.jpg"}]}, set "picture": "https://example.com/image.jpg"
 - DO NOT use placeholder URLs like "https://example.com" - use actual URLs from the tool results
@@ -435,20 +413,21 @@ After gathering all information from tools, you must output a valid JSON object 
   ]
 }
 
-IMPORTANT: You must use the results from your tool calls to populate the JSON fields:
+IMPORTANT: You must use the results from your tool calls to populate the fields:
 - Use image URLs from getImagesTools results for the "picture" field
 - Use flashcard data from flashcardsTools results for the "flashcardData" field
 - Use test questions from testTools results for the "testQuestions" field
 - Use code examples from getCodeTools results for the "code" field
 - for image or picture don't use any book cover or the images of text book
 - you don't need to show images for test or the flash cards or for the tables or the code
--try to retrive only relevant images for the topic
+- try to retrive only relevant images for the topic
 - always make sure that you render the test and flash card in the new slide , so that we can provide better learning experience
 - alway rember that to keep the user expreience high so struture the content in a way that is easy to understand and follow
 - When creating test questions, always create a dedicated slide with type "test" for the test questions
 - When creating flashcards, always create a dedicated slide with type "flashcard" for the flashcards
 - Structure the content so that test questions and flashcards are on separate slides from the main content
-Your final response must be valid JSON only, no additional text.`,
+
+Your final response must be ONLY valid JSON, no additional text or explanations.`,
         prompt: args.messages,
         tools: {
           getSyllabusTools,
@@ -458,7 +437,6 @@ Your final response must be valid JSON only, no additional text.`,
           getCodeTools,
           testTools,
           flashcardsTools,
-          CircuitTools,
         },
         maxSteps: 10,
       });
@@ -476,62 +454,26 @@ Your final response must be valid JSON only, no additional text.`,
         });
       }
 
-      // Function to sanitize slide data to match schema
-      const sanitizeSlide = (slide: any) => {
-        return {
-          name: slide.name || "slide 1",
-          title: slide.title || "Learning Module",
-          subTitles: slide.subTitles || slide.subtitle || "",
-          picture:
-            slide.picture && typeof slide.picture === "string"
-              ? slide.picture
-              : "",
-          content: slide.content || "Generated content",
-          links: Array.isArray(slide.links)
-            ? slide.links.filter((link: unknown) => typeof link === "string")
-            : [],
-          youtubeSearchText:
-            slide.youtubeSearchText || "Learn more about this topic",
-          code: {
-            language: slide.code?.language || "",
-            content: slide.code?.content || "",
-          },
-          tables: slide.tables || "",
-          bulletPoints: Array.isArray(slide.bulletPoints)
-            ? slide.bulletPoints.filter(
-                (point: unknown) => typeof point === "string",
-              )
-            : [],
-          flashcardData: Array.isArray(slide.flashcardData)
-            ? slide.flashcardData.map((card: any) => ({
-                question: card.question || card.front || "Question",
-                answer: card.answer || card.back || "Answer",
-              }))
-            : [],
-          testQuestions: Array.isArray(slide.testQuestions)
-            ? slide.testQuestions.map((q: any) => ({
-                question: q.question || "Question",
-                options: Array.isArray(q.options)
-                  ? q.options.slice(0, 4)
-                  : ["A", "B", "C", "D"],
-                answer: q.answer || "A",
-              }))
-            : [],
-          type: slide.type || "markdown",
-        };
+      // Function to extract JSON from text that might have additional content
+      const extractJSON = (text: string): any => {
+        // Try to find JSON object in the text
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+        
+        // If no match, try parsing the entire text
+        return JSON.parse(text);
       };
 
       // Parse the result as JSON
       let structuredOutput: any;
       try {
-        structuredOutput = JSON.parse(result.text);
-
-        // Sanitize the parsed output
-        if (structuredOutput && structuredOutput.slides) {
-          structuredOutput.slides = structuredOutput.slides.map(sanitizeSlide);
-        }
+        structuredOutput = extractJSON(result.text);
+        console.log("Successfully parsed JSON from result");
       } catch (parseError) {
         console.error("Failed to parse result as JSON:", parseError);
+        console.error("Raw result text:", result.text);
 
         // Fallback: construct output from tool results
         structuredOutput = {
@@ -541,7 +483,7 @@ Your final response must be valid JSON only, no additional text.`,
               title: "Learning Module",
               subTitles: "Generated content based on your query",
               picture: "",
-              content: result.text || "Generated content based on your query",
+              content: "Generated content based on your query",
               links: [],
               youtubeSearchText: "Learn more about this topic",
               code: {
@@ -618,9 +560,9 @@ Your final response must be valid JSON only, no additional text.`,
         }
       }
 
-      // Debug: log the structured output before validation
+      // Debug: log the structured output
       console.log(
-        "Final structured output before validation:",
+        "Final structured output:",
         JSON.stringify(structuredOutput, null, 2),
       );
 

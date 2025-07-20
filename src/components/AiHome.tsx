@@ -2,15 +2,7 @@
 
 import { z } from "zod";
 import { Button } from "./ui/button";
-import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  LinkIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ArrowUpIcon,
-  ArrowClockwiseIcon,
-} from "@phosphor-icons/react";
+import { ArrowUpIcon, ArrowClockwiseIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
 import { useState, useEffect } from "react";
 import React from "react";
@@ -18,14 +10,6 @@ import { useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import ChatCommandPalette from "./ui/ChatCommandPalette";
 
-import ReactMarkdown from "react-markdown";
-import type { Components } from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import rehypeHighlight from "rehype-highlight";
-import rehypeRaw from "rehype-raw";
-// import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -43,9 +27,6 @@ type FormValues = z.infer<typeof zschema>;
 
 const AiHome = () => {
   const navigate = useRouter();
-  const [appstate, setAppstate] = useState<"start" | "loading" | "viewing">(
-    "start",
-  );
 
   const [apptype, setapptype] = useState<"chart" | "learn">("chart");
   const [showChatPalette, setShowChatPalette] = useState(false);
@@ -63,7 +44,6 @@ const AiHome = () => {
     onSubmit: async ({ value }) => {
       console.log("the values are:", value);
       form.reset();
-      setAppstate("loading");
 
       try {
         const newChatId = await createChat({
@@ -104,7 +84,6 @@ const AiHome = () => {
         }
       } catch (error) {
         console.error("Error creating chat:", error);
-        setAppstate("start");
       }
     },
     validators: {

@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as agent from "../agent.js";
 import type * as ai from "../ai.js";
 import type * as branches from "../branches.js";
 import type * as chats from "../chats.js";
@@ -28,6 +29,7 @@ import type * as resumable from "../resumable.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  agent: typeof agent;
   ai: typeof ai;
   branches: typeof branches;
   chats: typeof chats;

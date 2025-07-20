@@ -259,6 +259,26 @@ export const getProcessingStatus = query({
   },
 });
 
+export const complete = query({
+  args: {
+    chatId: v.id("chats"),
+  },
+  handler: async (ctx, args) => {
+    if (!args.chatId) {
+      return false;
+    }
+    
+    const isCompleted = await ctx.db
+      .query("messages")
+      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
+      .filter((q) => q.eq(q.field("role"), "assistant"))
+      .filter((q) => q.eq(q.field("isProcessingComplete"), true))
+      .first();
+
+    return !!isCompleted;
+  },
+});
+
 export const getCompleteResponse = query({
   args: {
     parentId: v.optional(v.id("messages")),

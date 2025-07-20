@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useAction } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../convex/_generated/api";
 import { useForm } from "@tanstack/react-form";
 import { Id } from "convex/_generated/dataModel";
 import { z } from "zod";
@@ -20,22 +20,23 @@ const messageSchema = z.object({
 
 type MessageFormValues = z.infer<typeof messageSchema>;
 
-const LearningPage = () => {
-  const params = useParams<{ learning: string }>();
-  const chatId = params.learning;
+const Chatting = () => {
+  const { chat: chatID } = useParams<{ chat: string }>();
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showChatPalette, setShowChatPalette] = useState(false);
-  const convexChatId = chatId as Id<"chats">;
+  const convexChatId = chatID as Id<"chats">;
 
-  // Convex hooks
-  const chat = useQuery(api.chats.getChat, {
-    chatId: convexChatId,
-  });
+  // Convex hooks - only query if we have a valid chatId
+  const chat = useQuery(
+    api.chats.getChat,
+    chatID ? { chatId: convexChatId } : "skip"
+  );
 
-  const messages = useQuery(api.message.getMessages, {
-    chatId: convexChatId,
-  });
+  const messages = useQuery(
+    api.message.getMessages,
+    chatID ? { chatId: convexChatId } : "skip"
+  );
 
   // Mutations
   const addMessage = useMutation(api.message.addMessage);
@@ -84,10 +85,10 @@ const LearningPage = () => {
   useEffect(() => {
     if (chat && chat.title) {
       document.title = `${chat.title}`;
-    } else if (chatId) {
-      document.title = `Learning Session ${chatId} `;
+    } else if (chatID) {
+      document.title = `Learning Session ${chatID} `;
     }
-  }, [chat, chatId]);
+  }, [chat, chatID]);
 
   // Keyboard shortcuts for command palette
   useEffect(() => {
@@ -101,6 +102,37 @@ const LearningPage = () => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Handle missing chatID
+  if (!chatID) {
+    return (
+      <div className="relative flex h-[100svh] w-[100svw] items-center justify-center">
+        {/* Background */}
+        <div className="absolute inset-0 z-0 bg-black" />
+
+        {/* Noise overlay */}
+        <div
+          className="absolute inset-0 z-10 opacity-20"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            backgroundRepeat: "repeat",
+            backgroundSize: "256px 256px",
+          }}
+        />
+
+        <div className="relative z-20 text-center">
+          <h1 className="mb-4 text-2xl font-bold text-white">Invalid Chat</h1>
+          <p className="mb-4 text-white/70">No chat ID provided</p>
+          <button
+            onClick={() => router.push("/learning")}
+            className="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-white transition-colors hover:bg-white/20"
+          >
+            Go to Learning
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Handle loading state
   if (chat === undefined || messages === undefined) {
@@ -321,4 +353,4 @@ const LearningPage = () => {
   );
 };
 
-export default LearningPage;
+export default Chatting;

@@ -405,23 +405,19 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     // Generate response
-    const model = withTracing(
-      openrouter("google/gemini-2.0-flash-exp:free"),
-      phClient,
-      {
-        posthogDistinctId: userId,
-        posthogTraceId: traceId,
-        posthogProperties: {
-          step: "main_generation",
-          query_type: useRag ? "rag_response" : "general_response",
-          conversation_id: traceId,
-          model_selected: "google/gemini-2.0-flash-exp:free",
-          rag_enabled: useRag,
-          conversation_length: body.messages.length,
-        },
-        posthogPrivacyMode: false,
+    const model = withTracing(openrouter("google/gemini-2.5-flash"), phClient, {
+      posthogDistinctId: userId,
+      posthogTraceId: traceId,
+      posthogProperties: {
+        step: "main_generation",
+        query_type: useRag ? "rag_response" : "general_response",
+        conversation_id: traceId,
+        model_selected: "google/gemini-2.5-flash",
+        rag_enabled: useRag,
+        conversation_length: body.messages.length,
       },
-    );
+      posthogPrivacyMode: false,
+    });
 
     // const result = streamText({
     //   model: model,

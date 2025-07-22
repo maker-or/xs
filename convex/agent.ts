@@ -132,7 +132,7 @@ export const agent = action({
 
         // Use OpenRouter with structured output
         const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash"),
+          model: openrouter("moonshotai/kimi-k2:free"),
           schema: GetSyllabusSchema,
           prompt: `Generate a comprehensive syllabus for ${query}. Include prerequisite concepts and current concepts with topics and subtopics.`,
         });
@@ -306,7 +306,7 @@ export const agent = action({
         console.log("Getting code for:", query, "in", language);
 
         const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash"),
+          model: openrouter("moonshotai/kimi-k2:free"),
           schema: GetCodeSchema,
           prompt: `Generate code for ${query} in ${language}. Include the code and a clear explanation.`,
         });
@@ -325,7 +325,7 @@ export const agent = action({
         console.log("Generating test for:", topic, "with", no, "questions");
 
         const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash"),
+          model: openrouter("moonshotai/kimi-k2:free"),
           schema: TestQuestionSchema,
           prompt: `Create ${no} multiple choice questions on the topic ${topic}. Each question should have exactly 4 options with one correct answer.`,
         });
@@ -344,7 +344,7 @@ export const agent = action({
         console.log("Creating flashcards for:", query, "count:", no);
 
         const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash"),
+          model: openrouter("moonshotai/kimi-k2:free"),
           schema: FlashcardSchema,
           prompt: `Generate ${no} flashcards on the topic ${query}. Each flashcard should have a clear question/concept on the front and a concise answer/explanation on the back.`,
         });
@@ -356,7 +356,7 @@ export const agent = action({
     try {
       // Use generateText with tools, then parse the result
       const result = await generateText({
-        model: openrouter("google/gemini-2.5-flash"),
+        model: openrouter("moonshotai/kimi-k2:free"),
         system: `You are SphereAI, an advanced educational agent. Your mission is to produce a comprehensive, multi-slide learning module for any topic a student asks about.
 
 You must use your available tools to gather all the necessary components for the learning module. For any given topic, you should:
@@ -461,7 +461,7 @@ Your final response must be ONLY valid JSON, no additional text or explanations.
         if (jsonMatch) {
           return JSON.parse(jsonMatch[0]);
         }
-        
+
         // If no match, try parsing the entire text
         return JSON.parse(text);
       };

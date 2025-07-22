@@ -25,6 +25,44 @@ import rehypeRaw from "rehype-raw";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 
+interface Message {
+  _id: Id<"messages">;
+  chatId: Id<"chats">;
+  userId: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  parentId?: Id<"messages">;
+  model?: string;
+  isActive?: boolean;
+  branchId?: Id<"branches">;
+  createdAt: number;
+  webSearchUsed?: boolean;
+  isProcessingComplete?: boolean;
+}
+
+interface RawSlideData {
+  [key: string]: unknown;
+  name?: string;
+  title?: string;
+  content?: string;
+  type?: string;
+  subTitles?: string;
+  picture?: string;
+  links?: string[];
+  youtubeSearchText?: string;
+  codeLanguage?: string;
+  codeContent?: string;
+  code?: {
+    content?: string;
+    language?: string;
+  };
+  tables?: string;
+  bulletPoints?: string[];
+  audioScript?: string;
+  testQuestions?: string | TestQuestion[];
+  flashcardData?: FlashcardQuestion[];
+}
+
 interface Slide {
   name: string;
   title: string;
@@ -1653,7 +1691,7 @@ const Learning = () => {
     }
 
     const assistantMessage = messages.find(
-      (msg: any) => msg.role === "assistant",
+      (msg: Message) => msg.role === "assistant",
     );
     if (!assistantMessage || !assistantMessage.content) return [];
 
@@ -1681,7 +1719,7 @@ const Learning = () => {
       // The AI is returning `code: { content: '...', language: '...' }`
       // but the frontend expects `codeContent: '...'` and `codeLanguage: '...'`.
       return parsedData.slides.map(
-        (slide: Record<string, any>, index: number) => {
+        (slide: RawSlideData, index: number) => {
           // Ensure all required fields are present with defaults
           const transformedSlide = {
             name: slide.name || "slide 1",
@@ -1729,7 +1767,7 @@ const Learning = () => {
 
     if (messages && messages.length > 0) {
       const assistantMessage = messages.find(
-        (msg: any) => msg.role === "assistant",
+        (msg: Message) => msg.role === "assistant",
       );
       console.log("Assistant message:", assistantMessage);
       if (assistantMessage) {

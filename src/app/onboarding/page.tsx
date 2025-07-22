@@ -28,15 +28,16 @@ export default function OnboardingPage() {
         setProgress(10);
 
         // Enhanced organization ID resolution with better priority order
-        const orgIdFromUrl = searchParams.get("orgId") || searchParams.get("organization_id");
+        const orgIdFromUrl =
+          searchParams.get("orgId") || searchParams.get("organization_id");
         const orgIdFromMetadata = user.publicMetadata?.organizationId as string;
-        
+
         // Get organization ID from user's current organization memberships
         const currentOrgMembership = user.organizationMemberships?.find(
-          membership => membership.organization?.id
+          (membership) => membership.organization?.id,
         );
         const orgIdFromMemberships = currentOrgMembership?.organization?.id;
-        
+
         // Get role from organization membership
         const orgRole = currentOrgMembership?.role;
 
@@ -52,11 +53,14 @@ export default function OnboardingPage() {
         // 1. From URL (most recent, from invitation flow)
         // 2. From organization memberships (current active membership)
         // 3. From user metadata (fallback)
-        const finalOrgId = orgIdFromUrl || orgIdFromMemberships || orgIdFromMetadata;
-        
+        const finalOrgId =
+          orgIdFromUrl || orgIdFromMemberships || orgIdFromMetadata;
+
         if (!finalOrgId) {
           console.warn("No organization ID found in any source");
-          setStatus("No organization found. Please contact your administrator.");
+          setStatus(
+            "No organization found. Please contact your administrator.",
+          );
           setIsProcessing(false);
           return;
         }
@@ -72,7 +76,7 @@ export default function OnboardingPage() {
             email: user.emailAddresses,
             organisationId: finalOrgId,
             // Pass the role from organization membership if available
-            role: orgRole || 'member', // Default to 'member' if no role specified
+            role: orgRole || "member", // Default to 'member' if no role specified
           }),
         });
 
@@ -88,10 +92,10 @@ export default function OnboardingPage() {
         if (data.isExistingUser) {
           setStatus("Welcome back! Redirecting to your dashboard...");
           setProgress(100);
-          
+
           // Redirect based on role
           setTimeout(() => {
-            if (data.role === 'admin') {
+            if (data.role === "admin") {
               router.replace("/teacher");
             } else {
               router.replace("/student");
@@ -100,10 +104,10 @@ export default function OnboardingPage() {
         } else {
           setStatus("Account created successfully! Redirecting...");
           setProgress(100);
-          
+
           // Redirect based on role for new users
           setTimeout(() => {
-            if (data.role === 'admin') {
+            if (data.role === "admin") {
               router.replace("/teacher");
             } else {
               router.replace("/student");
@@ -136,19 +140,10 @@ export default function OnboardingPage() {
     <div className="flex min-h-screen items-center justify-center bg-[#050A06] text-white">
       <div className="w-full max-w-md p-8 text-center">
         <div className="mb-8">
-          <div className="mx-auto mb-4 h-16 w-16 overflow-hidden rounded-full bg-[#1a1a1a]">
-            <Image
-              src="/aiback.webp"
-              alt="Logo"
-              width={64}
-              height={64}
-              className="h-full w-full object-cover"
-            />
-          </div>
           <h1 className="mb-2 font-serif text-2xl text-[#f7eee3]">
-            Welcome to XS
+            Welcome to sphereai
           </h1>
-          <p className="text-[#d0cfcf]">Setting up your account</p>
+          <p className="text-[#d0cfcf]">Setting your account</p>
         </div>
 
         <div className="mb-6">
@@ -173,16 +168,20 @@ export default function OnboardingPage() {
         )}
 
         {/* Show organization info if available */}
-        {user?.organizationMemberships && user.organizationMemberships.length > 0 && (
-          <div className="mt-6 rounded-lg border border-[#333] bg-[#1a1a1a] p-4">
-            <p className="text-sm text-[#d0cfcf]">
-              Organization: {user.organizationMemberships?.[0]?.organization?.name ?? user.organizationMemberships?.[0]?.organization?.id ?? "Unknown"}
-            </p>
-            <p className="text-xs text-[#FF5E00]">
-              Role: {user.organizationMemberships?.[0]?.role ?? "Unknown"}
-            </p>
-          </div>
-        )}
+        {user?.organizationMemberships &&
+          user.organizationMemberships.length > 0 && (
+            <div className="mt-6 rounded-lg border border-[#333] bg-[#1a1a1a] p-4">
+              <p className="text-sm text-[#d0cfcf]">
+                Organization:{" "}
+                {user.organizationMemberships?.[0]?.organization?.name ??
+                  user.organizationMemberships?.[0]?.organization?.id ??
+                  "Unknown"}
+              </p>
+              <p className="text-xs text-[#FF5E00]">
+                Role: {user.organizationMemberships?.[0]?.role ?? "Unknown"}
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );

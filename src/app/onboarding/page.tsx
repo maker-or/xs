@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
 
 export default function OnboardingPage() {
   const { user, isLoaded } = useUser();

@@ -13,6 +13,7 @@ const LandingPage = () => {
   return (
     <div className="w-full bg-[#0c0c0c] text-white">
       {/* Hero Section */}
+
       <div className="flex h-screen w-full flex-col items-center justify-center">
         <div className="flex items-center justify-center text-center leading-none tracking-tight">
           <h1 className="text-[5em] text-white">

@@ -25,6 +25,9 @@ export default function RoleRedirect() {
       pathname.startsWith("/role-selection") ||
       pathname.startsWith("/privacy-policy") ||
       pathname.startsWith("/terms-of-service") ||
+      pathname.startsWith("/pricing") ||
+      pathname.startsWith("/select") ||
+      pathname.startsWith("/indauth") ||
       pathname.startsWith("/accept-invitation/")
     ) {
       return;

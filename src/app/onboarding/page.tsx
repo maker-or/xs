@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getUserType, getDefaultRedirectUrl } from "~/lib/auth-utils";
 
 export default function OnboardingPage() {
   const { user, isLoaded } = useUser();
@@ -11,6 +12,9 @@ export default function OnboardingPage() {
   const [status, setStatus] = useState("Checking your account...");
   const [progress, setProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(true);
+  
+  // Get authentication type from URL params
+  const authType = searchParams.get("type"); // "google" or "college"
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -23,10 +27,34 @@ export default function OnboardingPage() {
 
     const handleOnboarding = async () => {
       try {
-        setStatus("Checking your account status...");
+        setStatus("Determining your account type...");
         setProgress(10);
 
-        // Enhanced organization ID resolution with better priority order
+        // Determine user type based on authentication method
+        const userType = getUserType(user, authType || undefined);
+        
+        console.log("User type determined:", userType, "Auth type:", authType);
+
+        // Handle Google users (limited access)
+        if (userType === "google_user") {
+          setStatus("Setting up your Google account...");
+          setProgress(50);
+          
+          // Google users get direct access to learning platform
+          setStatus("Welcome! Redirecting to learning platform...");
+          setProgress(100);
+          
+          setTimeout(() => {
+            router.replace("/learning");
+          }, 1000);
+          return;
+        }
+
+        // Handle college users and admins (full access)
+        setStatus("Checking your account status...");
+        setProgress(30);
+
+        // Enhanced organization ID resolution for college users
         const orgIdFromUrl =
           searchParams.get("orgId") || searchParams.get("organization_id");
         const orgIdFromMetadata = user.publicMetadata?.organizationId as string;
@@ -45,72 +73,86 @@ export default function OnboardingPage() {
           fromMetadata: orgIdFromMetadata,
           fromMemberships: orgIdFromMemberships,
           orgRole: orgRole,
-          allMemberships: user.organizationMemberships,
+          userType: userType,
         });
 
-        // Priority order for organization ID:
-        // 1. From URL (most recent, from invitation flow)
-        // 2. From organization memberships (current active membership)
-        // 3. From user metadata (fallback)
+        // For college users, we need an organization
         const finalOrgId =
           orgIdFromUrl || orgIdFromMemberships || orgIdFromMetadata;
 
-        if (!finalOrgId) {
-          console.warn("No organization ID found in any source");
-          setStatus(
-            "No organization found. Please contact your administrator.",
-          );
-          setIsProcessing(false);
+        // College users without organization get a default experience
+        if (!finalOrgId && userType === "college_user") {
+          console.warn("No organization ID found for college user");
+          setStatus("Setting up your college account...");
+          setProgress(70);
+          
+          // Redirect college users to student dashboard by default
+          setStatus("Welcome! Redirecting to your dashboard...");
+          setProgress(100);
+          
+          setTimeout(() => {
+            router.replace("/student");
+          }, 1000);
           return;
         }
 
-        setStatus("Setting up your account...");
-        setProgress(30);
+        // Handle organization-based college users and admins
+        if (finalOrgId) {
+          setStatus("Setting up your account...");
+          setProgress(50);
 
-        // Single API call to handle both status check and onboarding
-        const response = await fetch("/api/onboarding/status-and-setup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: user.emailAddresses,
-            organisationId: finalOrgId,
-            // Pass the role from organization membership if available
-            role: orgRole || "member", // Default to 'member' if no role specified
-          }),
-        });
+          // Single API call to handle both status check and onboarding
+          const response = await fetch("/api/onboarding/status-and-setup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: user.emailAddresses,
+              organisationId: finalOrgId,
+              // Pass the role from organization membership if available
+              role: orgRole || "member", // Default to 'member' if no role specified
+              userType: userType, // Include user type for better handling
+            }),
+          });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
 
-        const data = await response.json();
-        setProgress(60);
+          const data = await response.json();
+          setProgress(80);
 
-        console.log("Onboarding response:", data);
+          console.log("Onboarding response:", data);
 
-        if (data.isExistingUser) {
-          setStatus("Welcome back! Redirecting to your dashboard...");
-          setProgress(100);
+          if (data.isExistingUser) {
+            setStatus("Welcome back! Redirecting to your dashboard...");
+            setProgress(100);
 
-          // Redirect based on role
-          setTimeout(() => {
-            if (data.role === "admin") {
-              router.replace("/teacher");
-            } else {
-              router.replace("/student");
-            }
-          }, 1000);
+            // Redirect based on user type and role
+            setTimeout(() => {
+              const redirectUrl = getDefaultRedirectUrl(userType === "admin" || data.role === "admin" ? "admin" : userType);
+              router.replace(redirectUrl);
+            }, 1000);
+          } else {
+            setStatus("Account created successfully! Redirecting...");
+            setProgress(100);
+
+            // Redirect based on user type and role for new users
+            setTimeout(() => {
+              const redirectUrl = getDefaultRedirectUrl(userType === "admin" || data.role === "admin" ? "admin" : userType);
+              router.replace(redirectUrl);
+            }, 1000);
+          }
         } else {
-          setStatus("Account created successfully! Redirecting...");
+          // Fallback for users without organization
+          setStatus("Setting up your account...");
+          setProgress(70);
+          
+          setStatus("Welcome! Redirecting to your dashboard...");
           setProgress(100);
-
-          // Redirect based on role for new users
+          
           setTimeout(() => {
-            if (data.role === "admin") {
-              router.replace("/teacher");
-            } else {
-              router.replace("/student");
-            }
+            const redirectUrl = getDefaultRedirectUrl(userType);
+            router.replace(redirectUrl);
           }, 1000);
         }
       } catch (error) {
@@ -122,7 +164,7 @@ export default function OnboardingPage() {
     };
 
     handleOnboarding();
-  }, [isLoaded, user, router, searchParams]);
+  }, [isLoaded, user, router, searchParams, authType]);
 
   if (!isLoaded) {
     return (

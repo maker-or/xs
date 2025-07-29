@@ -19,6 +19,8 @@ export default function SpecialRoutes({
     "/signup",
     "/sign-in",
     "/sign-up",
+    "/select",
+    "/indauth",
     "/onboarding",
   ];
 

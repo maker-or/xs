@@ -2,9 +2,40 @@
 
 import { Button } from "~/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useAuth, useSignIn } from "@clerk/nextjs";
+import { useState } from "react";
 
 const Page = () => {
   const router = useRouter();
+  const { isSignedIn } = useAuth();
+  const { signIn } = useSignIn();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // If user is already signed in, redirect them
+  if (isSignedIn) {
+    router.replace("/onboarding");
+    return null;
+  }
+
+  const handleGoogleSignIn = async () => {
+    if (!signIn) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      await signIn.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/onboarding?type=google",
+        redirectUrlComplete: "/onboarding?type=google",
+      });
+    } catch (err) {
+      console.error("Google sign-in error:", err);
+      setError("Failed to sign in with Google. Please try again.");
+      setIsLoading(false);
+    }
+  };
   return (
     <main className="relative h-[100svh] w-[100svw] overflow-hidden bg-[#0c0c0c]">
       {/* Noise background */}
@@ -40,22 +71,26 @@ const Page = () => {
           </h1>
           <div className="flex w-full flex-col items-center gap-2">
             <Button
+              className="w-1/4 bg-[#313131] p-6 text-[1.2em] font-light hover:bg-[#f7eee3] hover:text-[#313131] disabled:opacity-50"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+            >
+              {isLoading ? "Signing in..." : "Google"}
+            </Button>
+            <Button
               className="w-1/4 bg-[#313131] p-6 text-[1.2em] font-light hover:bg-[#f7eee3] hover:text-[#313131]"
               onClick={() => {
                 router.push("/indauth");
               }}
             >
-              Google
-            </Button>
-            <Button
-              className="w-1/4 bg-[#313131] p-6 text-[1.2em] font-light hover:bg-[#f7eee3] hover:text-[#313131]"
-              onClick={() => {
-                router.push("/signin");
-              }}
-            >
-              Collage account
+              College account
             </Button>
           </div>
+          {error && (
+            <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-center">
+              <p className="text-red-400">{error}</p>
+            </div>
+          )}
         </div>
       </div>
     </main>

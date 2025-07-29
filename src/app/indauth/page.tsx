@@ -3,8 +3,10 @@
 // src/pages/Indauth.tsx
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
-import { Button } from "../../components/ui/button";
+
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth, useSignIn } from "@clerk/nextjs";
 
 const zschema = z.object({
   userPrompt: z
@@ -17,9 +19,12 @@ const zschema = z.object({
 type FormValues = z.infer<typeof zschema>;
 
 const Indauth = () => {
+  const router = useRouter();
+  const { isSignedIn } = useAuth();
+  const { signIn } = useSignIn();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const allowedDomains = ["vvit.net"]; // Add similar domains here, e.g., ["vvit.net", "example.edu"]
+  const [isValidating, setIsValidating] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -27,20 +32,95 @@ const Indauth = () => {
     } as FormValues,
     onSubmit: async ({ value }) => {
       const email = value.userPrompt;
-      const domain = email.split("@")[1]?.toLowerCase();
+      setIsValidating(true);
+      setErrorMessage(null);
 
-      if (domain && allowedDomains.includes(domain)) {
-        console.log("the values are:", value);
-        setErrorMessage(null); // Clear any previous error
-        form.reset();
-      } else {
-        setErrorMessage("Your college doesn't have access to sphereai");
+      try {
+        // Validate domain with our API
+        console.log("Making request to validate domain for email:", email);
+        const response = await fetch("/api/auth/validate_domain", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        });
+        console.log("Response status:", response.status);
+        console.log("Response ok:", response.ok);
+        console.log("Response headers:", response.headers);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Response data:", data);
+
+        if (data.isValid) {
+          // Domain is valid, proceed with Clerk authentication
+          await handleClerkAuth(email);
+        } else {
+          setErrorMessage(
+            data.message || "Your college doesn't have access to sphereai",
+          );
+        }
+      } catch (error) {
+        console.error("Domain validation error:", error);
+        setErrorMessage("Failed to validate college domain. Please try again.");
+      } finally {
+        setIsValidating(false);
       }
     },
     validators: {
       onSubmit: zschema,
     },
   });
+
+  const handleClerkAuth = async (email: string) => {
+    if (!signIn) return;
+
+    setIsAuthenticating(true);
+
+    try {
+      // Try Microsoft OAuth first for college accounts
+      await signIn.authenticateWithRedirect({
+        strategy: "oauth_microsoft",
+        redirectUrl: "/onboarding?type=college",
+        redirectUrlComplete: "/onboarding?type=college",
+      });
+    } catch (microsoftError) {
+      console.log(
+        "Microsoft OAuth failed, trying email/password:",
+        microsoftError,
+      );
+
+      try {
+        // Fallback to email/password flow
+        const signInAttempt = await signIn.create({
+          identifier: email,
+        });
+
+        if (signInAttempt.status === "needs_first_factor") {
+          // Redirect to Clerk's sign-in page with the email pre-filled
+          router.push(
+            `/sign-in?email=${encodeURIComponent(email)}&type=college`,
+          );
+        }
+      } catch (emailError) {
+        console.error("Email sign-in error:", emailError);
+        setErrorMessage(
+          "Failed to authenticate. Please try again or contact support.",
+        );
+        setIsAuthenticating(false);
+      }
+    }
+  };
+
+  // If user is already signed in, redirect them
+  if (isSignedIn) {
+    router.replace("/onboarding?type=college");
+    return null;
+  }
 
   return (
     <main className="relative flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-[#0c0c0c]">
@@ -79,7 +159,7 @@ const Indauth = () => {
           {({ state, handleBlur, handleChange }) => (
             <>
               <textarea
-                className="min-h-[40px] w-1/4 resize-none rounded-lg border-none bg-[#313131] px-2 py-2 text-lg text-[#f7eee3] placeholder:text-gray-500 focus:border-transparent focus:outline-none focus:ring-0"
+                className="min-h-[40px] w-1/4 resize-none rounded-lg border-none bg-[#313131] px-2 py-2 text-lg text-[#f7eee3] placeholder:text-gray-500 focus:border-transparent focus:outline-none focus:ring-0 disabled:opacity-50"
                 value={state.value}
                 onBlur={handleBlur}
                 onChange={(e) => handleChange(e.target.value)}
@@ -89,9 +169,23 @@ const Indauth = () => {
                     void form.handleSubmit();
                   }
                 }}
+                disabled={isValidating || isAuthenticating}
+                placeholder="collage@mail.com"
               />
+              {(isValidating || isAuthenticating) && (
+                <div className="mt-2 flex items-center justify-center">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                  <span className="ml-2 text-sm text-white">
+                    {isValidating
+                      ? "Validating domain..."
+                      : "Authenticating..."}
+                  </span>
+                </div>
+              )}
               {errorMessage && (
-                <p className="mt-2 text-red-500">{errorMessage}</p>
+                <div className="mt-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-center">
+                  <p className="text-red-400">{errorMessage}</p>
+                </div>
               )}
             </>
           )}

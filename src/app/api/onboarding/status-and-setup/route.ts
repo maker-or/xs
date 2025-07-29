@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     
     // Parse the request body
     const requestBody = await request.json();
-    const { email, organisationId, role: requestRole } = requestBody;
+    const { email, organisationId, role: requestRole, userType } = requestBody;
 
     // Check if user already exists in our database
     const existingUser = await db.query.users.findFirst({
@@ -31,6 +31,7 @@ export async function POST(request: Request) {
         isExistingUser: true,
         role: existingUser.role,
         organisationId: existingUser.organisation_id,
+        userType: userType || 'college_user', // Include user type in response
         message: 'User already onboarded'
       });
     }
@@ -130,6 +131,7 @@ export async function POST(request: Request) {
       isExistingUser: false,
       role: finalRole,
       organisationId: finalOrgId,
+      userType: userType || 'college_user', // Include user type in response
       message: 'User successfully onboarded'
     });
     

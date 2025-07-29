@@ -10,10 +10,13 @@ const isPublicRoute = createRouteMatcher([
   "/signup",
   "/sign-in",
   "/sign-up",
+  "/select",
+  "/indauth",
   "/accept-invitation/",
   "/privacy-policy",
   "/terms-of-service",
   "/pricing",
+  "/api/auth/validate_domain",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
@@ -33,9 +36,9 @@ export default clerkMiddleware(async (auth, req) => {
     return redirectToSignIn({ returnBackUrl: req.url });
   }
 
-  // Authenticated user accessing the root - redirect to onboarding
+  // Authenticated user accessing the root - redirect to select for new flow
   if (userId && req.nextUrl.pathname === "/") {
-    return NextResponse.redirect(new URL("/onboarding", req.url));
+    return NextResponse.redirect(new URL("/select", req.url));
   }
 
   // Handle legacy paths - redirect to new onboarding

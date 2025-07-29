@@ -81,46 +81,22 @@ const Indauth = () => {
 
     setIsAuthenticating(true);
 
+    // If user is already signed in, redirect them
+    if (isSignedIn) {
+      router.replace("/onboarding?type=college");
+      return null;
+    }
+
     try {
-      // Try Microsoft OAuth first for college accounts
-      await signIn.authenticateWithRedirect({
-        strategy: "oauth_microsoft",
-        redirectUrl: "/onboarding?type=college",
-        redirectUrlComplete: "/onboarding?type=college",
-      });
-    } catch (microsoftError) {
-      console.log(
-        "Microsoft OAuth failed, trying email/password:",
-        microsoftError,
+      router.push(`/signin`);
+    } catch (emailError) {
+      console.error("Email sign-in error:", emailError);
+      setErrorMessage(
+        "Failed to authenticate. Please try again or contact support.",
       );
-
-      try {
-        // Fallback to email/password flow
-        const signInAttempt = await signIn.create({
-          identifier: email,
-        });
-
-        if (signInAttempt.status === "needs_first_factor") {
-          // Redirect to Clerk's sign-in page with the email pre-filled
-          router.push(
-            `/sign-in?email=${encodeURIComponent(email)}&type=college`,
-          );
-        }
-      } catch (emailError) {
-        console.error("Email sign-in error:", emailError);
-        setErrorMessage(
-          "Failed to authenticate. Please try again or contact support.",
-        );
-        setIsAuthenticating(false);
-      }
+      setIsAuthenticating(false);
     }
   };
-
-  // If user is already signed in, redirect them
-  if (isSignedIn) {
-    router.replace("/onboarding?type=college");
-    return null;
-  }
 
   return (
     <main className="relative flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-[#0c0c0c]">

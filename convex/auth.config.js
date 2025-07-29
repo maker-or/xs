@@ -1,3 +1,4 @@
+// for clrek auth
 export default {
   providers: [
     {
@@ -6,3 +7,13 @@ export default {
     },
   ],
 };
+
+// for better-auth
+// export default {
+//   providers: [
+//     {
+//       domain: process.env.CONVEX_SITE_URL,
+//       applicationID: "convex",
+//     },
+//   ],
+// };

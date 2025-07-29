@@ -12,7 +12,7 @@ export default function OnboardingPage() {
   const [status, setStatus] = useState("Checking your account...");
   const [progress, setProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(true);
-  
+
   // Get authentication type from URL params
   const authType = searchParams.get("type"); // "google" or "college"
 
@@ -21,7 +21,7 @@ export default function OnboardingPage() {
 
     if (!user) {
       // User not authenticated, redirect to sign-in
-      router.replace("/sign-in");
+      router.replace("/signin");
       return;
     }
 
@@ -32,18 +32,18 @@ export default function OnboardingPage() {
 
         // Determine user type based on authentication method
         const userType = getUserType(user, authType || undefined);
-        
+
         console.log("User type determined:", userType, "Auth type:", authType);
 
         // Handle Google users (limited access)
         if (userType === "google_user") {
           setStatus("Setting up your Google account...");
           setProgress(50);
-          
+
           // Google users get direct access to learning platform
           setStatus("Welcome! Redirecting to learning platform...");
           setProgress(100);
-          
+
           setTimeout(() => {
             router.replace("/learning");
           }, 1000);
@@ -85,11 +85,11 @@ export default function OnboardingPage() {
           console.warn("No organization ID found for college user");
           setStatus("Setting up your college account...");
           setProgress(70);
-          
+
           // Redirect college users to student dashboard by default
           setStatus("Welcome! Redirecting to your dashboard...");
           setProgress(100);
-          
+
           setTimeout(() => {
             router.replace("/student");
           }, 1000);
@@ -129,7 +129,11 @@ export default function OnboardingPage() {
 
             // Redirect based on user type and role
             setTimeout(() => {
-              const redirectUrl = getDefaultRedirectUrl(userType === "admin" || data.role === "admin" ? "admin" : userType);
+              const redirectUrl = getDefaultRedirectUrl(
+                userType === "admin" || data.role === "admin"
+                  ? "admin"
+                  : userType,
+              );
               router.replace(redirectUrl);
             }, 1000);
           } else {
@@ -138,7 +142,11 @@ export default function OnboardingPage() {
 
             // Redirect based on user type and role for new users
             setTimeout(() => {
-              const redirectUrl = getDefaultRedirectUrl(userType === "admin" || data.role === "admin" ? "admin" : userType);
+              const redirectUrl = getDefaultRedirectUrl(
+                userType === "admin" || data.role === "admin"
+                  ? "admin"
+                  : userType,
+              );
               router.replace(redirectUrl);
             }, 1000);
           }
@@ -146,10 +154,10 @@ export default function OnboardingPage() {
           // Fallback for users without organization
           setStatus("Setting up your account...");
           setProgress(70);
-          
+
           setStatus("Welcome! Redirecting to your dashboard...");
           setProgress(100);
-          
+
           setTimeout(() => {
             const redirectUrl = getDefaultRedirectUrl(userType);
             router.replace(redirectUrl);

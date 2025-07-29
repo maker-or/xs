@@ -9,38 +9,43 @@ interface AccessDeniedProps {
   attemptedRoute: string;
 }
 
-export default function AccessDenied({ userType, attemptedRoute }: AccessDeniedProps) {
+export default function AccessDenied({
+  userType,
+  attemptedRoute,
+}: AccessDeniedProps) {
   const router = useRouter();
 
   const getRecommendedAction = () => {
     switch (userType) {
       case "google_user":
         return {
-          message: "Google account users have access to the learning platform only.",
+          message: "you have access to the learning platform only.",
           actionText: "Go to Learning",
           actionRoute: "/learning",
-          upgradeMessage: "To access additional features, please sign up with your college account."
+          upgradeMessage:
+            "To access additional features, please sign up with your college account.",
         };
       case "college_user":
         return {
           message: "You don't have permission to access this area.",
           actionText: "Go to Dashboard",
           actionRoute: "/student",
-          upgradeMessage: "Contact your administrator if you need additional permissions."
+          upgradeMessage:
+            "Contact your administrator if you need additional permissions.",
         };
       case "admin":
         return {
           message: "This area is not available.",
           actionText: "Go to Dashboard",
           actionRoute: "/teacher",
-          upgradeMessage: ""
+          upgradeMessage: "",
         };
       default:
         return {
           message: "You don't have permission to access this area.",
           actionText: "Go Home",
           actionRoute: "/select",
-          upgradeMessage: "Please sign in with the appropriate account type."
+          upgradeMessage: "Please sign in with the appropriate account type.",
         };
     }
   };
@@ -48,58 +53,48 @@ export default function AccessDenied({ userType, attemptedRoute }: AccessDeniedP
   const recommendation = getRecommendedAction();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0c0c0c] px-4">
-      <div className="w-full max-w-md text-center">
-        {/* Access Denied Icon */}
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-500/20">
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="w-full max-w-md rounded-lg p-8 text-center shadow-xl">
+        {/* Access Denied Icon with Animation */}
+        <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-red-500/10 transition-transform duration-300 hover:scale-105">
           <svg
-            className="h-10 w-10 text-red-400"
+            className="h-12 w-12 text-red-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
+            aria-label="Access Denied Icon"
           >
+            <title>Locked Access</title>
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M12 15v2m0 0v2m0-2h2m-2 0H10m2-7V9m0 0V7m0 2h2m-2 0H10m6 3a9 9 0 11-18 0 9 9 0 0118 0z"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
             />
           </svg>
         </div>
 
         {/* Main Message */}
-        <h1 className="mb-4 text-2xl font-light text-white">
-          Access Denied
-        </h1>
-        
-        <p className="mb-6 text-[#d0cfcf]">
-          {recommendation.message}
-        </p>
+        <h1 className="mb-4 text-3xl font-normal text-white">Access Denied</h1>
 
-        {/* User Type Badge */}
-        <div className="mb-6 inline-flex items-center rounded-full border border-[#333] bg-[#1a1a1a] px-3 py-1 text-sm">
-          <div className="mr-2 h-2 w-2 rounded-full bg-blue-400"></div>
-          <span className="text-[#d0cfcf]">
-            {userType === "google_user" && "Google Account"}
-            {userType === "college_user" && "College Account"}
-            {userType === "admin" && "Admin Account"}
-          </span>
-        </div>
+        <p className="mb-8 text-lg text-[#d0cfcf]">{recommendation.message}</p>
 
-        {/* Action Buttons */}
-        <div className="space-y-3">
+        {/* Action Buttons with Transitions */}
+        <div className="space-y-4">
           <Button
-            className="w-full bg-[#313131] p-3 text-white hover:bg-[#f7eee3] hover:text-[#313131]"
+            className="w-full rounded-md bg-[#313131] py-3 text-white transition-colors duration-200 hover:bg-[#f7eee3] hover:text-[#313131]"
             onClick={() => router.push(recommendation.actionRoute)}
+            aria-label={recommendation.actionText}
           >
             {recommendation.actionText}
           </Button>
-          
+
           <Button
             variant="outline"
-            className="w-full border-[#333] bg-transparent p-3 text-[#d0cfcf] hover:bg-[#333] hover:text-white"
+            className="w-full rounded-md border-[#333] bg-transparent py-3 text-[#d0cfcf] transition-colors duration-200 hover:bg-[#333] hover:text-white"
             onClick={() => router.back()}
+            aria-label="Go Back"
           >
             Go Back
           </Button>
@@ -107,18 +102,17 @@ export default function AccessDenied({ userType, attemptedRoute }: AccessDeniedP
 
         {/* Upgrade Message */}
         {recommendation.upgradeMessage && (
-          <p className="mt-6 text-sm text-[#888]">
-            {recommendation.upgradeMessage}
+          <p className="mt-8 text-sm text-[#888]">
+            {recommendation.upgradeMessage}{" "}
+            <a
+              href="/upgrade" // Replace with actual upgrade route
+              className="text-red-400 underline hover:text-red-300"
+            >
+              Learn more
+            </a>
           </p>
         )}
-
-        {/* Attempted Route Info */}
-        <div className="mt-8 rounded-lg border border-[#333] bg-[#1a1a1a] p-3">
-          <p className="text-xs text-[#888]">
-            Attempted to access: <span className="text-[#d0cfcf]">{attemptedRoute}</span>
-          </p>
-        </div>
       </div>
     </div>
   );
-} 
+}

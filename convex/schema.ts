@@ -130,7 +130,12 @@ const applicationTables = {
     .index("by_chat", ["chatId"])
     .index("by_user", ["userId"])
     .index("by_message", ["messageId"]),
+
+
+
 };
+
+
 
 export default defineSchema({
   // ...authTables,

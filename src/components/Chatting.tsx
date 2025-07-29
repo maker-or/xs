@@ -30,12 +30,12 @@ const Chatting = () => {
   // Convex hooks - only query if we have a valid chatId
   const chat = useQuery(
     api.chats.getChat,
-    chatID ? { chatId: convexChatId } : "skip"
+    chatID ? { chatId: convexChatId } : "skip",
   );
 
   const messages = useQuery(
     api.message.getMessages,
-    chatID ? { chatId: convexChatId } : "skip"
+    chatID ? { chatId: convexChatId } : "skip",
   );
 
   // Mutations

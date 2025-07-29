@@ -11,7 +11,7 @@ import { api } from "../../convex/_generated/api";
 import ChatCommandPalette from "./ui/ChatCommandPalette";
 
 import "katex/dist/katex.min.css";
-import Image from "next/image";
+
 import { useRouter } from "next/navigation";
 
 const zschema = z.object({

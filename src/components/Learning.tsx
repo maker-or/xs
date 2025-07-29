@@ -23,7 +23,6 @@ import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 
 interface Message {
   _id: Id<"messages">;
@@ -1718,37 +1717,35 @@ const Learning = () => {
       // Transform the slide data to fix the nested `code` object bug.
       // The AI is returning `code: { content: '...', language: '...' }`
       // but the frontend expects `codeContent: '...'` and `codeLanguage: '...'`.
-      return parsedData.slides.map(
-        (slide: RawSlideData, index: number) => {
-          // Ensure all required fields are present with defaults
-          const transformedSlide = {
-            name: slide.name || "slide 1",
-            title: slide.title || "Learning Module",
-            content: slide.content || "",
-            type: slide.type || "markdown",
-            subTitles: slide.subTitles || "",
-            picture: slide.picture || "",
-            links: slide.links || [],
-            youtubeSearchText: slide.youtubeSearchText || "",
-            codeLanguage: slide.codeLanguage || "",
-            codeContent: slide.codeContent || "",
-            tables: slide.tables || "",
-            bulletPoints: slide.bulletPoints || [],
-            audioScript: slide.audioScript || "",
-            testQuestions: slide.testQuestions || [],
-            flashcardData: slide.flashcardData || [],
-          };
+      return parsedData.slides.map((slide: RawSlideData, index: number) => {
+        // Ensure all required fields are present with defaults
+        const transformedSlide = {
+          name: slide.name || "slide 1",
+          title: slide.title || "Learning Module",
+          content: slide.content || "",
+          type: slide.type || "markdown",
+          subTitles: slide.subTitles || "",
+          picture: slide.picture || "",
+          links: slide.links || [],
+          youtubeSearchText: slide.youtubeSearchText || "",
+          codeLanguage: slide.codeLanguage || "",
+          codeContent: slide.codeContent || "",
+          tables: slide.tables || "",
+          bulletPoints: slide.bulletPoints || [],
+          audioScript: slide.audioScript || "",
+          testQuestions: slide.testQuestions || [],
+          flashcardData: slide.flashcardData || [],
+        };
 
-          // Handle nested code object if present
-          if (slide.code && typeof slide.code.content !== "undefined") {
-            transformedSlide.codeContent = slide.code.content;
-            transformedSlide.codeLanguage = slide.code.language || "";
-          }
+        // Handle nested code object if present
+        if (slide.code && typeof slide.code.content !== "undefined") {
+          transformedSlide.codeContent = slide.code.content;
+          transformedSlide.codeLanguage = slide.code.language || "";
+        }
 
-          console.log(`Transformed slide "${slide.title}":`, transformedSlide);
-          return transformedSlide;
-        },
-      );
+        console.log(`Transformed slide "${slide.title}":`, transformedSlide);
+        return transformedSlide;
+      });
     } catch (error) {
       console.error("Error parsing and transforming slides:", error);
       console.error("Raw assistant message content:", assistantMessage.content);

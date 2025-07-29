@@ -17,7 +17,7 @@ const Header = () => {
 
         </button>
         <div className="p-3 bg-[#FF5E00]   rounded-full flex items-center justify-center text-[#000000]">
-          <Link href="/signin">Sign In</Link>
+          <Link href="/select">Sign In</Link>
         </div>
       </nav>
     </main>

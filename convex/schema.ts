@@ -132,14 +132,7 @@ const applicationTables = {
     .index("by_message", ["messageId"]),
 
 
-  better_user: defineTable({
-    name: v.string(),
-    userId: v.string(), // by clrek
 
-  })
-    .index("by_user", ["userId"])
-
-    }),
 };
 
 

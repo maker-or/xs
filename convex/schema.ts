@@ -130,7 +130,19 @@ const applicationTables = {
     .index("by_chat", ["chatId"])
     .index("by_user", ["userId"])
     .index("by_message", ["messageId"]),
+
+
+  better_user: defineTable({
+    name: v.string(),
+    userId: v.string(), // by clrek
+
+  })
+    .index("by_user", ["userId"])
+
+    }),
 };
+
+
 
 export default defineSchema({
   // ...authTables,

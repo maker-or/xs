@@ -20,6 +20,15 @@ export default {
 			boxShadow: {
 				'custom-inset': 'inset 7px 5px 13px 1px rgba(153, 56, 0, 1)',
 			  },
+			keyframes: {
+				'caret-blink': {
+					'0%,70%,100%': { opacity: '1' },
+					'20%,50%': { opacity: '0' },
+				},
+			},
+			animation: {
+				'caret-blink': 'caret-blink 1.25s ease-out infinite',
+			},
 		}
 	},
 	plugins: [require('tailwindcss-motion')],

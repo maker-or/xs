@@ -85,9 +85,10 @@ const AiHome = () => {
         });
 
         navigate.push(`${route}/${newChatId}`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error creating chat:", error);
-        setError(error.message || "Failed to create chat. Please try again.");
+        const errorMessage = error instanceof Error ? error.message : "Failed to create chat. Please try again.";
+        setError(errorMessage);
       } finally {
         setIsSubmitting(false);
       }

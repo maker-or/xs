@@ -25,7 +25,7 @@ const LandingPage = () => {
 
         <div className="flex gap-3 p-3 text-xl">
           <button className="rounded-xl bg-[#151715] px-6 py-3 shadow-[inset_2.71375px_2.71375px_12.6965px_rgba(227,194,194,0.25)] backdrop-blur-[27.3425px]">
-            <Link href="/signin">Sign In</Link>
+            <Link href="/select">Sign In</Link>
           </button>
 
           <button>Contact us</button>

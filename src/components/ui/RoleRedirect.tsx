@@ -12,7 +12,9 @@ export default function RoleRedirect() {
   const router = useRouter();
   const pathname = usePathname();
   const [showAccessDenied, setShowAccessDenied] = useState(false);
-  const [userType, setUserType] = useState<"google_user" | "college_user" | "admin">("google_user");
+  const [userType, setUserType] = useState<
+    "google_user" | "college_user" | "admin"
+  >("google_user");
 
   useEffect(() => {
     if (!isLoaded || !userLoaded || !isSignedIn || !user) return;
@@ -23,18 +25,28 @@ export default function RoleRedirect() {
 
     // Always allow access to public routes and auth routes
     const publicRoutes = [
-      "/select", "/indauth", "/onboarding", "/role-selection", 
-      "/privacy-policy", "/terms-of-service", "/pricing", 
-      "/accept-invitation/", "/sign-in", "/sign-up"
+      "/select",
+      "/indauth",
+      "/onboarding",
+      "/role-selection",
+      "/privacy-policy",
+      "/terms-of-service",
+      "/pricing",
+      "/accept-invitation/",
+      "/sign-in",
+      "/sign-up",
+      "/waitlist",
     ];
-    
-    if (publicRoutes.some(route => pathname.startsWith(route))) {
+
+    if (publicRoutes.some((route) => pathname.startsWith(route))) {
       return;
     }
 
     // Check if user can access the current route
     if (!canAccessRoute(currentUserType, pathname)) {
-      console.log(`Access denied for ${currentUserType} trying to access ${pathname}`);
+      console.log(
+        `Access denied for ${currentUserType} trying to access ${pathname}`,
+      );
       setShowAccessDenied(true);
       return;
     }
@@ -56,7 +68,6 @@ export default function RoleRedirect() {
       router.replace("/select");
       return;
     }
-
   }, [isLoaded, userLoaded, isSignedIn, user, pathname, router]);
 
   // Show access denied page if user doesn't have permission

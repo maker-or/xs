@@ -35,6 +35,9 @@ export default function RootLayout({
         <CSPostHogProvider>
           <html lang="en" className={`font-sans`} suppressHydrationWarning>
             <Head>
+              <title>Sphereai</title>
+              <meta name="description" content="Your collage Your AI" />
+
               <link rel="preconnect" href="https://fonts.googleapis.com" />
               <link
                 rel="preconnect"

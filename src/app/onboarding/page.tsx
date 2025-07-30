@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getUserType, getDefaultRedirectUrl } from "~/lib/auth-utils";
 
 export default function OnboardingPage() {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState("Checking your account...");
@@ -19,8 +19,9 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (!isLoaded) return;
 
-    if (!user) {
+    if (!isSignedIn) {
       // User not authenticated, redirect to sign-in
+      console.error("this si from onbording page asn yopu know me");
       router.replace("/signin");
       return;
     }

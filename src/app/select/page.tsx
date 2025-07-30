@@ -19,11 +19,11 @@ const Page = () => {
   }
 
   const handleGoogleSignIn = async () => {
-    if (!signIn) return;
-    
+    if (!signIn) return console.error("go and f your self , first signin b");
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",

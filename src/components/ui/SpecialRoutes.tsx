@@ -22,6 +22,7 @@ export default function SpecialRoutes({
     "/select",
     "/indauth",
     "/onboarding",
+    "/waitlist",
   ];
 
   // If we're on any special route, show the page content directly

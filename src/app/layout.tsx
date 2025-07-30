@@ -18,6 +18,7 @@ import RoleRedirect from "~/components/ui/RoleRedirect";
 import SpecialRoutes from "~/components/ui/SpecialRoutes";
 import ThemeScript from "~/components/ui/ThemeScript";
 import ConvexClientProvider from "~/components/ConvexClientProvider";
+import { dark } from '@clerk/themes'
 // import ReactScan from "~/components/ui/ReactScan";
 
 export const metadata: Metadata = {
@@ -30,7 +31,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider waitlistUrl="/"
+    appearance={{
+      baseTheme: dark
+    }}>
       <ConvexClientProvider>
         <CSPostHogProvider>
           <html lang="en" className={`font-sans`} suppressHydrationWarning>

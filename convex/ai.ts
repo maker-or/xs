@@ -5,7 +5,6 @@ import { action } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 
 import OpenAI from "openai";
-import Exa from "exa-js";
 
 export const streamChatCompletion = action({
   args: {
@@ -98,7 +97,7 @@ export const streamChatCompletion = action({
         role: "assistant",
         content: "",
         parentId: args.parentMessageId,
-        model: "moonshotai/kimi-k2:free",
+        model: "z-ai/glm-4.5-air:free",
       },
     );
 
@@ -149,11 +148,10 @@ export const streamChatCompletion = action({
       );
 
       const response = await client.chat.completions.create({
-        model: "google/gemini-2.5-flash",
+        model: "z-ai/glm-4.5-air:free",
         messages: allMessages,
         stream: true,
         temperature: 0.7,
-        max_tokens: 4096,
       });
 
       console.log("OpenAI response created successfully");

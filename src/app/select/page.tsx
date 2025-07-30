@@ -19,7 +19,7 @@ const Page = () => {
   }
 
   const handleGoogleSignIn = async () => {
-    if (!signIn) return console.error("go and f your self , first signin b");
+    if (!signIn) return;
 
     setIsLoading(true);
     setError(null);

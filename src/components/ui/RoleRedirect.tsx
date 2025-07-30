@@ -43,7 +43,11 @@ export default function RoleRedirect() {
     }
 
     // Check if user can access the current route
-    if (!canAccessRoute(currentUserType, pathname)) {
+    console.log(`Checking access for ${currentUserType} to route: ${pathname}`);
+    const hasAccess = canAccessRoute(currentUserType, pathname);
+    console.log(`Access granted: ${hasAccess}`);
+    
+    if (!hasAccess) {
       console.log(
         `Access denied for ${currentUserType} trying to access ${pathname}`,
       );
@@ -54,20 +58,26 @@ export default function RoleRedirect() {
     // Hide access denied if user can access the route
     setShowAccessDenied(false);
 
-    // Redirect /folder/[id] to /student/folder/[id] for college users
-    if (pathname.startsWith("/folder/") && currentUserType !== "google_user") {
-      const folderId = pathname.split("/")[2];
-      if (folderId) {
-        router.replace(`/student/folder/${folderId}`);
+    // Use setTimeout to defer router operations to avoid render cycle conflicts
+    const performRedirects = () => {
+      // Redirect /folder/[id] to /student/folder/[id] for college users
+      if (pathname.startsWith("/folder/") && currentUserType !== "google_user") {
+        const folderId = pathname.split("/")[2];
+        if (folderId) {
+          router.replace(`/student/folder/${folderId}`);
+          return;
+        }
+      }
+
+      // Handle root path redirect based on user type
+      if (pathname === "/") {
+        router.replace("/select");
         return;
       }
-    }
+    };
 
-    // Handle root path redirect based on user type
-    if (pathname === "/") {
-      router.replace("/select");
-      return;
-    }
+    // Defer the redirect to avoid render cycle conflicts
+    setTimeout(performRedirects, 0);
   }, [isLoaded, userLoaded, isSignedIn, user, pathname, router]);
 
   // Show access denied page if user doesn't have permission

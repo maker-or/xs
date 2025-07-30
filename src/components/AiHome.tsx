@@ -9,6 +9,7 @@ import React from "react";
 import { useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import ChatCommandPalette from "./ui/ChatCommandPalette";
+import { useAuth } from "@clerk/nextjs";
 
 import "katex/dist/katex.min.css";
 
@@ -25,16 +26,21 @@ type FormValues = z.infer<typeof zschema>;
 
 // Enhanced Content Block Component
 
+import { useAuthMutation, useAuthAction } from "~/hooks/useAuthMutation";
+
 const AiHome = () => {
   const navigate = useRouter();
+  const { isSignedIn } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [apptype, setapptype] = useState<"chart" | "learn">("chart");
   const [showChatPalette, setShowChatPalette] = useState(false);
 
-  const createChat = useMutation(api.chats.createChat);
-  const addMessage = useMutation(api.message.addMessage);
-  const chat = useAction(api.ai.streamChatCompletion);
-  const learn = useAction(api.agent.agent);
+  const createChat = useAuthMutation(api.chats.createChat);
+  const addMessage = useAuthMutation(api.message.addMessage);
+  const chat = useAuthAction(api.ai.streamChatCompletion);
+  const learn = useAuthAction(api.agent.agent);
 
   // Form for creating new learning content
   const form = useForm({
@@ -42,6 +48,14 @@ const AiHome = () => {
       userPrompt: "",
     } as FormValues,
     onSubmit: async ({ value }) => {
+      if (!isSignedIn) {
+        setError("You must be signed in to start a chat.");
+        return;
+      }
+      if (isSubmitting) return;
+
+      setIsSubmitting(true);
+      setError(null);
       console.log("the values are:", value);
       form.reset();
 
@@ -57,33 +71,25 @@ const AiHome = () => {
           role: "user",
         });
 
-        if (apptype === "chart") {
-          chat({
-            chatId: newChatId,
-            messages: value.userPrompt.trim(),
-            parentMessageId: messageId,
-          }).catch((error) => {
-            console.error(
-              "Error during AI response in the chart mode :",
-              error,
-            );
-          });
-          navigate.push(`/learning/chat/${newChatId}`);
-        } else {
-          learn({
-            chatId: newChatId,
-            messages: value.userPrompt.trim(),
-            parentMessageId: messageId,
-          }).catch((error) => {
-            console.error(
-              "Error during AI response in the learn mode :",
-              error,
-            );
-          });
-          navigate.push(`/learning/learn/${newChatId}`);
-        }
-      } catch (error) {
+        const action = apptype === "chart" ? chat : learn;
+        const route =
+          apptype === "chart" ? "/learning/chat" : "/learning/learn";
+
+        action({
+          chatId: newChatId,
+          messages: value.userPrompt.trim(),
+          parentMessageId: messageId,
+        }).catch((error) => {
+          console.error(`Error during AI response in ${apptype} mode:`, error);
+          setError(`Error in ${apptype} mode. Please try again.`);
+        });
+
+        navigate.push(`${route}/${newChatId}`);
+      } catch (error: any) {
         console.error("Error creating chat:", error);
+        setError(error.message || "Failed to create chat. Please try again.");
+      } finally {
+        setIsSubmitting(false);
       }
     },
     validators: {

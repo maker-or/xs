@@ -87,7 +87,12 @@ export function getUserAccessLevel(userType: UserType): UserAccessLevel {
 export function canAccessRoute(userType: UserType, pathname: string): boolean {
   const accessLevel = getUserAccessLevel(userType);
   
+  console.log(`canAccessRoute called with userType: ${userType}, pathname: ${pathname}`);
+  console.log(`Access level:`, accessLevel);
+  
+  // Check specific route access
   if (pathname.startsWith("/learning")) {
+    console.log(`Learning route access: ${accessLevel.canAccessLearning}`);
     return accessLevel.canAccessLearning;
   }
   

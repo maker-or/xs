@@ -15,7 +15,7 @@ const Header = () => {
           />
         </button>
         <div className="flex items-center justify-center rounded-full bg-[#FF5E00] p-3 text-[#000000]">
-          <Link href="/select">signin</Link>
+          <Link href="/waitlist">waitlist</Link>
         </div>
       </nav>
     </main>

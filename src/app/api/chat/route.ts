@@ -40,7 +40,7 @@ function getPineconeClient(): Pinecone {
 function getOpenRouterClient(): ReturnType<typeof createOpenAI> {
   if (!cachedOpenRouterClient) {
     cachedOpenRouterClient = createOpenAI({
-      apiKey: process.env.OPENROUTE_API_KEY!,
+      apiKey: process.env.OPENROUTER_API_KEY!,
       baseURL: "https://openrouter.ai/api/v1",
     });
   }
@@ -310,7 +310,7 @@ export async function POST(req: Request): Promise<Response> {
     // Early validation of environment variables
     if (
       !process.env.GROQ_API_KEY ||
-      !process.env.OPENROUTE_API_KEY ||
+      !process.env.OPENROUTER_API_KEY ||
       !process.env.PINECONE_API_KEY
     ) {
       return new Response(

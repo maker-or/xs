@@ -132,7 +132,7 @@ export const agent = action({
 
         // Use OpenRouter with structured output
         const result = await generateObject({
-          model: openrouter("moonshotai/kimi-k2:free"),
+          model: openrouter("openrouter/horizon-alpha"),
           schema: GetSyllabusSchema,
           prompt: `Generate a comprehensive syllabus for ${query}. Include prerequisite concepts and current concepts with topics and subtopics.`,
         });
@@ -260,39 +260,15 @@ export const agent = action({
       }),
       execute: async ({ query }) => {
         console.log("Knowledge searching for:", query);
+        const result = await generateObject({
+          model: openrouter("openrouter/horizon-alpha"),
+          schema: GetCodeSchema,
+          prompt: ` ${query}`,
+        });
 
-        try {
-          const embeddings = await getEmbedding(query);
-          const semanticSearch = await index.namespace("__default__").query({
-            vector: embeddings,
-            topK: 5,
-            includeMetadata: true,
-            includeValues: false,
-          });
+        return result.object;
 
-          const textContent = semanticSearch.matches
-            .map((match) => match.metadata?.text)
-            .filter(Boolean);
-
-          const resultsString = textContent.join("\n\n");
-
-          if (resultsString.trim() === "") {
-            return JSON.stringify({
-              message: `No relevant information found for "${query}"`,
-            });
-          }
-
-          return JSON.stringify({
-            query,
-            results: resultsString,
-          });
-        } catch (error) {
-          console.error("Knowledge search error:", error);
-          return JSON.stringify({
-            error: true,
-            message: error instanceof Error ? error.message : "Unknown error",
-          });
-        }
+        
       },
     });
 
@@ -306,7 +282,7 @@ export const agent = action({
         console.log("Getting code for:", query, "in", language);
 
         const result = await generateObject({
-          model: openrouter("moonshotai/kimi-k2:free"),
+          model: openrouter("openrouter/horizon-alpha"),
           schema: GetCodeSchema,
           prompt: `Generate code for ${query} in ${language}. Include the code and a clear explanation.`,
         });
@@ -325,12 +301,12 @@ export const agent = action({
         console.log("Generating test for:", topic, "with", no, "questions");
 
         const result = await generateObject({
-          model: openrouter("moonshotai/kimi-k2:free"),
+          model: openrouter("openrouter/horizon-alpha"),
           schema: TestQuestionSchema,
           prompt: `Create ${no} multiple choice questions on the topic ${topic}. Each question should have exactly 4 options with one correct answer.`,
         });
 
-        return JSON.stringify(result.object);
+        return result.object;
       },
     });
 
@@ -344,7 +320,7 @@ export const agent = action({
         console.log("Creating flashcards for:", query, "count:", no);
 
         const result = await generateObject({
-          model: openrouter("moonshotai/kimi-k2:free"),
+          model: openrouter("openrouter/horizon-alpha"),
           schema: FlashcardSchema,
           prompt: `Generate ${no} flashcards on the topic ${query}. Each flashcard should have a clear question/concept on the front and a concise answer/explanation on the back.`,
         });
@@ -356,7 +332,7 @@ export const agent = action({
     try {
       // Use generateText with tools, then parse the result
       const result = await generateText({
-        model: openrouter("moonshotai/kimi-k2:free"),
+        model: openrouter("google/gemini-2.5-flash-lite-preview-06-17"),
         system: `You are SphereAI, an advanced educational agent. Your mission is to produce a comprehensive, multi-slide learning module for any topic a student asks about.
 
 You must use your available tools to gather all the necessary components for the learning module. For any given topic, you should:
@@ -482,19 +458,13 @@ Your final response must be ONLY valid JSON, no additional text or explanations.
               name: "slide 1",
               title: "Learning Module",
               subTitles: "Generated content based on your query",
-              picture: "",
               content: "Generated content based on your query",
+              type: "markdown",
+              // Only include optional fields with valid values
               links: [],
-              youtubeSearchText: "Learn more about this topic",
-              code: {
-                language: "javascript",
-                content: "// Code example will be generated",
-              },
-              tables: "",
               bulletPoints: [],
               flashcardData: [],
               testQuestions: [],
-              type: "markdown",
             },
           ],
         };
@@ -503,7 +473,13 @@ Your final response must be ONLY valid JSON, no additional text or explanations.
         if (result.toolResults) {
           for (const toolResult of result.toolResults) {
             try {
-              const parsedResult = JSON.parse(toolResult.result);
+              // If toolResult.result is already an object, use it directly; otherwise, parse if it's a string
+              let parsedResult: any;
+              if (typeof toolResult.result === "string") {
+                parsedResult = JSON.parse(toolResult.result);
+              } else {
+                parsedResult = toolResult.result;
+              }
 
               switch (toolResult.toolName) {
                 case "getImagesTools":
@@ -565,6 +541,79 @@ Your final response must be ONLY valid JSON, no additional text or explanations.
         "Final structured output:",
         JSON.stringify(structuredOutput, null, 2),
       );
+
+      // Log the raw output before cleanup for debugging
+      console.log("Before cleanup:", JSON.stringify(structuredOutput, null, 2));
+
+      // Clean up invalid optional fields before validation
+      if (structuredOutput.slides && Array.isArray(structuredOutput.slides)) {
+        structuredOutput.slides = structuredOutput.slides.map((slide: any) => {
+          const cleanSlide = { ...slide };
+          
+          // Ensure required fields have valid values
+          if (!cleanSlide.name) {
+            cleanSlide.name = `slide ${structuredOutput.slides.indexOf(slide) + 1}`;
+          }
+          if (!cleanSlide.title) {
+            cleanSlide.title = "Untitled Slide";
+          }
+          if (!cleanSlide.subTitles) {
+            cleanSlide.subTitles = "";
+          }
+          if (!cleanSlide.content) {
+            cleanSlide.content = "Content not available";
+          }
+          if (!cleanSlide.type) {
+            cleanSlide.type = "markdown";
+          }
+          
+          // Remove empty or invalid optional fields
+          if (cleanSlide.picture !== undefined && cleanSlide.picture === "") {
+            delete cleanSlide.picture;
+          }
+          
+          // Clean up code field - remove if empty object or has empty values
+          if (cleanSlide.code !== undefined) {
+            if (Object.keys(cleanSlide.code).length === 0 || 
+                !cleanSlide.code.language || 
+                !cleanSlide.code.content ||
+                cleanSlide.code.language === "" ||
+                cleanSlide.code.content === "") {
+              delete cleanSlide.code;
+            }
+          }
+          
+          if (cleanSlide.tables !== undefined && cleanSlide.tables === "") {
+            delete cleanSlide.tables;
+          }
+          
+          if (cleanSlide.youtubeSearchText !== undefined && cleanSlide.youtubeSearchText === "") {
+            delete cleanSlide.youtubeSearchText;
+          }
+          
+          // Clean up links array - filter out empty or invalid URLs
+          if (cleanSlide.links !== undefined) {
+            if (Array.isArray(cleanSlide.links)) {
+              cleanSlide.links = cleanSlide.links.filter((link: any) => 
+                typeof link === 'string' && 
+                link !== "" && 
+                /^https?:\/\/[^\s$.?#].[^\s]*$/.test(link)
+              );
+              // Remove links array if it's empty after filtering
+              if (cleanSlide.links.length === 0) {
+                delete cleanSlide.links;
+              }
+            } else {
+              delete cleanSlide.links;
+            }
+          }
+          
+          return cleanSlide;
+        });
+      }
+
+      // Log the cleaned output for debugging
+      console.log("After cleanup:", JSON.stringify(structuredOutput, null, 2));
 
       // Validate against schema
       const parsed = AgentOutputSchema.safeParse(structuredOutput);

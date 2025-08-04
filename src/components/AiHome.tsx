@@ -6,7 +6,6 @@ import { ArrowUpIcon, ArrowClockwiseIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
 import { useState, useEffect } from "react";
 import React from "react";
-import { useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import ChatCommandPalette from "./ui/ChatCommandPalette";
 import { useAuth } from "@clerk/nextjs";
@@ -32,6 +31,7 @@ const AiHome = () => {
   const navigate = useRouter();
   const { isSignedIn } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingStep, setLoadingStep] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
   const [apptype, setapptype] = useState<"chart" | "learn">("chart");
@@ -40,7 +40,8 @@ const AiHome = () => {
   const createChat = useAuthMutation(api.chats.createChat);
   const addMessage = useAuthMutation(api.message.addMessage);
   const chat = useAuthAction(api.ai.streamChatCompletion);
-  const learn = useAuthAction(api.agent.agent);
+  const learn = useAuthAction(api.context.contextgather);
+  const runAgent = useAuthAction(api.agent.agent);
 
   // Form for creating new learning content
   const form = useForm({
@@ -59,38 +60,55 @@ const AiHome = () => {
       console.log("the values are:", value);
       form.reset();
 
-      try {
-        const newChatId = await createChat({
-          title: value.userPrompt.slice(0, 50),
-          model: "nvidia/llama-3.3-nemotron-super-49b-v1:free",
-        });
+      if (apptype === "learn") {
+        try {
+          // Step 1: Create course structure
+          setLoadingStep("Creating course structure...");
+          const { CourseId } = await learn({
+            messages: value.userPrompt.trim(),
+          });
 
-        const messageId = await addMessage({
-          chatId: newChatId,
-          content: value.userPrompt,
-          role: "user",
-        });
+          // Step 2: Navigate immediately to show course canvas
+          setLoadingStep("Preparing your course...");
+          navigate.push(`/learning/learn/${CourseId}`);
 
-        const action = apptype === "chart" ? chat : learn;
-        const route =
-          apptype === "chart" ? "/learning/chat" : "/learning/learn";
+          // Step 3: Generate content in background (non-blocking)
+          // Don't await - let it run in background
+          runAgent({ courseId: CourseId }).catch((error) => {
+            console.error("Agent processing failed:", error);
+            // Could show a toast notification here
+          });
+        } catch (error) {
+          console.error("Failed to create course:", error);
+          setError("Failed to create course. Please try again.");
+        } finally {
+          setIsSubmitting(false);
+          setLoadingStep("");
+        }
+      } else {
+        try {
+          const newChatId = await createChat({
+            title: value.userPrompt.slice(0, 50),
+            model: "nvidia/llama-3.3-nemotron-super-49b-v1:free",
+          });
 
-        action({
-          chatId: newChatId,
-          messages: value.userPrompt.trim(),
-          parentMessageId: messageId,
-        }).catch((error) => {
-          console.error(`Error during AI response in ${apptype} mode:`, error);
-          setError(`Error in ${apptype} mode. Please try again.`);
-        });
+          const messageId = await addMessage({
+            chatId: newChatId,
+            content: value.userPrompt,
+            role: "user",
+          });
 
-        navigate.push(`${route}/${newChatId}`);
-      } catch (error: unknown) {
-        console.error("Error creating chat:", error);
-        const errorMessage = error instanceof Error ? error.message : "Failed to create chat. Please try again.";
-        setError(errorMessage);
-      } finally {
-        setIsSubmitting(false);
+          chat({
+            chatId: newChatId,
+            messages: value.userPrompt.trim(),
+            parentMessageId: messageId,
+          });
+          navigate.push(`/learning/chat/${newChatId}`);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsSubmitting(false);
+        }
       }
     },
     validators: {
@@ -269,6 +287,34 @@ const AiHome = () => {
 
       {/* Bottom-right cell */}
       <div className="relative z-20"></div>
+
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-white"></div>
+            <p className="text-lg text-white">
+              {loadingStep || "Processing..."}
+            </p>
+            <p className="mt-2 text-sm text-white/60">
+              This may take a few moments
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Error Display */}
+      {error && (
+        <div className="fixed bottom-4 right-4 z-40 rounded-lg border border-red-500/30 bg-red-600/20 p-4 text-red-400 backdrop-blur-md">
+          <p>{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="mt-2 text-sm underline hover:no-underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Chat Command Palette */}
       <ChatCommandPalette

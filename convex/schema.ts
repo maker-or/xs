@@ -1,6 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-// import { authTables } from "@convex-dev/auth/server";
+import { SlidesSchema } from "../src/SlidesSchema";
 
 const applicationTables = {
   chats: defineTable({
@@ -16,6 +16,74 @@ const applicationTables = {
   })
     .index("by_user", ["userId"])
     .index("by_share_id", ["shareId"])
+    .searchIndex("search_title", {
+      searchField: "title",
+      filterFields: ["userId"],
+    }),
+  Course: defineTable({
+    prompt: v.string(),
+    userId: v.string(), // by clrek
+    createdAt: v.number(),
+    stages: v.array(
+      v.object({
+        title: v.string(),
+        purpose: v.string(),
+        include: v.array(v.string()),
+        outcome: v.string(),
+        discussion_prompt: v.string(),
+      }),
+    ),
+  })
+    .index("by_user", ["userId"])
+    .searchIndex("search_title", {
+      searchField: "prompt",
+      filterFields: ["userId"],
+    }),
+  Stage: defineTable({
+    title: v.string(),
+    userId: v.string(), // from Clerk
+    courseId: v.id("Course"),
+    slides: v.array(
+      v.object({
+        name: v.string(),
+        title: v.string(),
+        subTitles: v.optional(v.string()),
+        svg: v.optional(v.string()),
+        content: v.string(),
+        links: v.optional(v.array(v.string())),
+        youtubeSearchText: v.optional(v.string()),
+        code: v.optional(
+          v.object({
+            language: v.string(),
+            content: v.string(),
+          }),
+        ),
+        tables: v.optional(v.string()),
+        bulletPoints: v.optional(v.array(v.string())),
+        flashcardData: v.optional(
+          v.array(
+            v.object({
+              question: v.string(),
+              answer: v.string(),
+            }),
+          ),
+        ),
+        testQuestions: v.optional(
+          v.array(
+            v.object({
+              question: v.string(),
+              options: v.array(v.string()),
+              answer: v.string(),
+            }),
+          ),
+        ),
+        type: v.string(), // If you want enum: v.union([v.literal("markdown"), v.literal("code"), ...])
+      }),
+    ),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_course", ["courseId"])
     .searchIndex("search_title", {
       searchField: "title",
       filterFields: ["userId"],
@@ -70,26 +138,6 @@ const applicationTables = {
     .index("by_user", ["userId"]),
 
   // New tables for advanced features
-  syncStates: defineTable({
-    chatId: v.id("chats"),
-    lastMessageId: v.optional(v.id("messages")),
-    activeUsers: v.array(v.string()),
-    typingUsers: v.array(v.string()),
-    lastUpdated: v.number(),
-  }).index("by_chat", ["chatId"]),
-
-  attachments: defineTable({
-    chatId: v.id("chats"),
-    messageId: v.id("messages"),
-    userId: v.string(),
-    fileName: v.optional(v.string()),
-    fileType: v.optional(v.string()),
-    url: v.string(),
-    createdAt: v.number(),
-  })
-    .index("by_user", ["userId"])
-    .index("by_chat", ["chatId"])
-    .index("by_message", ["messageId"]),
 
   branches: defineTable({
     chatId: v.id("chats"),
@@ -130,12 +178,7 @@ const applicationTables = {
     .index("by_chat", ["chatId"])
     .index("by_user", ["userId"])
     .index("by_message", ["messageId"]),
-
-
-
 };
-
-
 
 export default defineSchema({
   // ...authTables,

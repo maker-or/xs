@@ -12,12 +12,11 @@ const SlideSchema = z.object({
     .string()
     .describe("A brief subtitle or summary of the slide content (optional)"),
 
-  picture: z
+  svg: z
     .string()
-    .regex(/^https?:\/\/[^\s$.?#].[^\s]*$/)
     .optional()
     .describe(
-      "A relevant image URL from Google search to support visual learning. Omit if no image is found.",
+      "SVG diagram content to support visual learning. Should be valid SVG markup.",
     ),
 
   content: z
@@ -81,7 +80,7 @@ const SlideSchema = z.object({
     .describe("MCQ test questions"),
 
   type: z
-    .enum(["markdown", "code", "video", "quiz", "table", "flashcard", "test"])
+    .enum(["markdown", "code", "video", "quiz", "table", "flashcard", "test", "svg"])
     .describe("The layout type of this slide"),
 });
 

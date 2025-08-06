@@ -12,10 +12,10 @@ const Page = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // If user is already signed in, redirect them
+  //If user is already signed in, redirect them
   if (isSignedIn) {
     router.replace("/onboarding");
-    return null;
+    // return null;
   }
 
   const handleGoogleSignIn = async () => {

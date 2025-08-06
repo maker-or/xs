@@ -7,21 +7,21 @@ import { generateObject, tool, generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { z } from "zod";
 import Exa from "exa-js";
-import { getEmbedding } from "../src/utils/embeddings";
-import { Pinecone } from "@pinecone-database/pinecone";
-import { groq } from "@ai-sdk/groq";
 
 export const agent = action({
   args: {
-    chatId: v.id("chats"),
-    messages: v.string(),
-    parentMessageId: v.optional(v.id("messages")),
+    courseId: v.id("Course"),
   },
   handler: async (ctx, args): Promise<any> => {
+
     const userId = await ctx.auth.getUserIdentity();
     if (!userId) throw new Error("Not authenticated");
 
-    console.log("Agent received message:", args.messages);
+    const course = await ctx.runQuery(api.course.getCourse, {
+      courseId: args.courseId,
+    });
+
+    console.log("Agent received message sucessfully from the backend", course);
 
     // Get API key from environment
     const openRouterKey = process.env.OPENROUTER_API_KEY || "";
@@ -43,31 +43,10 @@ export const agent = action({
       apiKey: openRouterKey,
     });
 
-    // Create assistant message
-    const assistantMessageId: any = await ctx.runMutation(
-      api.message.addMessage,
-      {
-        chatId: args.chatId,
-        role: "assistant",
-        content: "",
-        parentId: args.parentMessageId,
-      },
-    );
-
     // Environment variables for external services
     const CX = process.env.GOOGLE_CX;
     const API_KEY = process.env.GOOGLE_SEARCH;
     const EXA_API_KEY = process.env.EXA_API_KEY;
-    const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
-
-    if (!PINECONE_API_KEY) {
-      throw new Error("Pinecone API key is required");
-    }
-
-    const PineconeClient = new Pinecone({
-      apiKey: PINECONE_API_KEY,
-    });
-    const index = PineconeClient.index("docling");
 
     // Define schemas for structured outputs
     const GetCodeSchema = z.object({
@@ -97,6 +76,10 @@ export const agent = action({
           )
           .describe("Current concepts to learn"),
       }),
+    });
+
+    const SvgGenerationSchema = z.object({
+      svg: z.string().describe("This must the code for SVG"),
     });
 
     const TestQuestionSchema = z.object({
@@ -132,7 +115,7 @@ export const agent = action({
 
         // Use OpenRouter with structured output
         const result = await generateObject({
-          model: openrouter("moonshotai/kimi-k2:free"),
+          model: openrouter("google/gemini-2.5-flash-lite"),
           schema: GetSyllabusSchema,
           prompt: `Generate a comprehensive syllabus for ${query}. Include prerequisite concepts and current concepts with topics and subtopics.`,
         });
@@ -141,79 +124,7 @@ export const agent = action({
       },
     });
 
-    const getImagesTools = tool({
-      description: "Get images related to a topic",
-      parameters: z.object({
-        query: z.string().min(2).describe("Query to search for images"),
-      }),
-      execute: async ({ query }) => {
-        console.log("Getting images for:", query);
 
-        if (!CX || !API_KEY) {
-          return JSON.stringify({
-            error: "Google Custom Search not configured",
-          });
-        }
-
-        const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${CX}&searchType=image&num=10&q=${encodeURIComponent(query)}&imgSize=medium&imgType=photo&safe=active`;
-
-        try {
-          const res = await fetch(url);
-          if (!res.ok) {
-            return JSON.stringify({
-              error: true,
-              status: res.status,
-              message: `Failed to fetch images: ${res.statusText}`,
-            });
-          }
-
-          const data = await res.json();
-
-          // Filter and validate images
-          const images = (data.items || [])
-            .map((item: any) => ({
-              title: item.title,
-              link: item.link,
-              thumbnail: item.image?.thumbnailLink,
-              contextLink: item.image?.contextLink,
-              mime: item.mime,
-              width: item.image?.width,
-              height: item.image?.height,
-            }))
-            .filter((img: any) => {
-              // Filter out invalid or problematic images
-              return (
-                img.link &&
-                (img.link.startsWith("http://") ||
-                  img.link.startsWith("https://")) &&
-                !img.link.includes("x-raw-image") &&
-                !img.link.includes("data:image") &&
-                img.mime &&
-                (img.mime.startsWith("image/") || img.mime.includes("image")) &&
-                img.width &&
-                img.height &&
-                parseInt(img.width) > 100 &&
-                parseInt(img.height) > 100
-              );
-            })
-            .slice(0, 5); // Limit to top 5 valid images
-
-          return JSON.stringify({
-            query,
-            count: images.length,
-            images,
-          });
-        } catch (error: any) {
-          return JSON.stringify({
-            error: true,
-            message:
-              error instanceof Error
-                ? `Failed to fetch images: ${error.message}`
-                : "Unknown error",
-          });
-        }
-      },
-    });
 
     const webSearchTools = tool({
       description: "Search the web for information about a topic",
@@ -260,39 +171,13 @@ export const agent = action({
       }),
       execute: async ({ query }) => {
         console.log("Knowledge searching for:", query);
+        const result = await generateObject({
+          model: openrouter("google/gemini-2.5-flash-lite"),
+          schema: GetCodeSchema,
+          prompt: ` ${query}`,
+        });
 
-        try {
-          const embeddings = await getEmbedding(query);
-          const semanticSearch = await index.namespace("__default__").query({
-            vector: embeddings,
-            topK: 5,
-            includeMetadata: true,
-            includeValues: false,
-          });
-
-          const textContent = semanticSearch.matches
-            .map((match) => match.metadata?.text)
-            .filter(Boolean);
-
-          const resultsString = textContent.join("\n\n");
-
-          if (resultsString.trim() === "") {
-            return JSON.stringify({
-              message: `No relevant information found for "${query}"`,
-            });
-          }
-
-          return JSON.stringify({
-            query,
-            results: resultsString,
-          });
-        } catch (error) {
-          console.error("Knowledge search error:", error);
-          return JSON.stringify({
-            error: true,
-            message: error instanceof Error ? error.message : "Unknown error",
-          });
-        }
+        return result.object;
       },
     });
 
@@ -306,7 +191,7 @@ export const agent = action({
         console.log("Getting code for:", query, "in", language);
 
         const result = await generateObject({
-          model: openrouter("moonshotai/kimi-k2:free"),
+          model: openrouter("google/gemini-2.5-flash-lite"),
           schema: GetCodeSchema,
           prompt: `Generate code for ${query} in ${language}. Include the code and a clear explanation.`,
         });
@@ -325,12 +210,36 @@ export const agent = action({
         console.log("Generating test for:", topic, "with", no, "questions");
 
         const result = await generateObject({
-          model: openrouter("moonshotai/kimi-k2:free"),
+          model: openrouter("google/gemini-2.5-flash-lite"),
           schema: TestQuestionSchema,
-          prompt: `Create ${no} multiple choice questions on the topic ${topic}. Each question should have exactly 4 options with one correct answer.`,
+          system: `You are a world-class test generator. Your job is to create comprehensive tests based
+          on the provided topic. Remember that students will use these tests for exam preparation, so ensure
+          they cover all essential aspects of the subject matter.Always adhere precisely to the provided schema. `,
+          prompt: `Create ${no} multiple choice questions on the topic ${topic}. Each question
+          should have exactly 4 options with one correct answer.`,
         });
 
-        return JSON.stringify(result.object);
+        return result.object;
+      },
+    });
+
+    const svgTool = tool({
+      description:
+        "this tool is usefull to create visual represent the context by creating a SVG  diagram of that",
+      parameters: z.object({
+        Query: z.string(),
+      }),
+      execute: async ({ Query }) => {
+        const result = await generateObject({
+          model: openrouter("google/gemini-2.5-flash-lite"),
+          schema: SvgGenerationSchema,
+          system: `Your role is to generate minimalist SVG code based on the provided prompt or description.
+          The SVG will be displayed on a black background, so prioritize high contrast and accessibility in
+          your design choices. Output strictly the SVG markup; do not include any explanations, comments, or additional text.
+          Always adhere precisely to the provided schema, The SVG must be horizontally oriented and designed to fill half the screen width on a laptop display, with any appropriate height.`,
+          prompt: `${Query}`,
+        });
+        return result.object;
       },
     });
 
@@ -344,7 +253,7 @@ export const agent = action({
         console.log("Creating flashcards for:", query, "count:", no);
 
         const result = await generateObject({
-          model: openrouter("moonshotai/kimi-k2:free"),
+          model: openrouter("google/gemini-2.5-flash-lite"),
           schema: FlashcardSchema,
           prompt: `Generate ${no} flashcards on the topic ${query}. Each flashcard should have a clear question/concept on the front and a concise answer/explanation on the back.`,
         });
@@ -352,274 +261,152 @@ export const agent = action({
         return JSON.stringify(result.object);
       },
     });
+    // now we start the proccess of sending each stage into your AI agent which in return genrates the slides
 
-    try {
-      // Use generateText with tools, then parse the result
-      const result = await generateText({
-        model: openrouter("moonshotai/kimi-k2:free"),
-        system: `You are SphereAI, an advanced educational agent. Your mission is to produce a comprehensive, multi-slide learning module for any topic a student asks about.
-
-You must use your available tools to gather all the necessary components for the learning module. For any given topic, you should:
-
-1. Use "getSyllabusTools" to get a detailed syllabus
-2. Use "getImagesTools" to get relevant images - IMPORTANT: Only use valid image URLs that start with http:// or https://
-3. Use "flashcardsTools" to create flashcards for key concepts (max 3 per slide)
-4. Use "testTools" to create assessment questions (max 10 questions per request)
-5. If the topic is code-related, use "getCodeTools" to get code examples
-6. Use "webSearchTools" and "knowledgeSearchTools" to enrich your content
-
-CRITICAL: After calling tools, you MUST parse their JSON results and extract the data to populate your final response.
-
-When processing images from getImagesTools:
-- CRITICAL: Extract the "link" field from the first valid image in the results
-- Set the "picture" field in your output to this exact URL
-- Ensure the URL starts with http:// or https://
-- Example: If getImagesTools returns {"images": [{"link": "https://example.com/image.jpg"}]}, set "picture": "https://example.com/image.jpg"
-- DO NOT use placeholder URLs like "https://example.com" - use actual URLs from the tool results
-- If no valid images are found, leave the picture field empty ("")
-
-After gathering all information from tools, you must output a valid JSON object that matches this structure:
-{
-  "slides": [
-    {
-      "name": "slide 1",
-      "title": "Main title of the slide",
-      "subTitles": "Brief subtitle or summary",
-      "picture": "https://example.com/image.jpg",
-      "content": "Main explanation in markdown (max 180 words)",
-      "links": ["https://example.com/resource1", "https://example.com/resource2"],
-      "youtubeSearchText": "Search query for YouTube exploration",
-      "code": {
-        "language": "javascript",
-        "content": "console.log('Hello World');"
-      },
-      "tables": "Optional table in markdown format",
-      "bulletPoints": ["Key point 1", "Key point 2"],
-      "flashcardData": [
-        {
-          "question": "What is X?",
-          "answer": "X is..."
-        }
-      ],
-      "testQuestions": [
-        {
-          "question": "What is the correct answer?",
-          "options": ["A", "B", "C", "D"],
-          "answer": "A"
-        }
-      ],
-      "type": "markdown"
+    const stages = course.course?.stages;
+    if (!Array.isArray(stages) || stages.length === 0) {
+      throw new Error("No stages found for the course.");
     }
-  ]
-}
 
-IMPORTANT: You must use the results from your tool calls to populate the fields:
-- Use image URLs from getImagesTools results for the "picture" field
-- Use flashcard data from flashcardsTools results for the "flashcardData" field
-- Use test questions from testTools results for the "testQuestions" field
-- Use code examples from getCodeTools results for the "code" field
-- for image or picture don't use any book cover or the images of text book
-- you don't need to show images for test or the flash cards or for the tables or the code
-- try to retrive only relevant images for the topic
-- always make sure that you render the test and flash card in the new slide , so that we can provide better learning experience
-- alway rember that to keep the user expreience high so struture the content in a way that is easy to understand and follow
-- When creating test questions, always create a dedicated slide with type "test" for the test questions
-- When creating flashcards, always create a dedicated slide with type "flashcard" for the flashcards
-- Structure the content so that test questions and flashcards are on separate slides from the main content
+    const stageIds = [];
 
-Your final response must be ONLY valid JSON, no additional text or explanations.`,
-        prompt: args.messages,
-        tools: {
-          getSyllabusTools,
-          getImagesTools,
-          webSearchTools,
-          knowledgeSearchTools,
-          getCodeTools,
-          testTools,
-          flashcardsTools,
-        },
-        maxSteps: 10,
-      });
-
-      console.log("the final result is", result);
-      console.log("tool results:", result.toolResults);
-
-      // Log tool results for debugging
-      if (result.toolResults) {
-        result.toolResults.forEach((toolResult, index) => {
-          console.log(
-            `Tool ${index + 1} (${toolResult.toolName}):`,
-            toolResult.result,
-          );
-        });
-      }
-
-      // Function to extract JSON from text that might have additional content
-      const extractJSON = (text: string): any => {
-        // Try to find JSON object in the text
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          return JSON.parse(jsonMatch[0]);
-        }
-
-        // If no match, try parsing the entire text
-        return JSON.parse(text);
-      };
-
-      // Parse the result as JSON
-      let structuredOutput: any;
+    for (const stage of stages) {
+      const stagePrompt = `You are SphereAI, an advanced educational agent. Your mission is to produce a comprehensive, multi-slide learning module for the following stage of a course:
+        Title: ${stage.title}
+      Purpose: ${stage.purpose}
+      Topics: ${stage.include.join(", ")}
+      Outcome: ${stage.outcome}
+      Discussion area: ${stage.discussion_prompt || ""}`;
       try {
-        structuredOutput = extractJSON(result.text);
-        console.log("Successfully parsed JSON from result");
-      } catch (parseError) {
-        console.error("Failed to parse result as JSON:", parseError);
-        console.error("Raw result text:", result.text);
+        // Use generateText with tools, then parse the result
+        const answer = await generateText({
+          model: openrouter("google/gemini-2.5-flash-lite-preview-06-17"),
+          system: `You are SphereAI, an advanced educational agent. Your mission is to produce a comprehensiv
+          e, multi-slide learning module for any topic a student asks about.
 
-        // Fallback: construct output from tool results
-        structuredOutput = {
-          slides: [
-            {
-              name: "slide 1",
-              title: "Learning Module",
-              subTitles: "Generated content based on your query",
-              picture: "",
-              content: "Generated content based on your query",
-              links: [],
-              youtubeSearchText: "Learn more about this topic",
-              code: {
-                language: "javascript",
-                content: "// Code example will be generated",
-              },
-              tables: "",
-              bulletPoints: [],
-              flashcardData: [],
-              testQuestions: [],
-              type: "markdown",
-            },
-          ],
-        };
+          You must use your available tools to gather all the necessary components for the learning
+          module. For any given topic, you should:
 
-        // Process tool results if available
-        if (result.toolResults) {
-          for (const toolResult of result.toolResults) {
-            try {
-              const parsedResult = JSON.parse(toolResult.result);
+          1. Use "getSyllabusTools" to get a detailed syllabus
+          2. Use "svgTool" to generate visually appealing diagrams - when using this tool make sure that you
+          provide a detailed prompt explaining everything that you want and how you want it, be very very specific
+          3. Use "flashcardsTools" to create flashcards for key concepts (max 3 per slide)
+          4. Use "testTools" to create assessment questions (max 10 questions per request)
+          5. If the topic is code-related, use "getCodeTools" to get code examples
+          6. Use "webSearchTools" and "knowledgeSearchTools" to enrich your content
 
-              switch (toolResult.toolName) {
-                case "getImagesTools":
-                  if (parsedResult.images && parsedResult.images.length > 0) {
-                    // Find the first valid image URL
-                    const validImage = parsedResult.images.find(
-                      (img: any) =>
-                        img.link &&
-                        (img.link.startsWith("http://") ||
-                          img.link.startsWith("https://")) &&
-                        !img.link.includes("x-raw-image"),
-                    );
-                    if (validImage) {
-                      structuredOutput.slides[0].picture = validImage.link;
-                    }
+          CRITICAL: After calling tools, you MUST parse their JSON results and extract the data to populate your final response.
+
+
+          After gathering all information from tools, you must output a valid JSON object that matches this structure:
+          {
+            "slides": [
+              {
+                "name": "slide 1",
+                "title": "Main title of the slide",
+                "subTitles": "Brief subtitle or summary",
+                "svg": "<svg>...</svg>",
+                "content": "Main explanation in markdown (max 180 words)",
+                "links": ["https://example.com/resource1", "https://example.com/resource2"],
+                "youtubeSearchText": "Search query for YouTube exploration",
+                "code": {
+                  "language": "javascript",
+                  "content": "console.log('Hello World');"
+                },
+                "tables": "Optional table in markdown format",
+                "bulletPoints": ["Key point 1", "Key point 2"],
+                "flashcardData": [
+                  {
+                    "question": "What is X?",
+                    "answer": "X is..."
                   }
-                  break;
-                case "flashcardsTools":
-                  structuredOutput.slides[0].flashcardData =
-                    parsedResult.flashcards?.map((card: any) => ({
-                      question: card.front,
-                      answer: card.back,
-                    })) || [];
-                  break;
-                case "testTools":
-                  structuredOutput.slides[0].testQuestions =
-                    parsedResult.questions || [];
-                  break;
-                case "getCodeTools":
-                  structuredOutput.slides[0].code = {
-                    language: parsedResult.language,
-                    content: parsedResult.code,
-                  };
-                  break;
-                case "webSearchTools":
-                case "knowledgeSearchTools":
-                  if (parsedResult.results) {
-                    structuredOutput.slides[0].content +=
-                      "\n\n" +
-                      (typeof parsedResult.results === "string"
-                        ? parsedResult.results
-                        : JSON.stringify(parsedResult.results));
+                ],
+                "testQuestions": [
+                  {
+                    "question": "What is the correct answer?",
+                    "options": ["A", "B", "C", "D"],
+                    "answer": "A"
                   }
-                  break;
+                ],
+                "type": "markdown"
               }
-            } catch (toolParseError) {
-              console.warn(
-                "Failed to parse tool result:",
-                toolResult.toolName,
-                toolParseError,
-              );
-            }
+            ]
           }
-        }
-      }
 
-      // Debug: log the structured output
-      console.log(
-        "Final structured output:",
-        JSON.stringify(structuredOutput, null, 2),
-      );
+          IMPORTANT: You must use the results from your tool calls to populate the fields:
+          - Use SVG diagrams from svgTool results for the "svg" field
+          - Use flashcard data from flashcardsTools results for the "flashcardData" field
+          - Use test questions from testTools results for the "testQuestions" field
+          - Use code examples from getCodeTools results for the "code" field
+          - Generate SVG diagrams that are relevant to the topic and enhance understanding
+          - You don't need to show SVG diagrams for test slides, flashcard slides, table slides, or code slides
+          - Focus on creating SVG diagrams that visually represent concepts, processes, or structures
+          - always make sure that you render the test and flash card in the new slide , so that we can provide better learning experience
+          - alway rember that to keep the user expreience high so struture the content in a way that is easy to understand and follow
+          - When creating test questions, always create a dedicated slide with type "test" for the test questions
+          - When creating flashcards, always create a dedicated slide with type "flashcard" for the flashcards
+          - Structure the content so that test questions and flashcards are on separate slides from the main content
 
-      // Validate against schema
-      const parsed = AgentOutputSchema.safeParse(structuredOutput);
-      if (!parsed.success) {
-        console.error("Invalid structured output:", parsed.error.format());
-        console.error(
-          "Raw structured output:",
-          JSON.stringify(structuredOutput, null, 2),
-        );
-
-        // Log specific field errors for debugging
-        if (parsed.error.issues) {
-          console.error("Validation issues:", parsed.error.issues);
-        }
-
-        throw new Error("Agent returned invalid structured content.");
-      }
-
-      // Update message with successful result
-      await ctx.runMutation(api.message.updateMessage, {
-        messageId: assistantMessageId,
-        content: JSON.stringify({ slides: parsed.data.slides }),
-      });
-
-      await ctx.runMutation(api.message.signalProcessingComplete, {
-        parentMessageId: args.parentMessageId,
-        assistantMessageId: assistantMessageId,
-      });
-
-      return assistantMessageId;
-    } catch (error) {
-      console.error("Agent processing error:", error);
-
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
-
-      try {
-        await ctx.runMutation(api.message.updateMessage, {
-          messageId: assistantMessageId,
-          content: JSON.stringify({
-            error: true,
-            message: errorMessage,
-            slides: [],
-          }),
+          Your final response must be ONLY valid JSON, no additional text or explanations.`,
+          prompt: stagePrompt,
+          tools: {
+            getSyllabusTools,
+            webSearchTools,
+            knowledgeSearchTools,
+            getCodeTools,
+            testTools,
+            flashcardsTools,
+            svgTool,
+          },
+          maxSteps: 10,
         });
+        console.log("########################################################")
+        console.log("the answer is", answer.text);
+        console.log("########################################################")
 
-        await ctx.runMutation(api.message.signalProcessingComplete, {
-          parentMessageId: args.parentMessageId,
-          assistantMessageId: assistantMessageId,
+        const result = await generateObject({
+          model: openrouter("google/gemini-2.5-flash-lite"),
+          schema: AgentOutputSchema,
+          prompt: `format the following information into the valid schema that we have provided ${answer.text} `,
+          system:`"Convert all provided information into the specified valid schema.
+            *   **Missing Information:** If schema fields are missing data, infer and populate them with contextually appropriate information.
+            *   **Completeness:** Do NOT compress, summarize, or omit any given information.
+            *   **Output:** Your sole task is to ensure the output strictly adheres to the provided schema's structure and format." `
+
+        })
+        console.log("the final result is", result.object);
+
+
+
+        const parsed = AgentOutputSchema.safeParse(result.object);
+        if (!parsed.success) {
+          console.error("Invalid structured output:", parsed.error.format());
+          console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+          console.log(
+            "Raw structured output:",
+            JSON.stringify(result.object, null, 2),
+          );
+          console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
+          // Log specific field errors for debugging
+          if (parsed.error.issues) {
+            console.error("Validation issues:", parsed.error.issues);
+          }
+
+          throw new Error("Agent returned invalid structured content.");
+        }
+
+        const stageId = await ctx.runMutation(api.stage.createstage, {
+          courseId: args.courseId,
+          title: stage.title,
+          slides: parsed.data.slides,
         });
-      } catch (updateError) {
-        console.error("Failed to update message with error:", updateError);
+        stageIds.push(stageId);
+      } catch (error) {
+        console.error("Agent processing error:", error);
       }
-
-      throw new Error(`Agent processing failed: ${errorMessage}`);
     }
+
+    return stageIds;
   },
 });

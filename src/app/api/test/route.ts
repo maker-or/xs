@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     });
 
     const openrouter = createOpenRouter({
-      apiKey: process.env.OPENROUTE_API_KEY ?? "",
+      apiKey: process.env.OPENROUTER_API_KEY ?? "",
     });
 
     const sub = `

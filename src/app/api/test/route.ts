@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { Pinecone } from "@pinecone-database/pinecone";
-import { getEmbedding } from "~/utils/embeddings";
-import { generateText } from "ai";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { Pinecone } from '@pinecone-database/pinecone';
+import { generateText } from 'ai';
+import { type NextRequest, NextResponse } from 'next/server';
+import { getEmbedding } from '~/utils/embeddings';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,11 +12,11 @@ export async function POST(request: NextRequest) {
     console.log(time);
 
     const pinecone = new Pinecone({
-      apiKey: process.env.PINECONE_API_KEY ?? "",
+      apiKey: process.env.PINECONE_API_KEY ?? '',
     });
 
     const openrouter = createOpenRouter({
-      apiKey: process.env.OPENROUTER_API_KEY ?? "",
+      apiKey: process.env.OPENROUTER_API_KEY ?? '',
     });
 
     const sub = `
@@ -34,27 +34,27 @@ export async function POST(request: NextRequest) {
 
     const i = await generateText({
       //model: groq('llama-3.3-70b-versatile'),
-      model: openrouter("google/gemini-2.5-flash"),
+      model: openrouter('google/gemini-2.5-flash'),
       prompt: sub,
       temperature: 0,
     });
     // Create embeddings
     const queryEmbedding = await getEmbedding(topic);
     const index = pinecone.index(i.text);
-    const queryResponse = await index.namespace("").query({
+    const queryResponse = await index.namespace('').query({
       vector: queryEmbedding,
       topK: 7,
       includeMetadata: true,
     });
 
     if (!queryResponse.matches || queryResponse.matches.length === 0) {
-      throw new Error("No relevant context found in Pinecone");
+      throw new Error('No relevant context found in Pinecone');
     }
 
     // Extract relevant context
     const context = queryResponse.matches
-      .map((match) => String(match.metadata?.text ?? ""))
-      .join("\n\n");
+      .map((match) => String(match.metadata?.text ?? ''))
+      .join('\n\n');
 
     const finalPrompt = `
         You are an expert question creator for educational tests.
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       `;
 
     const result = await generateText({
-      model: openrouter("google/gemma-3-27b-it:free"),
+      model: openrouter('google/gemma-3-27b-it:free'),
       prompt: finalPrompt,
       system: `You are an expert question creator for educational tests. Your task is to generate multiple-choice questions (MCQs) based on the provided topic, difficulty level, and context.
 
@@ -111,7 +111,7 @@ Ensure that the 'id' is unique and increments from 1 to {numberOfQuestions}.`,
     });
 
     // Log raw response for debugging
-    console.log("Raw AI response:", result.text);
+    console.log('Raw AI response:', result.text);
 
     let questions;
     try {
@@ -119,13 +119,13 @@ Ensure that the 'id' is unique and increments from 1 to {numberOfQuestions}.`,
       let cleanedText = result.text.trim();
 
       // If the response starts with ``` or ends with ```, remove the markdown code block markers
-      if (cleanedText.startsWith("```json")) {
+      if (cleanedText.startsWith('```json')) {
         cleanedText = cleanedText.substring(7);
-      } else if (cleanedText.startsWith("```")) {
+      } else if (cleanedText.startsWith('```')) {
         cleanedText = cleanedText.substring(3);
       }
 
-      if (cleanedText.endsWith("```")) {
+      if (cleanedText.endsWith('```')) {
         cleanedText = cleanedText.substring(0, cleanedText.length - 3);
       }
 
@@ -136,7 +136,7 @@ Ensure that the 'id' is unique and increments from 1 to {numberOfQuestions}.`,
 
       // Validate the result has the expected structure
       if (!Array.isArray(questions)) {
-        throw new Error("Response is not an array");
+        throw new Error('Response is not an array');
       }
 
       // Ensure each question has the required properties
@@ -145,18 +145,18 @@ Ensure that the 'id' is unique and increments from 1 to {numberOfQuestions}.`,
         text: q.text || `Question ${index + 1}`,
         options: Array.isArray(q.options)
           ? q.options
-          : ["Option A", "Option B", "Option C", "Option D"],
+          : ['Option A', 'Option B', 'Option C', 'Option D'],
         correctAnswer:
-          typeof q.correctAnswer === "number" ? q.correctAnswer : 0,
+          typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
       }));
     } catch (parseError) {
-      console.error("Failed to parse AI response as JSON:", parseError);
+      console.error('Failed to parse AI response as JSON:', parseError);
 
       // Fallback: create a simple placeholder question set
       questions = Array.from({ length: numberOfQuestions }, (_, i) => ({
         id: i + 1,
         text: `${topic} question ${i + 1}? (Error occurred during question generation)`,
-        options: ["Option A", "Option B", "Option C", "Option D"],
+        options: ['Option A', 'Option B', 'Option C', 'Option D'],
         correctAnswer: 0,
       }));
 
@@ -170,10 +170,10 @@ Ensure that the 'id' is unique and increments from 1 to {numberOfQuestions}.`,
       questions,
     });
   } catch (error) {
-    console.error("Error generating questions:", error);
+    console.error('Error generating questions:', error);
     return NextResponse.json(
-      { success: false, error: "Failed to generate questions" },
-      { status: 500 },
+      { success: false, error: 'Failed to generate questions' },
+      { status: 500 }
     );
   }
 }

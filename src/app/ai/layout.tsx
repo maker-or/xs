@@ -1,15 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 // import { GeistSans } from "geist/font/sans";
 // import { GeistMono } from "geist/font/mono";
-import "./styles.css"; // Import the new AI-specific styles
-import { ThemeProvider } from "~/utils/theme-provider";
-import Script from "next/script";
+import './styles.css'; // Import the new AI-specific styles
+import Script from 'next/script';
+import { ThemeProvider } from '~/utils/theme-provider';
 
 export const metadata: Metadata = {
-  title: "sphereai",
+  title: 'sphereai',
   description:
-    "The AI chat app for students. which helps students to get the answer of their queries.",
-  icons: "/favicon.ico",
+    'The AI chat app for students. which helps students to get the answer of their queries.',
+  icons: '/favicon.ico',
 };
 
 export default function RootLayout({
@@ -18,16 +18,16 @@ export default function RootLayout({
   return (
     <>
       <Script
+        data-oid=":1b-1zn"
         src="https://google.github.io/typograms/typograms.js"
         strategy="beforeInteractive"
-        data-oid=":1b-1zn"
       />
       <ThemeProvider
         attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
         data-oid="qwpthsd"
+        defaultTheme="system"
+        disableTransitionOnChange
+        enableSystem
       >
         {children}
       </ThemeProvider>

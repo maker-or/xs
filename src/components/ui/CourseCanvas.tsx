@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import React from "react";
-import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
+import { useQuery } from 'convex/react';
+import { ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import type React from 'react';
+import { api } from '../../../convex/_generated/api';
+import type { Id } from '../../../convex/_generated/dataModel';
 
 // Stage interface matching the schema
 interface Stage {
@@ -18,13 +18,13 @@ interface Stage {
 
 interface CourseCanvasProps {
   stages: Stage[];
-  courseId: Id<"Course">;
+  courseId: Id<'Course'>;
 }
 
 // Generate curved path between two points for wave-like connections
 const generateCurvedPath = (
   start: { x: number; y: number },
-  end: { x: number; y: number },
+  end: { x: number; y: number }
 ) => {
   const dx = end.x - start.x;
   const dy = end.y - start.y;
@@ -66,56 +66,56 @@ const StageIsland: React.FC<{
 }> = ({ stage, index, position, onClick, isReady = false }) => {
   return (
     <g
-      transform={`translate(${position.x}, ${position.y})`}
-      style={{ cursor: "pointer" }}
       onClick={onClick}
+      style={{ cursor: 'pointer' }}
+      transform={`translate(${position.x}, ${position.y})`}
     >
       {/* Island background */}
       <rect
-        x={-50}
-        y={-50}
-        width={100}
+        className="transition-all duration-300 hover:brightness-110"
+        fill={isReady ? 'rgba(0, 0, 0, 0.8)' : 'rgba(100, 100, 100, 0.6)'}
         height={100}
         rx={16}
-        fill={isReady ? "rgba(0, 0, 0, 0.8)" : "rgba(100, 100, 100, 0.6)"}
-        stroke={isReady ? "rgba(255, 255, 255, 0.3)" : "rgba(255, 165, 0, 0.5)"}
+        stroke={isReady ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 165, 0, 0.5)'}
         strokeWidth={2}
-        className="transition-all duration-300 hover:brightness-110"
+        width={100}
+        x={-50}
+        y={-50}
       />
 
       {/* Loading indicator for stages being created */}
       {!isReady && (
         <circle
+          className="animate-pulse"
           cx={35}
           cy={-35}
-          r={6}
           fill="rgba(255, 165, 0, 0.8)"
-          className="animate-pulse"
+          r={6}
         />
       )}
 
       {/* Stage number */}
       <text
-        x={0}
-        y={0}
-        textAnchor="middle"
+        className="select-none"
         dominantBaseline="middle"
+        fill="white"
         fontSize={32}
         fontWeight="bold"
-        fill="white"
-        className="select-none"
+        textAnchor="middle"
+        x={0}
+        y={0}
       >
         {index + 1}
       </text>
 
       {/* Stage title */}
       <text
+        className="select-none"
+        fill="rgba(255, 255, 255, 0.8)"
+        fontSize={14}
+        textAnchor="middle"
         x={0}
         y={70}
-        textAnchor="middle"
-        fontSize={14}
-        fill="rgba(255, 255, 255, 0.8)"
-        className="select-none"
       >
         {stage.title.length > 12
           ? `${stage.title.substring(0, 12)}...`
@@ -156,35 +156,35 @@ const CourseCanvas: React.FC<CourseCanvasProps> = ({ stages, courseId }) => {
         className="absolute inset-0 z-10 opacity-15"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          backgroundRepeat: "repeat",
-          backgroundSize: "256px 256px",
+          backgroundRepeat: 'repeat',
+          backgroundSize: '256px 256px',
         }}
       />
 
       {/* Back button and title */}
-      <div className="absolute left-6 top-6 z-30 flex items-center justify-between gap-4">
+      <div className="absolute top-6 left-6 z-30 flex items-center justify-between gap-4">
         <button
-          onClick={handleBack}
           className="rounded-lg border border-white/20 bg-black/60 p-3 text-white backdrop-blur-md transition-all duration-200 hover:bg-white/10"
+          onClick={handleBack}
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="font-serif text-4xl italic text-white">Your Course</h1>
+        <h1 className="font-serif text-4xl text-white italic">Your Course</h1>
       </div>
 
       {/* Canvas */}
       <div className="relative z-20 h-full w-full">
         <svg
-          width="100%"
+          className="cursor-pointer"
           height="100%"
           viewBox="0 0 1200 600"
-          className="cursor-pointer"
+          width="100%"
         >
           {/* Connecting paths with arrows */}
           <g>
             {stagePositions.slice(0, -1).map((position, index) => {
               const nextPosition = stagePositions[index + 1];
-              if (!position || !nextPosition) return null;
+              if (!(position && nextPosition)) return null;
               const pathData = generateCurvedPath(position, nextPosition);
 
               return (
@@ -193,9 +193,9 @@ const CourseCanvas: React.FC<CourseCanvasProps> = ({ stages, courseId }) => {
                   <path
                     d={pathData}
                     fill="none"
+                    filter="blur(3px)"
                     stroke="rgba(255, 255, 255, 0.1)"
                     strokeWidth={6}
-                    filter="blur(3px)"
                   />
                   {/* Main path */}
                   <path
@@ -208,24 +208,24 @@ const CourseCanvas: React.FC<CourseCanvasProps> = ({ stages, courseId }) => {
                   <defs>
                     <marker
                       id={`arrowhead-${index}`}
-                      markerWidth="10"
                       markerHeight="7"
+                      markerWidth="10"
+                      orient="auto"
                       refX="9"
                       refY="3.5"
-                      orient="auto"
                     >
                       <polygon
-                        points="0 0, 10 3.5, 0 7"
                         fill="rgba(255, 255, 255, 0.6)"
+                        points="0 0, 10 3.5, 0 7"
                       />
                     </marker>
                   </defs>
                   <path
                     d={pathData}
                     fill="none"
+                    markerEnd={`url(#arrowhead-${index})`}
                     stroke="rgba(255, 255, 255, 0.6)"
                     strokeWidth={2}
-                    markerEnd={`url(#arrowhead-${index})`}
                   />
                 </g>
               );
@@ -239,12 +239,12 @@ const CourseCanvas: React.FC<CourseCanvasProps> = ({ stages, courseId }) => {
                 stageIds && stageIds.stageIds && stageIds.stageIds[index];
               return (
                 <StageIsland
-                  key={index}
-                  stage={stage}
                   index={index}
-                  position={stagePositions[index]!}
-                  onClick={() => handleStageClick(index)}
                   isReady={!!isReady}
+                  key={index}
+                  onClick={() => handleStageClick(index)}
+                  position={stagePositions[index]!}
+                  stage={stage}
                 />
               );
             })}
@@ -253,11 +253,11 @@ const CourseCanvas: React.FC<CourseCanvasProps> = ({ stages, courseId }) => {
       </div>
 
       {/* Status text */}
-      <div className="absolute bottom-8 left-1/2 z-20 -translate-x-1/2 transform">
+      <div className="-translate-x-1/2 absolute bottom-8 left-1/2 z-20 transform">
         {stageIds && stageIds.stageIds ? (
           <p className="text-center text-lg text-white/60">
             {stageIds.stageIds.length === stages.length
-              ? "All stages ready! Click any stage to explore."
+              ? 'All stages ready! Click any stage to explore.'
               : `Creating content... ${stageIds.stageIds.length}/${stages.length} stages ready`}
           </p>
         ) : (

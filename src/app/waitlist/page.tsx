@@ -1,10 +1,9 @@
-import { Waitlist } from "@clerk/nextjs";
+import { Waitlist } from '@clerk/nextjs';
 
 const page = () => {
-
   return (
     <div className="flex h-screen w-screen items-center justify-center">
-      <Waitlist  />
+      <Waitlist />
     </div>
   );
 };

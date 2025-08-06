@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import type React from 'react';
+import { useEffect, useRef } from 'react';
 
 declare global {
   interface Window {
@@ -23,17 +24,17 @@ const TypogramRenderer: React.FC<TypogramRendererProps> = ({
 
   useEffect(() => {
     if (
-      typeof window !== "undefined" &&
+      typeof window !== 'undefined' &&
       window.typograms &&
       containerRef.current
     ) {
       const svg = window.typograms.create(source, zoom, debug);
-      containerRef.current.innerHTML = "";
+      containerRef.current.innerHTML = '';
       containerRef.current.appendChild(svg);
     }
   }, [source, zoom, debug]);
 
-  return <div ref={containerRef} className="my-4" />;
+  return <div className="my-4" ref={containerRef} />;
 };
 
 export default TypogramRenderer;

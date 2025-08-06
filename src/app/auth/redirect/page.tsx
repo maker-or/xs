@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function AuthRedirect() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -12,14 +12,14 @@ export default function AuthRedirect() {
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
-      if (!isLoaded || !isSignedIn) return;
-      
+      if (!(isLoaded && isSignedIn)) return;
+
       try {
         // This is the single source of truth for determining if a user needs onboarding
         setStatus('Checking if you need to be onboarded...');
         const response = await fetch('/api/auth/onboarding-status');
         const data = await response.json();
-        
+
         if (data.isOnboarded) {
           // User already exists in our database, redirect to appropriate page
           setStatus('Welcome back! Redirecting to your dashboard...');
@@ -32,7 +32,9 @@ export default function AuthRedirect() {
           // First-time user needs to go through onboarding
           setStatus('Setting up your account...');
           // Pass any organization ID we received back from the API to ensure it's consistently used
-          router.replace(`/loading${data.organisationId ? `?orgId=${encodeURIComponent(data.organisationId)}` : ''}`);
+          router.replace(
+            `/loading${data.organisationId ? `?orgId=${encodeURIComponent(data.organisationId)}` : ''}`
+          );
         }
       } catch (error) {
         console.error('Error checking onboarding status:', error);
@@ -43,17 +45,19 @@ export default function AuthRedirect() {
         setIsChecking(false);
       }
     };
-    
+
     checkOnboardingStatus();
   }, [isLoaded, isSignedIn, router, user]);
-  
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#050A06] text-white">
+    <div className="flex min-h-screen items-center justify-center bg-[#050A06] text-white">
       {isChecking && (
         <div className="text-center">
-          <div className="w-12 h-12 border-t-4 border-blue-500 border-solid rounded-full animate-spin mb-4 mx-auto"></div>
-          <p className="text-xl mb-2">{status}</p>
-          <p className="text-sm text-gray-400">Please wait, this won&apos;t take long...</p>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-blue-500 border-t-4 border-solid" />
+          <p className="mb-2 text-xl">{status}</p>
+          <p className="text-gray-400 text-sm">
+            Please wait, this won&apos;t take long...
+          </p>
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
-"use client";
-import React, { useState, createContext, useEffect } from "react";
+'use client';
+import type React from 'react';
+import { createContext, useEffect, useState } from 'react';
 
 // Define the context type
 interface ContextType {
@@ -15,15 +16,15 @@ interface ContextType {
 export const timeContext = createContext<ContextType>({
   timeLeft: 0,
   setTimeLeft: () => {
-    throw new Error("setTimeLeft must be used within a TimeProvider");
+    throw new Error('setTimeLeft must be used within a TimeProvider');
   },
   isRunning: false,
   setIsRunning: () => {
-    throw new Error("setIsRunning must be used within a TimeProvider");
+    throw new Error('setIsRunning must be used within a TimeProvider');
   },
   duration: 30,
   setDuration: () => {
-    throw new Error("setDuration must be used within a TimeProvider");
+    throw new Error('setDuration must be used within a TimeProvider');
   },
 });
 

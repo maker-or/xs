@@ -1,7 +1,7 @@
-"use client";
-import React, { useEffect, useRef, useState } from "react";
-import mermaid from "mermaid";
-import { Maximize2, X, ZoomIn, ZoomOut } from "lucide-react";
+'use client';
+import { Maximize2, X, ZoomIn, ZoomOut } from 'lucide-react';
+import mermaid from 'mermaid';
+import React, { useEffect, useRef, useState } from 'react';
 
 // Add type definition for mermaid with version property
 interface MermaidInstance {
@@ -32,7 +32,7 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const expandedContainerRef = useRef<HTMLDivElement>(null);
   const chartId = useRef(
-    `mermaid-chart-${Math.random().toString(36).substring(7)}`,
+    `mermaid-chart-${Math.random().toString(36).substring(7)}`
   );
   const [isExpanded, setIsExpanded] = useState(false);
   const [renderedSVG, setRenderedSVG] = useState<string | null>(null);
@@ -43,53 +43,53 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
     (svg: string): string => {
       // Parse the SVG string to access and modify elements
       const parser = new DOMParser();
-      const doc = parser.parseFromString(svg, "image/svg+xml");
-      const svgElement = doc.querySelector("svg");
+      const doc = parser.parseFromString(svg, 'image/svg+xml');
+      const svgElement = doc.querySelector('svg');
 
       if (svgElement) {
         // Get the original viewBox but we won't use it directly
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const viewBox = svgElement.getAttribute("viewBox");
+        const viewBox = svgElement.getAttribute('viewBox');
 
         // Set minimum dimensions for visibility
-        svgElement.setAttribute("width", "100%");
-        svgElement.setAttribute("height", "100%");
-        svgElement.style.minWidth = "600px";
-        svgElement.style.minHeight = "300px";
+        svgElement.setAttribute('width', '100%');
+        svgElement.setAttribute('height', '100%');
+        svgElement.style.minWidth = '600px';
+        svgElement.style.minHeight = '300px';
 
         // If it's a sequence diagram, ensure it's wide enough
-        if (chart.includes("sequenceDiagram")) {
-          svgElement.style.minWidth = "800px";
+        if (chart.includes('sequenceDiagram')) {
+          svgElement.style.minWidth = '800px';
         }
 
         // Apply scaling for better visibility in normal view
-        svgElement.style.transform = "scale(1)";
-        svgElement.style.transformOrigin = "center";
-        svgElement.style.margin = "20px 0";
+        svgElement.style.transform = 'scale(1)';
+        svgElement.style.transformOrigin = 'center';
+        svgElement.style.margin = '20px 0';
       }
 
       return new XMLSerializer().serializeToString(doc);
     },
-    [chart],
+    [chart]
   );
 
   useEffect(() => {
     mermaid.initialize({
       startOnLoad: false, // We control rendering manually
-      theme: "dark",
+      theme: 'dark',
       // Custom theme settings to match the desired appearance
       themeVariables: {
         darkMode: true,
-        background: "#252D32",
-        primaryColor: "#FF5E00",
-        primaryTextColor: "#ffffff",
-        primaryBorderColor: "#ffffff",
-        lineColor: "#ffffff",
-        secondaryColor: "#333333",
-        tertiaryColor: "#333333",
-        fontSize: "16px",
+        background: '#252D32',
+        primaryColor: '#FF5E00',
+        primaryTextColor: '#ffffff',
+        primaryBorderColor: '#ffffff',
+        lineColor: '#ffffff',
+        secondaryColor: '#333333',
+        tertiaryColor: '#333333',
+        fontSize: '16px',
       },
-      securityLevel: "strict",
+      securityLevel: 'strict',
       // Improve diagram size by setting proper defaults
       gantt: { useWidth: 800 },
       sequence: { useMaxWidth: false, width: 800 },
@@ -100,19 +100,19 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
   }, []);
 
   useEffect(() => {
-    if (!containerRef.current || !chart) return;
-    containerRef.current.innerHTML = "";
+    if (!(containerRef.current && chart)) return;
+    containerRef.current.innerHTML = '';
 
     // More comprehensive syntax normalization
     const sanitizedChart = chart
       // Fix common arrow syntax issues
-      .replace(/-->\|(.+?)\|>/g, "-->|$1|")
-      .replace(/--\|(.+?)\|(?!>)/g, "-->|$1|")
+      .replace(/-->\|(.+?)\|>/g, '-->|$1|')
+      .replace(/--\|(.+?)\|(?!>)/g, '-->|$1|')
       // Fix standalone arrow connections without proper syntax
-      .replace(/\s+--\|([^|]+?)\|\s+/g, " -->|$1| ")
+      .replace(/\s+--\|([^|]+?)\|\s+/g, ' -->|$1| ')
       // Ensure proper spacing between connections
-      .replace(/(\w+)\s*-->/g, "$1 -->")
-      .replace(/-->(\w+)/g, "--> $1");
+      .replace(/(\w+)\s*-->/g, '$1 -->')
+      .replace(/-->(\w+)/g, '--> $1');
 
     if (!sanitizedChart.trim()) return;
 
@@ -122,7 +122,7 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
     } catch {
       // Display syntax error in the style shown in the image
       const typedMermaid = mermaid as MermaidInstance;
-      const mermaidVersion = typedMermaid.version || "11.6.0";
+      const mermaidVersion = typedMermaid.version || '11.6.0';
 
       containerRef.current.innerHTML = `
         <div class="flex flex-col items-start w-full">
@@ -157,7 +157,7 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
       .catch(() => {
         // Display syntax error in the style shown in the image
         const typedMermaid = mermaid as MermaidInstance;
-        const mermaidVersion = typedMermaid.version || "11.6.0";
+        const mermaidVersion = typedMermaid.version || '11.6.0';
 
         if (containerRef.current) {
           containerRef.current.innerHTML = `
@@ -181,18 +181,18 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
   const applyPreviewScale = React.useCallback(() => {
     if (!expandedContainerRef.current) return;
 
-    const svgElement = expandedContainerRef.current.querySelector("svg");
+    const svgElement = expandedContainerRef.current.querySelector('svg');
     if (svgElement) {
-      svgElement.setAttribute("width", "100%");
-      svgElement.setAttribute("height", "100%");
-      svgElement.style.minWidth = "800px";
-      svgElement.style.minHeight = "500px";
-      svgElement.style.maxHeight = "80vh";
+      svgElement.setAttribute('width', '100%');
+      svgElement.setAttribute('height', '100%');
+      svgElement.style.minWidth = '800px';
+      svgElement.style.minHeight = '500px';
+      svgElement.style.maxHeight = '80vh';
 
       // Apply the current scale factor from state
       svgElement.style.transform = `scale(${previewScale})`;
-      svgElement.style.transformOrigin = "center";
-      svgElement.style.margin = "30px 0";
+      svgElement.style.transformOrigin = 'center';
+      svgElement.style.margin = '30px 0';
     }
   }, [previewScale]);
 
@@ -221,31 +221,31 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
       <div className="relative" data-oid="owb:zwf">
         {/* Diagram container */}
         <div
-          ref={containerRef}
-          className="mermaid-diagram-container my-4 flex justify-center bg-[#1e1e1e] rounded-lg p-4 w-full overflow-auto"
-          style={{ minHeight: "350px" }}
+          className="mermaid-diagram-container my-4 flex w-full justify-center overflow-auto rounded-lg bg-[#1e1e1e] p-4"
           data-oid="fphr6bs"
-        ></div>
+          ref={containerRef}
+          style={{ minHeight: '350px' }}
+        />
 
         {/* Fixed expand button */}
         <button
-          className="absolute top-6 right-6 p-1.5 rounded bg-[#000000] hover:bg-gray-700 text-gray-300 hover:text-white transition-colors z-10"
-          onClick={() => setIsExpanded(true)}
           aria-label="Expand diagram"
+          className="absolute top-6 right-6 z-10 rounded bg-[#000000] p-1.5 text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
           data-oid="31e2g4p"
+          onClick={() => setIsExpanded(true)}
         >
-          <Maximize2 size={16} data-oid="5.5bxs8" />
+          <Maximize2 data-oid="5.5bxs8" size={16} />
         </button>
       </div>
 
       {/* Modal for expanded view */}
       {isExpanded && (
         <div
-          className="fixed inset-0 bg-[#000000] flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000] p-4"
           data-oid="ccg:u8q"
         >
           <div
-            className="bg-[#1e1e1e] rounded-lg w-full max-w-6xl h-auto max-h-[90vh] overflow-auto relative"
+            className="relative h-auto max-h-[90vh] w-full max-w-6xl overflow-auto rounded-lg bg-[#1e1e1e]"
             data-oid="03psrhi"
           >
             {/* Close button */}
@@ -259,11 +259,11 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
 
             {/* Title and controls */}
             <div
-              className="px-4 py-3 border-b border-gray-700 flex justify-between items-center"
+              className="flex items-center justify-between border-gray-700 border-b px-4 py-3"
               data-oid="zv.4huh"
             >
               <h3
-                className="text-lg font-semibold text-white"
+                className="font-semibold text-lg text-white"
                 data-oid="2uqxf54"
               >
                 Diagram Preview
@@ -271,50 +271,50 @@ const MermaidRenderer: React.FC<MermaidRendererProps> = ({ chart }) => {
 
               {/* Scale controls */}
               <div className="flex items-center space-x-2" data-oid="4cuf8.b">
-                <span className="text-gray-400 text-sm mr-2" data-oid="5dd7bau">
+                <span className="mr-2 text-gray-400 text-sm" data-oid="5dd7bau">
                   {Math.round(previewScale * 100)}%
                 </span>
                 <button
-                  className="p-1.5 rounded bg-[#000000] text-white hover:bg-gray-600 transition-colors"
-                  onClick={zoomOut}
                   aria-label="Zoom out"
-                  disabled={previewScale <= 0.5}
+                  className="rounded bg-[#000000] p-1.5 text-white transition-colors hover:bg-gray-600"
                   data-oid="5e0k3mi"
+                  disabled={previewScale <= 0.5}
+                  onClick={zoomOut}
                 >
-                  <ZoomOut size={18} data-oid="o6k6l_y" />
+                  <ZoomOut data-oid="o6k6l_y" size={18} />
                 </button>
                 <button
-                  className="p-1.5 rounded bg-[#000000] text-white hover:bg-gray-600 transition-colors"
-                  onClick={zoomIn}
                   aria-label="Zoom in"
-                  disabled={previewScale >= 3.0}
+                  className="rounded bg-[#000000] p-1.5 text-white transition-colors hover:bg-gray-600"
                   data-oid="gtzlyj-"
+                  disabled={previewScale >= 3.0}
+                  onClick={zoomIn}
                 >
-                  <ZoomIn size={18} data-oid="jpj1u3z" />
+                  <ZoomIn data-oid="jpj1u3z" size={18} />
                 </button>
 
                 <button
-                  className="p-1.5 rounded bg-[#000000] text-white hover:bg-gray-600 transition-colors"
-                  onClick={() => setIsExpanded(false)}
                   aria-label="Close expanded view"
+                  className="rounded bg-[#000000] p-1.5 text-white transition-colors hover:bg-gray-600"
                   data-oid="1lc_jpv"
+                  onClick={() => setIsExpanded(false)}
                 >
-                  <X size={18} data-oid="v8tdx5:" />
+                  <X data-oid="v8tdx5:" size={18} />
                 </button>
               </div>
             </div>
 
             {/* Content with increased size */}
             <div
-              className="p-6 flex items-center justify-center overflow-auto"
-              style={{ minHeight: "500px" }}
+              className="flex items-center justify-center overflow-auto p-6"
               data-oid="2.:eaz8"
+              style={{ minHeight: '500px' }}
             >
               <div
-                ref={expandedContainerRef}
                 className="mermaid-expanded-container"
                 data-oid="k1zljj6"
-              ></div>
+                ref={expandedContainerRef}
+              />
             </div>
           </div>
         </div>

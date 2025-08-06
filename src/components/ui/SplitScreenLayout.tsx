@@ -1,13 +1,19 @@
 /* eslint-disable react/prop-types */
-import React, { useEffect, useRef } from "react";
-import MarkdownRenderer, { separateContentAndDiagrams } from "./MarkdownRenderer";
+import React, { useEffect, useRef } from 'react';
+import MarkdownRenderer, {
+  separateContentAndDiagrams,
+} from './MarkdownRenderer';
 
 interface SplitScreenLayoutProps {
   content: string;
   isMobile: boolean;
   className?: string;
   messageId?: string;
-  onDiagramsChange?: (hasDiagrams: boolean, diagramContent: string, messageId?: string) => void;
+  onDiagramsChange?: (
+    hasDiagrams: boolean,
+    diagramContent: string,
+    messageId?: string
+  ) => void;
 }
 
 // Function to check if content has diagrams or code blocks (both go to right panel)
@@ -25,7 +31,17 @@ const hasAnyDiagrams = (content: string): boolean => {
     }
 
     // Check for explicit diagram languages
-    if (['mermaid', 'typogram', 'grammar', 'automata', 'cct', 'circuit-bricks', 'circuit'].includes(language)) {
+    if (
+      [
+        'mermaid',
+        'typogram',
+        'grammar',
+        'automata',
+        'cct',
+        'circuit-bricks',
+        'circuit',
+      ].includes(language)
+    ) {
       return true;
     }
 
@@ -36,7 +52,8 @@ const hasAnyDiagrams = (content: string): boolean => {
 
     // Check for Mermaid diagrams by keywords
     const trimmed = codeString.trim();
-    const mermaidKeywords = /^(graph|flowchart|sequenceDiagram|stateDiagram|classDiagram|gantt|pie|erDiagram)/;
+    const mermaidKeywords =
+      /^(graph|flowchart|sequenceDiagram|stateDiagram|classDiagram|gantt|pie|erDiagram)/;
     if (mermaidKeywords.test(trimmed)) {
       return true;
     }
@@ -51,10 +68,17 @@ const hasAnyDiagrams = (content: string): boolean => {
     const hasTransitionArrows = /(--+>|<--+)/.test(codeString);
     const hasStateMarkers = /[+-]{3,}|[([]final[\])]/.test(codeString);
     const hasStateBoxes = /\+-+\+/.test(codeString);
-    const isAutomataPattern = hasStateIdentifiers && (hasTransitionArrows || hasStateMarkers || hasStateBoxes);
+    const isAutomataPattern =
+      hasStateIdentifiers &&
+      (hasTransitionArrows || hasStateMarkers || hasStateBoxes);
 
     // Treat as diagram if it has specific diagram characteristics
-    if (hasStateTransitions || hasBoxDrawing || hasFlowchartElements || isAutomataPattern) {
+    if (
+      hasStateTransitions ||
+      hasBoxDrawing ||
+      hasFlowchartElements ||
+      isAutomataPattern
+    ) {
       return true;
     }
   }
@@ -62,71 +86,78 @@ const hasAnyDiagrams = (content: string): boolean => {
   return false;
 };
 
-const SplitScreenLayout: React.FC<SplitScreenLayoutProps> = React.memo(function SplitScreenLayout({
-  content,
-  isMobile,
-  className = "",
-  messageId,
-  onDiagramsChange
-}) {
-  const hasDiagrams = hasAnyDiagrams(content);
-  const prevDataRef = useRef<string>("");
+const SplitScreenLayout: React.FC<SplitScreenLayoutProps> = React.memo(
+  function SplitScreenLayout({
+    content,
+    isMobile,
+    className = '',
+    messageId,
+    onDiagramsChange,
+  }) {
+    const hasDiagrams = hasAnyDiagrams(content);
+    const prevDataRef = useRef<string>('');
 
-  // Notify parent about diagram changes
-  useEffect(() => {
-    if (onDiagramsChange) {
-      if (hasDiagrams) {
-        // Extract diagram content
-        const { diagramContent } = separateContentAndDiagrams(content);
-        // Use a ref to prevent multiple calls with the same data
-        const diagramData = JSON.stringify({ hasDiagrams: true, content: diagramContent, messageId });
+    // Notify parent about diagram changes
+    useEffect(() => {
+      if (onDiagramsChange) {
+        if (hasDiagrams) {
+          // Extract diagram content
+          const { diagramContent } = separateContentAndDiagrams(content);
+          // Use a ref to prevent multiple calls with the same data
+          const diagramData = JSON.stringify({
+            hasDiagrams: true,
+            content: diagramContent,
+            messageId,
+          });
 
-        if (prevDataRef.current !== diagramData) {
-          prevDataRef.current = diagramData;
-          onDiagramsChange(true, diagramContent, messageId);
-        }
-      } else {
-        const diagramData = JSON.stringify({ hasDiagrams: false, content: '', messageId });
-        if (prevDataRef.current !== diagramData) {
-          prevDataRef.current = diagramData;
-          onDiagramsChange(false, '', messageId);
+          if (prevDataRef.current !== diagramData) {
+            prevDataRef.current = diagramData;
+            onDiagramsChange(true, diagramContent, messageId);
+          }
+        } else {
+          const diagramData = JSON.stringify({
+            hasDiagrams: false,
+            content: '',
+            messageId,
+          });
+          if (prevDataRef.current !== diagramData) {
+            prevDataRef.current = diagramData;
+            onDiagramsChange(false, '', messageId);
+          }
         }
       }
+    }, [content, hasDiagrams, messageId, onDiagramsChange]);
+
+    // For mobile, handle diagrams in a stacked layout
+    if (isMobile && hasDiagrams) {
+      return (
+        <div className={`flex flex-col space-y-4 ${className}`}>
+          {/* Text content on top */}
+          <div className="w-full">
+            <MarkdownRenderer content={content} onlyText={true} />
+          </div>
+
+          {/* Diagrams below */}
+          <div className="mt-4 w-full border-gray-200 border-t bg-[#0C1114] pt-4 dark:border-gray-700">
+            <div className="mb-3 border-gray-200 border-b pb-2 font-medium text-gray-600 text-sm dark:border-gray-700 dark:text-gray-400">
+              Diagrams
+            </div>
+            <div className="rounded-lg bg-red-500 p-3 dark:bg-[#6597b6]">
+              <MarkdownRenderer content={content} onlyDiagrams={true} />
+            </div>
+          </div>
+        </div>
+      );
     }
-  }, [content, hasDiagrams, messageId, onDiagramsChange]);
 
-  // For mobile, handle diagrams in a stacked layout
-  if (isMobile && hasDiagrams) {
+    // For desktop, render text content only if diagrams are available
+    // Citations will now render inline within the content
     return (
-      <div className={`flex flex-col space-y-4 ${className}`}>
-        {/* Text content on top */}
-        <div className="w-full">
-          <MarkdownRenderer content={content} onlyText={true} />
-        </div>
-
-        {/* Diagrams below */}
-        <div className="w-full border-t bg-[#0C1114] border-gray-200 dark:border-gray-700 pt-4 mt-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-3 font-medium border-b border-gray-200 dark:border-gray-700 pb-2">
-            Diagrams
-          </div>
-          <div className="bg-red-500 dark:bg-[#6597b6] rounded-lg p-3">
-            <MarkdownRenderer content={content} onlyDiagrams={true} />
-          </div>
-        </div>
+      <div className={className}>
+        <MarkdownRenderer content={content} onlyText={hasDiagrams} />
       </div>
     );
   }
-
-  // For desktop, render text content only if diagrams are available
-  // Citations will now render inline within the content
-  return (
-    <div className={className}>
-      <MarkdownRenderer 
-        content={content} 
-        onlyText={hasDiagrams} 
-      />
-    </div>
-  );
-});
+);
 
 export default SplitScreenLayout;

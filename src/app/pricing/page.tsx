@@ -1,4 +1,4 @@
-import { PricingTable } from "@clerk/nextjs";
+import { PricingTable } from '@clerk/nextjs';
 
 export default function Page() {
   return <PricingTable />;

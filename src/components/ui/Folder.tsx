@@ -1,7 +1,7 @@
-import React from "react";
-import Image from "next/image";
+import Image from 'next/image';
 // import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
+import type React from 'react';
 
 interface FolderProps {
   folderName: string;
@@ -15,27 +15,25 @@ const Folder: React.FC<FolderProps> = ({ folderName, folderId }) => {
   };
 
   return (
-    
-      
-      <div onClick={handleFolderClick} className="md:-ml-12 flex max-h-60 min-h-52 ml-12 min-w-16 max-w-52 flex-col motion-scale-in-[0.84] hover:motion-scale-in-[0.74]">
-        <button className="folder">
-          <div className="folder-top text-md p-1 font-medium">{folderName}</div>
-          <div className="folder-body p-1">
-            <Image
-              src="https://sf2jdmaodp.ufs.sh/f/orc4evzyNtrgnPEKfJ6vPpmuLvY28NyWe5RKqhtQnl6JrfHX"
-              alt="folder-img"
-              width={200}
-              height={200}
-              decoding="sync"
-              priority 
-              loading="eager"
-            />
-          </div>
-        </button>
-      </div>
-      
-
-
+    <div
+      className="md:-ml-12 motion-scale-in-[0.84] hover:motion-scale-in-[0.74] ml-12 flex max-h-60 min-h-52 min-w-16 max-w-52 flex-col"
+      onClick={handleFolderClick}
+    >
+      <button className="folder">
+        <div className="folder-top p-1 font-medium text-md">{folderName}</div>
+        <div className="folder-body p-1">
+          <Image
+            alt="folder-img"
+            decoding="sync"
+            height={200}
+            loading="eager"
+            priority
+            src="https://sf2jdmaodp.ufs.sh/f/orc4evzyNtrgnPEKfJ6vPpmuLvY28NyWe5RKqhtQnl6JrfHX"
+            width={200}
+          />
+        </div>
+      </button>
+    </div>
   );
 };
 

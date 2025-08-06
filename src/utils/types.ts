@@ -1,5 +1,3 @@
-
-
 export interface ConvertibleMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';

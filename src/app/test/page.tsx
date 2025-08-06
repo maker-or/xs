@@ -1,7 +1,7 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import React, { useCallback, useEffect, useState } from 'react';
 
 // Utility function to shuffle array
 const shuffleArray = <T,>(array: T[]): T[] => {
@@ -19,7 +19,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 const QuestionTimer = ({
   duration,
   onTimeout,
-  isActive
+  isActive,
 }: {
   duration: number; // in seconds
   onTimeout: () => void;
@@ -61,15 +61,16 @@ const QuestionTimer = ({
   const seconds = timeLeft % 60;
 
   return (
-    <div className="text-center mb-4">
-      <div className="text-lg font-bold text-orange-500">
-        Question Time: {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
+    <div className="mb-4 text-center">
+      <div className="font-bold text-lg text-orange-500">
+        Question Time: {minutes.toString().padStart(2, '0')}:
+        {seconds.toString().padStart(2, '0')}
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+      <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
         <div
-          className="bg-orange-500 h-2 rounded-full transition-all duration-1000"
+          className="h-2 rounded-full bg-orange-500 transition-all duration-1000"
           style={{ width: `${(timeLeft / duration) * 100}%` }}
-        ></div>
+        />
       </div>
     </div>
   );
@@ -97,7 +98,9 @@ const ExamPage = () => {
   } | null>(null);
   const [examAvailable, setExamAvailable] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [answers, setAnswers] = useState<{ question_id: number; selected_option: string }[]>([]);
+  const [answers, setAnswers] = useState<
+    { question_id: number; selected_option: string }[]
+  >([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submissionResult, setSubmissionResult] = useState<{
@@ -108,14 +111,18 @@ const ExamPage = () => {
   } | null>(null);
 
   // New state for shuffled questions and options
-  const [shuffledQuestions, setShuffledQuestions] = useState<{
-    question: string;
-    options: string[];
-    originalIndex: number;
-    optionMapping: number[]; // Maps shuffled option index to original option index
-  }[]>([]);
-  const [completedQuestions, setCompletedQuestions] = useState<Set<number>>(new Set());
-  console.log(completedQuestions)
+  const [shuffledQuestions, setShuffledQuestions] = useState<
+    {
+      question: string;
+      options: string[];
+      originalIndex: number;
+      optionMapping: number[]; // Maps shuffled option index to original option index
+    }[]
+  >([]);
+  const [completedQuestions, setCompletedQuestions] = useState<Set<number>>(
+    new Set()
+  );
+  console.log(completedQuestions);
 
   // Check if an exam is available
   const checkExam = useCallback(async () => {
@@ -138,28 +145,49 @@ const ExamPage = () => {
         setExam(data.exam);
 
         // Create shuffled questions with shuffled options
-        const questionsWithShuffledOptions = data.exam.questions.map((q: { question: string; options: string[]; original_index?: number }, index: number) => {
-          const optionIndices = Array.from({ length: q.options.length }, (_, i) => i);
-          const shuffledIndices = shuffleArray(optionIndices);
-          const shuffledOptions = shuffledIndices.map((i: number) => q.options[i]!);
+        const questionsWithShuffledOptions = data.exam.questions.map(
+          (
+            q: { question: string; options: string[]; original_index?: number },
+            index: number
+          ) => {
+            const optionIndices = Array.from(
+              { length: q.options.length },
+              (_, i) => i
+            );
+            const shuffledIndices = shuffleArray(optionIndices);
+            const shuffledOptions = shuffledIndices.map(
+              (i: number) => q.options[i]!
+            );
 
-          return {
-            question: q.question,
-            options: shuffledOptions,
-            originalIndex: q.original_index ?? index, // Use original_index from API if available
-            optionMapping: shuffledIndices
-          };
-        });
+            return {
+              question: q.question,
+              options: shuffledOptions,
+              originalIndex: q.original_index ?? index, // Use original_index from API if available
+              optionMapping: shuffledIndices,
+            };
+          }
+        );
 
         // Shuffle the questions themselves
         const shuffledQs = shuffleArray(questionsWithShuffledOptions);
         setShuffledQuestions(shuffledQs as typeof questionsWithShuffledOptions);
 
         // Initialize answers array with empty selections based on original question indices
-        setAnswers(data.exam.questions.map((q: { question: string; options: string[]; original_index?: number }, index: number) => ({
-          question_id: q.original_index ?? index, // Use original_index for proper mapping
-          selected_option: ''
-        })));
+        setAnswers(
+          data.exam.questions.map(
+            (
+              q: {
+                question: string;
+                options: string[];
+                original_index?: number;
+              },
+              index: number
+            ) => ({
+              question_id: q.original_index ?? index, // Use original_index for proper mapping
+              selected_option: '',
+            })
+          )
+        );
       } else {
         setExam(null);
         setShuffledQuestions([]);
@@ -167,7 +195,10 @@ const ExamPage = () => {
         setHasSubmitted(!!data.hasSubmitted);
       }
     } catch (err: Error | unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to check for available exams';
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to check for available exams';
       setError(errorMessage);
       setExam(null);
       setExamAvailable(false);
@@ -183,9 +214,11 @@ const ExamPage = () => {
     const currentShuffledQuestion = shuffledQuestions[currentQuestionIndex];
     const originalQuestionIndex = currentShuffledQuestion.originalIndex;
 
-    setAnswers(prev =>
-      prev.map(a =>
-        a.question_id === originalQuestionIndex ? { ...a, selected_option: option } : a
+    setAnswers((prev) =>
+      prev.map((a) =>
+        a.question_id === originalQuestionIndex
+          ? { ...a, selected_option: option }
+          : a
       )
     );
   };
@@ -205,7 +238,7 @@ const ExamPage = () => {
         },
         body: JSON.stringify({
           exam_id: exam.id,
-          answers: answers,
+          answers,
         }),
       });
 
@@ -219,7 +252,7 @@ const ExamPage = () => {
             message: 'Exam already submitted',
             score: 0,
             total: answers.length,
-            percentage: 0
+            percentage: 0,
           });
           return;
         }
@@ -229,7 +262,8 @@ const ExamPage = () => {
       setSubmissionResult(data);
       setHasSubmitted(true);
     } catch (err: Error | unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to submit exam';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to submit exam';
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -242,8 +276,9 @@ const ExamPage = () => {
 
     // Mark current question as completed
     if (shuffledQuestions[currentQuestionIndex]) {
-      const originalIndex = shuffledQuestions[currentQuestionIndex].originalIndex;
-      setCompletedQuestions(prev => new Set([...prev, originalIndex]));
+      const originalIndex =
+        shuffledQuestions[currentQuestionIndex].originalIndex;
+      setCompletedQuestions((prev) => new Set([...prev, originalIndex]));
     }
 
     if (currentQuestionIndex < shuffledQuestions.length - 1) {
@@ -258,8 +293,9 @@ const ExamPage = () => {
   const handleQuestionTimeout = useCallback(() => {
     // Mark current question as completed
     if (shuffledQuestions[currentQuestionIndex]) {
-      const originalIndex = shuffledQuestions[currentQuestionIndex].originalIndex;
-      setCompletedQuestions(prev => new Set([...prev, originalIndex]));
+      const originalIndex =
+        shuffledQuestions[currentQuestionIndex].originalIndex;
+      setCompletedQuestions((prev) => new Set([...prev, originalIndex]));
     }
 
     // Move to next question
@@ -283,9 +319,9 @@ const ExamPage = () => {
   // Loading state
   if (!isLoaded || loading) {
     return (
-      <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-[#000000] text-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto"></div>
+          <div className="mx-auto h-32 w-32 animate-spin rounded-full border-orange-500 border-b-2" />
           <p className="mt-4 text-xl">Loading...</p>
         </div>
       </div>
@@ -295,13 +331,13 @@ const ExamPage = () => {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-[#000000] text-white">
         <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4 text-red-500">Error</h1>
-          <p className="text-xl mb-4">{error}</p>
+          <h1 className="mb-4 font-bold text-3xl text-red-500">Error</h1>
+          <p className="mb-4 text-xl">{error}</p>
           <button
+            className="rounded-md bg-orange-600 px-6 py-3 font-medium hover:bg-orange-700"
             onClick={checkExam}
-            className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-md font-medium"
           >
             Try Again
           </button>
@@ -313,20 +349,23 @@ const ExamPage = () => {
   // Submission result state
   if (submissionResult) {
     return (
-      <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center">
-        <div className="text-center max-w-2xl mx-auto p-8">
-          <h1 className="text-4xl font-bold mb-6 text-green-500">Exam Submitted!</h1>
-          <div className="bg-gray-800 p-6 rounded-lg mb-6">
-            <p className="text-xl mb-4">{submissionResult.message}</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#000000] text-white">
+        <div className="mx-auto max-w-2xl p-8 text-center">
+          <h1 className="mb-6 font-bold text-4xl text-green-500">
+            Exam Submitted!
+          </h1>
+          <div className="mb-6 rounded-lg bg-gray-800 p-6">
+            <p className="mb-4 text-xl">{submissionResult.message}</p>
             {submissionResult.score !== undefined && (
-              <div className="text-2xl font-bold">
-                Score: {submissionResult.score}/{submissionResult.total} ({submissionResult.percentage}%)
+              <div className="font-bold text-2xl">
+                Score: {submissionResult.score}/{submissionResult.total} (
+                {submissionResult.percentage}%)
               </div>
             )}
           </div>
           <button
+            className="rounded-md bg-orange-600 px-8 py-3 font-semibold text-lg hover:bg-orange-700"
             onClick={() => router.push('/dashboard')}
-            className="px-8 py-3 bg-orange-600 hover:bg-orange-700 rounded-md font-semibold text-lg"
           >
             Back to Dashboard
           </button>
@@ -338,20 +377,19 @@ const ExamPage = () => {
   // No exam available or already submitted
   if (!examAvailable || hasSubmitted) {
     return (
-      <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-[#000000] text-white">
         <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">
+          <h1 className="mb-4 font-bold text-3xl">
             {hasSubmitted ? 'Exam Already Submitted' : 'No Exam Available'}
           </h1>
-          <p className="text-xl mb-6">
+          <p className="mb-6 text-xl">
             {hasSubmitted
               ? 'You have already submitted your exam. Thank you!'
-              : 'There are currently no exams available for you to take.'
-            }
+              : 'There are currently no exams available for you to take.'}
           </p>
           <button
+            className="rounded-md bg-orange-600 px-8 py-3 font-semibold text-lg hover:bg-orange-700"
             onClick={() => router.push('/dashboard')}
-            className="px-8 py-3 bg-orange-600 hover:bg-orange-700 rounded-md font-semibold text-lg"
           >
             Back to Dashboard
           </button>
@@ -366,77 +404,93 @@ const ExamPage = () => {
       {examAvailable && exam && shuffledQuestions.length > 0 && (
         <div className="flex min-h-screen">
           {/* Main content */}
-          <div className="flex items-center justify-center w-full">
-            <form onSubmit={(e) => { e.preventDefault(); submitExam(); }} className="max-w-3xl mx-auto">
+          <div className="flex w-full items-center justify-center">
+            <form
+              className="mx-auto max-w-3xl"
+              onSubmit={(e) => {
+                e.preventDefault();
+                submitExam();
+              }}
+            >
               {/* Question Timer */}
               <QuestionTimer
-                key={currentQuestionIndex} // Reset timer when question changes
-                duration={exam.question_time_limit || 30}
-                onTimeout={handleQuestionTimeout}
+                duration={exam.question_time_limit || 30} // Reset timer when question changes
                 isActive={true}
+                key={currentQuestionIndex}
+                onTimeout={handleQuestionTimeout}
               />
 
               {/* Question Progress */}
-              <div className="text-center mb-6">
-                <span className="text-lg font-medium text-gray-300">
-                  Question {currentQuestionIndex + 1} of {shuffledQuestions.length}
+              <div className="mb-6 text-center">
+                <span className="font-medium text-gray-300 text-lg">
+                  Question {currentQuestionIndex + 1} of{' '}
+                  {shuffledQuestions.length}
                 </span>
               </div>
 
               {/* Display only the current shuffled question */}
               {shuffledQuestions[currentQuestionIndex] && (
                 <div>
-                  <h2 className="text-2xl text-[#f7eee3] font-bold mb-8">
+                  <h2 className="mb-8 font-bold text-2xl text-[#f7eee3]">
                     {shuffledQuestions[currentQuestionIndex]?.question}
                   </h2>
                   <div className="space-y-3">
-                    {shuffledQuestions[currentQuestionIndex]?.options.map((option, oIndex) => {
-                      const originalQuestionIndex = shuffledQuestions[currentQuestionIndex]?.originalIndex ?? 0;
-                      const answerForThisQuestion = answers.find(a => a.question_id === originalQuestionIndex);
-                      const isSelected = answerForThisQuestion?.selected_option === option;
+                    {shuffledQuestions[currentQuestionIndex]?.options.map(
+                      (option, oIndex) => {
+                        const originalQuestionIndex =
+                          shuffledQuestions[currentQuestionIndex]
+                            ?.originalIndex ?? 0;
+                        const answerForThisQuestion = answers.find(
+                          (a) => a.question_id === originalQuestionIndex
+                        );
+                        const isSelected =
+                          answerForThisQuestion?.selected_option === option;
 
-                      return (
-                        <label
-                          key={oIndex}
-                          className={`block p-4 border rounded-md cursor-pointer hover:text-[#f7eee3] ${
-                            isSelected
-                              ? 'bg-[#683D24] border-[#FF5E00] '
-                              : 'bg-[#F7EEE3] hover:bg-[#0c0c0c] text-black'
-                          }`}
-                        >
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 flex bg-[#0C0C0C] text-[#f7eee3] items-center justify-center mr-3 rounded-md border font-medium">
-                              {String.fromCharCode(65 + oIndex)}
+                        return (
+                          <label
+                            className={`block cursor-pointer rounded-md border p-4 hover:text-[#f7eee3] ${
+                              isSelected
+                                ? 'border-[#FF5E00] bg-[#683D24] '
+                                : 'bg-[#F7EEE3] text-black hover:bg-[#0c0c0c]'
+                            }`}
+                            key={oIndex}
+                          >
+                            <div className="flex items-center">
+                              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-md border bg-[#0C0C0C] font-medium text-[#f7eee3]">
+                                {String.fromCharCode(65 + oIndex)}
+                              </div>
+                              <input
+                                checked={isSelected}
+                                className="hidden"
+                                name={`question-${currentQuestionIndex}`}
+                                onChange={() =>
+                                  handleAnswerSelect(oIndex, option)
+                                }
+                                type="radio"
+                                value={option}
+                              />
+                              <span>{option}</span>
                             </div>
-                            <input
-                              type="radio"
-                              name={`question-${currentQuestionIndex}`}
-                              value={option}
-                              checked={isSelected}
-                              onChange={() => handleAnswerSelect(oIndex, option)}
-                              className="hidden"
-                            />
-                            <span>{option}</span>
-                          </div>
-                        </label>
-                      );
-                    })}
+                          </label>
+                        );
+                      }
+                    )}
                   </div>
 
-                  <div className="flex justify-center mt-8">
+                  <div className="mt-8 flex justify-center">
                     {currentQuestionIndex === shuffledQuestions.length - 1 ? (
                       <button
-                        type="submit"
+                        className="rounded-md bg-green-600 px-8 py-3 font-semibold text-lg hover:bg-green-700 disabled:opacity-50"
                         disabled={isSubmitting}
-                        className="px-8 py-3 bg-green-600 hover:bg-green-700 rounded-md font-semibold text-lg disabled:opacity-50"
+                        type="submit"
                       >
                         {isSubmitting ? 'Submitting...' : 'Submit Exam'}
                       </button>
                     ) : (
                       <button
-                        type="button"
+                        className="rounded-md bg-orange-600 px-6 py-3 font-medium hover:bg-orange-700"
                         onClick={goToNextQuestion}
-                        className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-md font-medium"
+                        type="button"
                       >
                         Next Question →
                       </button>

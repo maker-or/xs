@@ -1,10 +1,10 @@
-import { v } from "convex/values";
-import { query, mutation, internalMutation } from "./_generated/server";
+import { v } from 'convex/values';
+import { internalMutation, mutation, query } from './_generated/server';
 
 export const getMessages = query({
   args: {
-    chatId: v.id("chats"),
-    branchId: v.optional(v.id("branches")),
+    chatId: v.id('chats'),
+    branchId: v.optional(v.id('branches')),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -19,11 +19,11 @@ export const getMessages = query({
     if (!args.branchId) {
       // Return main thread messages (no branchId)
       const messages = await ctx.db
-        .query("messages")
-        .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
-        .filter((q) => q.eq(q.field("isActive"), true))
-        .filter((q) => q.eq(q.field("branchId"), undefined))
-        .order("asc")
+        .query('messages')
+        .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
+        .filter((q) => q.eq(q.field('isActive'), true))
+        .filter((q) => q.eq(q.field('branchId'), undefined))
+        .order('asc')
         .collect();
 
       return messages;
@@ -38,20 +38,20 @@ export const getMessages = query({
     if (!branchPoint) return [];
 
     const beforeBranchMessages = await ctx.db
-      .query("messages")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
-      .filter((q) => q.eq(q.field("isActive"), true))
-      .filter((q) => q.eq(q.field("branchId"), undefined))
-      .filter((q) => q.lte(q.field("createdAt"), branchPoint.createdAt))
-      .order("asc")
+      .query('messages')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
+      .filter((q) => q.eq(q.field('isActive'), true))
+      .filter((q) => q.eq(q.field('branchId'), undefined))
+      .filter((q) => q.lte(q.field('createdAt'), branchPoint.createdAt))
+      .order('asc')
       .collect();
 
     // Get messages specific to this branch
     const branchMessages = await ctx.db
-      .query("messages")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.branchId))
-      .filter((q) => q.eq(q.field("isActive"), true))
-      .order("asc")
+      .query('messages')
+      .withIndex('by_branch', (q) => q.eq('branchId', args.branchId))
+      .filter((q) => q.eq(q.field('isActive'), true))
+      .order('asc')
       .collect();
 
     return [...beforeBranchMessages, ...branchMessages];
@@ -60,29 +60,29 @@ export const getMessages = query({
 
 export const addMessage = mutation({
   args: {
-    chatId: v.id("chats"),
+    chatId: v.id('chats'),
     role: v.union(
-      v.literal("user"),
-      v.literal("assistant"),
-      v.literal("system"),
+      v.literal('user'),
+      v.literal('assistant'),
+      v.literal('system')
     ),
     content: v.string(),
-    parentId: v.optional(v.id("messages")),
+    parentId: v.optional(v.id('messages')),
     model: v.optional(v.string()),
-    branchId: v.optional(v.id("branches")),
+    branchId: v.optional(v.id('branches')),
     webSearchUsed: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
 
     const chat = await ctx.db.get(args.chatId);
     if (!chat || (chat.userId !== userId && !chat.isShared)) {
-      throw new Error("Unauthorized");
+      throw new Error('Unauthorized');
     }
 
-    const messageId = await ctx.db.insert("messages", {
+    const messageId = await ctx.db.insert('messages', {
       chatId: args.chatId,
       userId,
       role: args.role,
@@ -101,20 +101,20 @@ export const addMessage = mutation({
 
 export const updateMessage = mutation({
   args: {
-    messageId: v.id("messages"),
+    messageId: v.id('messages'),
     content: v.string(),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
 
     const message = await ctx.db.get(args.messageId);
-    if (!message) throw new Error("Message not found");
+    if (!message) throw new Error('Message not found');
 
     const chat = await ctx.db.get(message.chatId);
     if (!chat || chat.userId !== userId) {
-      throw new Error("Unauthorized");
+      throw new Error('Unauthorized');
     }
 
     await ctx.db.patch(args.messageId, {
@@ -124,18 +124,18 @@ export const updateMessage = mutation({
 });
 
 export const deleteMessage = mutation({
-  args: { messageId: v.id("messages") },
+  args: { messageId: v.id('messages') },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
 
     const message = await ctx.db.get(args.messageId);
-    if (!message) throw new Error("Message not found");
+    if (!message) throw new Error('Message not found');
 
     const chat = await ctx.db.get(message.chatId);
     if (!chat || chat.userId !== userId) {
-      throw new Error("Unauthorized");
+      throw new Error('Unauthorized');
     }
 
     await ctx.db.patch(args.messageId, { isActive: false });
@@ -145,15 +145,15 @@ export const deleteMessage = mutation({
 // Streaming session management
 export const createStreamingSession = mutation({
   args: {
-    chatId: v.id("chats"),
-    messageId: v.id("messages"),
+    chatId: v.id('chats'),
+    messageId: v.id('messages'),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
 
-    const sessionId = await ctx.db.insert("streamingSessions", {
+    const sessionId = await ctx.db.insert('streamingSessions', {
       chatId: args.chatId,
       messageId: args.messageId,
       userId,
@@ -167,7 +167,7 @@ export const createStreamingSession = mutation({
 
 export const updateStreamingSession = internalMutation({
   args: {
-    sessionId: v.id("streamingSessions"),
+    sessionId: v.id('streamingSessions'),
     chunk: v.string(),
     isComplete: v.optional(v.boolean()),
   },
@@ -188,7 +188,7 @@ export const updateStreamingSession = internalMutation({
       // Update the message content with the chunk
       const message = await ctx.db.get(session.messageId);
       if (message) {
-        const newContent = (message.content || "") + args.chunk;
+        const newContent = (message.content || '') + args.chunk;
         await ctx.db.patch(session.messageId, {
           content: newContent,
         });
@@ -198,18 +198,18 @@ export const updateStreamingSession = internalMutation({
 });
 
 export const getActiveStreamingSession = query({
-  args: { chatId: v.id("chats") },
+  args: { chatId: v.id('chats') },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
     const userId = identity.subject;
 
     const session = await ctx.db
-      .query("streamingSessions")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
-      .filter((q) => q.eq(q.field("userId"), userId))
-      .filter((q) => q.eq(q.field("isActive"), true))
-      .order("desc")
+      .query('streamingSessions')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
+      .filter((q) => q.eq(q.field('userId'), userId))
+      .filter((q) => q.eq(q.field('isActive'), true))
+      .order('desc')
       .first();
 
     return session;
@@ -217,12 +217,12 @@ export const getActiveStreamingSession = query({
 });
 
 export const getLastMessageInChat = query({
-  args: { chatId: v.id("chats") },
+  args: { chatId: v.id('chats') },
   handler: async (ctx, args) => {
     const messages = await ctx.db
-      .query("messages")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
-      .order("desc")
+      .query('messages')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
+      .order('desc')
       .collect();
     return messages[0] ?? null;
   },
@@ -230,8 +230,8 @@ export const getLastMessageInChat = query({
 
 export const signalProcessingComplete = mutation({
   args: {
-    parentMessageId: v.optional(v.id("messages")),
-    assistantMessageId: v.id("messages"),
+    parentMessageId: v.optional(v.id('messages')),
+    assistantMessageId: v.id('messages'),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.assistantMessageId, {
@@ -242,7 +242,7 @@ export const signalProcessingComplete = mutation({
 
 export const getProcessingStatus = query({
   args: {
-    parentId: v.optional(v.id("messages")),
+    parentId: v.optional(v.id('messages')),
   },
   handler: async (ctx, args) => {
     if (!args.parentId) {
@@ -250,9 +250,9 @@ export const getProcessingStatus = query({
     }
 
     const completedMessages = await ctx.db
-      .query("messages")
-      .withIndex("by_parent", (q) => q.eq("parentId", args.parentId))
-      .filter((q) => q.eq(q.field("isProcessingComplete"), true))
+      .query('messages')
+      .withIndex('by_parent', (q) => q.eq('parentId', args.parentId))
+      .filter((q) => q.eq(q.field('isProcessingComplete'), true))
       .collect();
 
     return completedMessages.length > 0;
@@ -261,18 +261,18 @@ export const getProcessingStatus = query({
 
 export const complete = query({
   args: {
-    chatId: v.id("chats"),
+    chatId: v.id('chats'),
   },
   handler: async (ctx, args) => {
     if (!args.chatId) {
       return false;
     }
-    
+
     const isCompleted = await ctx.db
-      .query("messages")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
-      .filter((q) => q.eq(q.field("role"), "assistant"))
-      .filter((q) => q.eq(q.field("isProcessingComplete"), true))
+      .query('messages')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
+      .filter((q) => q.eq(q.field('role'), 'assistant'))
+      .filter((q) => q.eq(q.field('isProcessingComplete'), true))
       .first();
 
     return !!isCompleted;
@@ -281,25 +281,24 @@ export const complete = query({
 
 export const getCompleteResponse = query({
   args: {
-    parentId: v.optional(v.id("messages")),
+    parentId: v.optional(v.id('messages')),
     completionSignal: v.boolean(),
   },
   handler: async (ctx, args) => {
-    if (!args.parentId || !args.completionSignal) {
+    if (!(args.parentId && args.completionSignal)) {
       return null;
     }
 
     const completedMessages = await ctx.db
-      .query("messages")
-      .withIndex("by_parent", (q) => q.eq("parentId", args.parentId))
-      .filter((q) => q.eq(q.field("isProcessingComplete"), true))
+      .query('messages')
+      .withIndex('by_parent', (q) => q.eq('parentId', args.parentId))
+      .filter((q) => q.eq(q.field('isProcessingComplete'), true))
       .collect();
 
     if (completedMessages.length > 0) {
       const firstMessage = completedMessages[0];
       return firstMessage?.content ?? null;
-    } else {
-      return null;
     }
+    return null;
   },
 });

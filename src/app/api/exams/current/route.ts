@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import {auth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
+import { and, eq, gte, lte } from 'drizzle-orm';
+import { type NextRequest, NextResponse } from 'next/server';
 import { db } from '~/server/db';
 import { exams, results } from '~/server/db/schema';
-import { and, eq, lte, gte } from 'drizzle-orm';
 
 export async function GET(_req: NextRequest) {
   try {
@@ -11,7 +11,10 @@ export async function GET(_req: NextRequest) {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
     }
 
     // Get the current timestamp
@@ -24,7 +27,7 @@ export async function GET(_req: NextRequest) {
       .where(eq(results.user_id, userId))
       .execute();
 
-    const submittedExamIds = submittedExams.map(result => result.exam_id);
+    const submittedExamIds = submittedExams.map((result) => result.exam_id);
 
     // Find exams that are currently active (between start and end dates)
     const currentExams = await db
@@ -33,20 +36,20 @@ export async function GET(_req: NextRequest) {
       .where(
         and(
           lte(exams.starts_at, now), // starts_at <= now
-          gte(exams.ends_at, now)   // ends_at >= now
+          gte(exams.ends_at, now) // ends_at >= now
           // We'll filter by allowed_users after fetching
         )
       )
       .execute();
 
     // Filter exams that the user is allowed to take
-    const userExams = currentExams.filter(exam =>
+    const userExams = currentExams.filter((exam) =>
       exam?.allowed_users?.includes(userId)
     );
 
     // Filter exams that haven't been submitted yet
     const availableExams = userExams.filter(
-      exam => exam && !submittedExamIds.includes(exam.id)
+      (exam) => exam && !submittedExamIds.includes(exam.id)
     );
 
     // If we have an available exam, return it
@@ -64,19 +67,22 @@ export async function GET(_req: NextRequest) {
       // Generate a unique seed for this student to ensure consistent question selection per session
       const studentSeed = `${exam.id}-${userId}`;
       const seedHash = studentSeed.split('').reduce((a, b) => {
-        a = ((a << 5) - a) + b.charCodeAt(0);
+        a = (a << 5) - a + b.charCodeAt(0);
         return a & a;
       }, 0);
 
       // Use seeded random to ensure consistent selection for the same student
       const seededRandom = (seed: number) => {
-        const x = Math.sin(seed) * 10000;
+        const x = Math.sin(seed) * 10_000;
         return x - Math.floor(x);
       };
 
       // Randomly select the requested number of questions for this specific student
       const allQuestions = exam.questions || [];
-      const questionIndices = Array.from({ length: allQuestions.length }, (_, i) => i);
+      const questionIndices = Array.from(
+        { length: allQuestions.length },
+        (_, i) => i
+      );
 
       // Shuffle indices using seeded random for consistent per-student selection
       for (let i = questionIndices.length - 1; i > 0; i--) {
@@ -88,7 +94,9 @@ export async function GET(_req: NextRequest) {
 
       // Select only the number of questions requested by teacher
       const selectedIndices = questionIndices.slice(0, exam.num_questions);
-      const selectedQuestions = selectedIndices.map(index => allQuestions[index]);
+      const selectedQuestions = selectedIndices.map(
+        (index) => allQuestions[index]
+      );
 
       // Remove the correct answers from the selected questions before sending to the client
       // Also include the original indices for proper answer mapping during submission
@@ -98,7 +106,9 @@ export async function GET(_req: NextRequest) {
         original_index: selectedIndices[index], // Include original index for submission mapping
       }));
 
-      console.log(`Student ${userId} gets ${sanitizedQuestions.length} questions from pool of ${allQuestions.length}`);
+      console.log(
+        `Student ${userId} gets ${sanitizedQuestions.length} questions from pool of ${allQuestions.length}`
+      );
 
       return NextResponse.json({
         available: true,
@@ -113,25 +123,27 @@ export async function GET(_req: NextRequest) {
           questions: sanitizedQuestions,
         },
       });
-    } else {
-      // Check if user has already submitted an exam that's currently active
-      const hasSubmitted = submittedExamIds.length > 0 && userExams.some(
-        exam => exam && submittedExamIds.includes(exam.id)
-      );
-
-      return NextResponse.json({
-        available: false,
-        hasSubmitted: hasSubmitted,
-        message: hasSubmitted
-          ? 'You have already submitted this exam'
-          : 'No exam available at this time',
-      });
     }
+    // Check if user has already submitted an exam that's currently active
+    const hasSubmitted =
+      submittedExamIds.length > 0 &&
+      userExams.some((exam) => exam && submittedExamIds.includes(exam.id));
+
+    return NextResponse.json({
+      available: false,
+      hasSubmitted,
+      message: hasSubmitted
+        ? 'You have already submitted this exam'
+        : 'No exam available at this time',
+    });
   } catch (error) {
     console.error('Error checking for exams:', error);
-    return NextResponse.json({
-      error: 'Failed to check for exams',
-      available: false,
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Failed to check for exams',
+        available: false,
+      },
+      { status: 500 }
+    );
   }
 }

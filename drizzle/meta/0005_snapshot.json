@@ -434,12 +434,8 @@
           "name": "gallery_post_folderId_gallery_folders_folderId_fk",
           "tableFrom": "gallery_post",
           "tableTo": "gallery_folders",
-          "columnsFrom": [
-            "folderId"
-          ],
-          "columnsTo": [
-            "folderId"
-          ],
+          "columnsFrom": ["folderId"],
+          "columnsTo": ["folderId"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -652,12 +648,8 @@
           "name": "gallery_results_exam_id_gallery_exams_id_fk",
           "tableFrom": "gallery_results",
           "tableTo": "gallery_exams",
-          "columnsFrom": [
-            "exam_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["exam_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -667,10 +659,7 @@
         "results_exam_user_unique": {
           "name": "results_exam_user_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "exam_id",
-            "user_id"
-          ]
+          "columns": ["exam_id", "user_id"]
         }
       }
     },
@@ -822,11 +811,7 @@
     "public.difficulty": {
       "name": "difficulty",
       "schema": "public",
-      "values": [
-        "easy",
-        "medium",
-        "hard"
-      ]
+      "values": ["easy", "medium", "hard"]
     }
   },
   "schemas": {},

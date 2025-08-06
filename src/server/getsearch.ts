@@ -1,4 +1,3 @@
-
 // import { auth } from "@clerk/nextjs/server";
 // import { db } from "~/server/db";
 // import { posts } from "./db/schema";

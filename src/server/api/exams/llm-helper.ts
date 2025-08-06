@@ -1,10 +1,8 @@
-
-import { questionsArraySchema } from './schemas';
-import { Pinecone } from '@pinecone-database/pinecone';
-import { getEmbedding } from '~/utils/embeddings';
-import {  generateText } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-
+import { Pinecone } from '@pinecone-database/pinecone';
+import { generateText } from 'ai';
+import { getEmbedding } from '~/utils/embeddings';
+import { questionsArraySchema } from './schemas';
 
 export async function generateQuestions({
   subject,
@@ -18,19 +16,15 @@ export async function generateQuestions({
   difficulty: string;
 }) {
   try {
+    const pinecone = new Pinecone({
+      apiKey: process.env.PINECONE_API_KEY ?? '',
+    });
 
-        const pinecone = new Pinecone({
-            apiKey: process.env.PINECONE_API_KEY ?? '',
-        });
+    const openrouter = createOpenRouter({
+      apiKey: process.env.OPENROUTER_API_KEY ?? '',
+    });
 
-
-        const openrouter = createOpenRouter({
-            apiKey: process.env.OPENROUTER_API_KEY ?? "",
-        });
-
-
-
-                const sub = `
+    const sub = `
       You are a query classifier. Your task is to categorize a given query into one of the following subjects and return only the corresponding subject tag. Do not include any other text,symbols or information in your response even the new line.
 
       The possible subject categories and their tags are:
@@ -43,34 +37,40 @@ export async function generateQuestions({
 
       Analyze the following query: "${subject} and ${topic}" and return the appropriate tag.`;
 
+    const i = await generateText({
+      //model: groq('llama-3.3-70b-versatile'),
+      model: openrouter('google/gemma-3-27b-it:free'),
+      prompt: sub,
+      temperature: 0,
+    });
+    // Create embeddings
+    const queryEmbedding = await getEmbedding(subject);
+    const index = pinecone.index(i.text);
+    const queryResponse = await index.namespace('').query({
+      vector: queryEmbedding,
+      topK: 7,
+      includeMetadata: true,
+    });
 
-
-              const i = await generateText({
-            //model: groq('llama-3.3-70b-versatile'),
-            model: openrouter('google/gemma-3-27b-it:free'),
-            prompt: sub,
-            temperature: 0,
-        });
-        // Create embeddings
-        const queryEmbedding = await getEmbedding(subject);
-        const index = pinecone.index(i.text);
-        const queryResponse = await index.namespace('').query({
-            vector: queryEmbedding,
-            topK: 7,
-            includeMetadata: true,
-        });
-
-        if (!queryResponse.matches || queryResponse.matches.length === 0) {
-            throw new Error('No relevant context found in Pinecone');
-        }
+    if (!queryResponse.matches || queryResponse.matches.length === 0) {
+      throw new Error('No relevant context found in Pinecone');
+    }
 
     // Generate twice the number of questions for better variety and randomization
     const questionsToGenerate = num_questions * 2;
 
     // Log the request for troubleshooting
-    console.log('Generating questions for:', { subject, topic, requested: num_questions, generating: questionsToGenerate, difficulty });
+    console.log('Generating questions for:', {
+      subject,
+      topic,
+      requested: num_questions,
+      generating: questionsToGenerate,
+      difficulty,
+    });
 
-      const context = queryResponse.matches.map((match) => String(match.metadata?.text ?? '')).join('\n\n');
+    const context = queryResponse.matches
+      .map((match) => String(match.metadata?.text ?? ''))
+      .join('\n\n');
 
     // Construct the prompt based on inputs - generate double the questions
     const prompt = `
@@ -105,10 +105,10 @@ export async function generateQuestions({
     `;
 
     // Make the API call to OpenRouter
-       const response = await generateText({
-            model: openrouter('google/gemma-3-27b-it:free'),
-            prompt: prompt,
-            system: `You are an expert question creator for educational tests. Your task is to generate multiple-choice questions (MCQs) based on the provided topic, difficulty level, and context.
+    const response = await generateText({
+      model: openrouter('google/gemma-3-27b-it:free'),
+      prompt,
+      system: `You are an expert question creator for educational tests. Your task is to generate multiple-choice questions (MCQs) based on the provided topic, difficulty level, and context.
 
 Difficulty levels are defined as follows:
 - Easy: Questions that test basic understanding or recall of facts.
@@ -125,10 +125,8 @@ Instructions:
 - Specify the correct answer by its index (0 for the first option, 1 for the second, etc.).
 - Generate exactly ${questionsToGenerate} unique questions to provide variety for question selection.
 
-Ensure that each question is unique and covers different aspects of the topic.`
-
-
-        });
+Ensure that each question is unique and covers different aspects of the topic.`,
+    });
     // Get the text response
     const content = response.text || '[]';
 
@@ -143,7 +141,9 @@ Ensure that each question is unique and covers different aspects of the topic.`
 
       // Check if we have enough questions generated (should be 2x the requested amount)
       if (validatedQuestions.length < num_questions) {
-        console.warn(`Only generated ${validatedQuestions.length} questions, but at least ${num_questions} were needed`);
+        console.warn(
+          `Only generated ${validatedQuestions.length} questions, but at least ${num_questions} were needed`
+        );
         return {
           questions: validatedQuestions, // Return what we have
           error: null,
@@ -151,7 +151,11 @@ Ensure that each question is unique and covers different aspects of the topic.`
       }
 
       // Return ALL generated questions - selection will happen per-student in the API
-      console.log('Successfully generated questions:', validatedQuestions.length, 'for question pool');
+      console.log(
+        'Successfully generated questions:',
+        validatedQuestions.length,
+        'for question pool'
+      );
 
       return {
         questions: validatedQuestions, // Return all questions for the pool

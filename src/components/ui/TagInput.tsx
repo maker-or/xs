@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 // components/TagInput.tsx
-import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import { type ChangeEvent, type KeyboardEvent, useState } from 'react';
 
 interface TagInputProps {
   tags: string[];
@@ -31,23 +31,23 @@ const TagInput: React.FC<TagInputProps> = ({ tags, setTags }) => {
   return (
     <div>
       <input
-        type="text"
-        value={inputValue}
+        className="mt-8 w-[90%] border-gray-300 border-b bg-inherit text-2xl text-[#E8E8E6] outline-none placeholder:text-[#9CA3AF]"
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder="Type a tag and press space..."
-        className='w-[90%] border-b border-gray-300 bg-inherit text-2xl  text-[#E8E8E6] outline-none mt-8 placeholder:text-[#9CA3AF]'
+        type="text"
+        value={inputValue}
       />
 
-<div className='flex mb-2 mt-6 justify-start gap-4'>
+      <div className="mt-6 mb-2 flex justify-start gap-4">
         {tags.map((tag, index) => (
           <div
-            className='bg-blue-600 text-white rounded-md px-6 py-2'
+            className="rounded-md bg-blue-600 px-6 py-2 text-white"
             key={index}
           >
             {tag}
             <button
-              className='ml-[5px] text-white cursor-pointer'
+              className="ml-[5px] cursor-pointer text-white"
               onClick={() => handleDelete(tag)}
             >
               &times;

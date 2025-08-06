@@ -1,5 +1,5 @@
 // components/Greeting.tsx
-import React from 'react';
+import type React from 'react';
 
 const Greeting: React.FC = () => {
   const getGreeting = () => {
@@ -10,8 +10,10 @@ const Greeting: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center items-center m-3">
-      <h1 className="text-5xl  text-[#f7eee3]  font-serif italic">{getGreeting()}</h1>
+    <div className="m-3 flex items-center justify-center">
+      <h1 className="font-serif text-5xl text-[#f7eee3] italic">
+        {getGreeting()}
+      </h1>
     </div>
   );
 };

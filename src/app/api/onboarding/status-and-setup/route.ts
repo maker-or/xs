@@ -1,21 +1,18 @@
+import { auth } from '@clerk/nextjs/server';
+import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { db } from '~/server/db';
 import { users } from '~/server/db/schema';
-import { auth } from "@clerk/nextjs/server";
-import { eq } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
     // Get authentication data from Clerk
     const { userId: authUserId, sessionClaims } = await auth();
-    
+
     if (!authUserId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     // Parse the request body
     const requestBody = await request.json();
     const { email, organisationId, role: requestRole, userType } = requestBody;
@@ -32,14 +29,14 @@ export async function POST(request: Request) {
         role: existingUser.role,
         organisationId: existingUser.organisation_id,
         userType: userType || 'college_user', // Include user type in response
-        message: 'User already onboarded'
+        message: 'User already onboarded',
       });
     }
 
     // New user - create their account
     // Enhanced role determination logic
     let finalRole = 'member'; // Default role
-    
+
     // Priority order for role determination:
     // 1. From request body (passed from organization invitation)
     // 2. From Clerk session claims (organization role)
@@ -47,14 +44,14 @@ export async function POST(request: Request) {
     if (requestRole) {
       // Map common organization roles to our system roles
       const roleMapping: { [key: string]: string } = {
-        'admin': 'admin',
+        admin: 'admin',
         'org:admin': 'admin',
-        'teacher': 'admin',
-        'member': 'member',
+        teacher: 'admin',
+        member: 'member',
         'org:member': 'member',
-        'student': 'member',
+        student: 'member',
       };
-      
+
       finalRole = roleMapping[requestRole.toLowerCase()] || 'member';
     } else if (sessionClaims?.org_role) {
       // Fallback to session claims
@@ -63,7 +60,7 @@ export async function POST(request: Request) {
 
     // Enhanced organization ID resolution
     let finalOrgId = 'default-org'; // Fallback
-    
+
     // Priority order for organization ID:
     // 1. From request body (most reliable for invitations)
     // 2. From session claims (current active organization)
@@ -76,22 +73,22 @@ export async function POST(request: Request) {
 
     console.log('Organization and role resolution:', {
       fromRequest: { organisationId, role: requestRole },
-      fromSession: { 
-        org_id: sessionClaims?.org_id, 
-        org_role: sessionClaims?.org_role 
+      fromSession: {
+        org_id: sessionClaims?.org_id,
+        org_role: sessionClaims?.org_role,
       },
       finalValues: { organisationId: finalOrgId, role: finalRole },
-      userEmail: Array.isArray(email) ? email[0]?.emailAddress : email
+      userEmail: Array.isArray(email) ? email[0]?.emailAddress : email,
     });
 
     // Enhanced email processing
     let emailValue = '';
-    
+
     if (email) {
       if (Array.isArray(email)) {
         // Handle Clerk email array format
         if (email.length > 0) {
-          const primaryEmail = email.find(e => e.id) || email[0];
+          const primaryEmail = email.find((e) => e.id) || email[0];
           emailValue = primaryEmail?.emailAddress || primaryEmail?.email || '';
         }
       } else if (typeof email === 'string') {
@@ -100,21 +97,24 @@ export async function POST(request: Request) {
         emailValue = email.emailAddress || email.email || '';
       }
     }
-    
+
     // Fallback email generation if needed
     if (!emailValue) {
       emailValue = `${authUserId}@unknown.com`;
       console.log('No email found, using fallback:', emailValue);
     }
-    
+
     // Create new user record
-    const newUser = await db.insert(users).values({
-      userid: authUserId,
-      email: emailValue,
-      organisation_id: finalOrgId,
-      role: finalRole,
-      created_at: new Date(),
-    }).returning();
+    const newUser = await db
+      .insert(users)
+      .values({
+        userid: authUserId,
+        email: emailValue,
+        organisation_id: finalOrgId,
+        role: finalRole,
+        created_at: new Date(),
+      })
+      .returning();
 
     if (!newUser.length) {
       throw new Error('Failed to create user record');
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
       userId: authUserId,
       email: emailValue,
       organisationId: finalOrgId,
-      role: finalRole
+      role: finalRole,
     });
 
     return NextResponse.json({
@@ -132,15 +132,14 @@ export async function POST(request: Request) {
       role: finalRole,
       organisationId: finalOrgId,
       userType: userType || 'college_user', // Include user type in response
-      message: 'User successfully onboarded'
+      message: 'User successfully onboarded',
     });
-    
   } catch (error) {
     console.error('Onboarding error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to process onboarding',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

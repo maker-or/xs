@@ -1,24 +1,24 @@
 // Knowledge.tsx
 
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
 const Knowledge = () => {
   return (
     <div className="flex min-h-[100svh] min-w-[100svw] flex-col items-center justify-center bg-[#0c0c0c] py-20 text-white">
       <h1 className="flex justify-center text-center text-[4em]">
-        What is{" "}
-        <span className="ml-2 font-serif italic text-[#FF5E00]">sphereai</span>
+        What is{' '}
+        <span className="ml-2 font-serif text-[#FF5E00] italic">sphereai</span>
       </h1>
 
       <div className="mt-8 flex items-center justify-center gap-3 p-3">
         <h1 className="text-2xl">Knowledge base</h1>
         <svg
-          width="24"
+          fill="none"
           height="24"
           viewBox="0 0 35 36"
-          fill="none"
+          width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
@@ -28,10 +28,10 @@ const Knowledge = () => {
         </svg>
         <h1 className="text-2xl">Intelligences</h1>
         <svg
-          width="24"
+          fill="none"
           height="24"
           viewBox="0 0 35 36"
-          fill="none"
+          width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
@@ -41,10 +41,10 @@ const Knowledge = () => {
         </svg>
         <h1 className="text-2xl">Productivity tools</h1>
         <svg
-          width="24"
+          fill="none"
           height="24"
           viewBox="0 0 35 36"
-          fill="none"
+          width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path

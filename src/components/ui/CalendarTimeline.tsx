@@ -1,10 +1,5 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type Event = {
   id: number;
@@ -17,30 +12,29 @@ type Event = {
 
 // Hardcoded special events that everyone will see
 const SPECIAL_EVENTS: Event[] = [
-  
-  { 
-    id: -4, 
-    date: 7, 
-    text: "ADVANCED DATA STRUCTURES AND ALGORITHM ANALYSIS ", 
-    month: 1, 
-    year: 2025, 
-    isSpecial: true 
+  {
+    id: -4,
+    date: 7,
+    text: 'ADVANCED DATA STRUCTURES AND ALGORITHM ANALYSIS ',
+    month: 1,
+    year: 2025,
+    isSpecial: true,
   },
-  { 
-    id: -5, 
-    date: 9, 
-    text: "DIGITAL LOGIC AND COMPUTER ORGANIZATION", 
-    month: 1, 
-    year: 2025, 
-    isSpecial: true 
+  {
+    id: -5,
+    date: 9,
+    text: 'DIGITAL LOGIC AND COMPUTER ORGANIZATION',
+    month: 1,
+    year: 2025,
+    isSpecial: true,
   },
-  { 
-    id: -6, 
-    date:11, 
-    text: "OBJECT ORIENTED PROGRAMMING THROUGH JAVA ", 
-    month: 1, 
-    year: 2025, 
-    isSpecial: true 
+  {
+    id: -6,
+    date: 11,
+    text: 'OBJECT ORIENTED PROGRAMMING THROUGH JAVA ',
+    month: 1,
+    year: 2025,
+    isSpecial: true,
   },
 ];
 
@@ -52,7 +46,7 @@ export default function CalendarTimeline() {
   const [selectedDate, setSelectedDate] = useState(currentDate.getDate());
   const [events, setEvents] = useState<Event[]>([]);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
-  const [editText, setEditText] = useState("");
+  const [editText, setEditText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -61,8 +55,18 @@ export default function CalendarTimeline() {
   const activeDateRef = useRef<HTMLButtonElement | null>(null);
 
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   const getDaysInMonth = (year: number, month: number) => {
@@ -79,19 +83,21 @@ export default function CalendarTimeline() {
     setIsLoading(true);
     setFetchError(null);
     try {
-      const response = await fetch("/api/task", {
+      const response = await fetch('/api/task', {
         // Add timeout and credentials
         headers: {
           'Cache-Control': 'no-cache',
         },
         // Signal for timeout
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(5000),
       });
-      
+
       if (!response.ok) {
-        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+        throw new Error(
+          `Server returned ${response.status}: ${response.statusText}`
+        );
       }
-      
+
       const data = (await response.json()) as {
         taskId: number;
         month: string;
@@ -102,10 +108,10 @@ export default function CalendarTimeline() {
 
       const formattedEvents: Event[] = data.map((task) => ({
         id: task.taskId,
-        date: parseInt(task.date, 10),
+        date: Number.parseInt(task.date, 10),
         text: task.task,
-        month: parseInt(task.month, 12),
-        year: parseInt(task.year, 2024),
+        month: Number.parseInt(task.month, 12),
+        year: Number.parseInt(task.year, 2024),
         isSpecial: false,
       }));
 
@@ -113,8 +119,10 @@ export default function CalendarTimeline() {
       setEvents([...SPECIAL_EVENTS, ...formattedEvents]);
       setFetchError(null);
     } catch (error) {
-      console.error("Error fetching tasks:", error);
-      setFetchError(error instanceof Error ? error.message : "Failed to fetch tasks");
+      console.error('Error fetching tasks:', error);
+      setFetchError(
+        error instanceof Error ? error.message : 'Failed to fetch tasks'
+      );
       // Still show special events even if fetch fails
       setEvents(SPECIAL_EVENTS);
     } finally {
@@ -125,7 +133,7 @@ export default function CalendarTimeline() {
   const handleNewEvent = () => {
     const newEvent: Event = {
       date: selectedDate,
-      text: "",
+      text: '',
       id: 0,
       month: currentMonth,
       year: currentYear,
@@ -133,7 +141,7 @@ export default function CalendarTimeline() {
     };
     setEvents([...events, newEvent]);
     setEditingEvent(newEvent);
-    setEditText("");
+    setEditText('');
   };
 
   const handleEditStart = (event: Event) => {
@@ -157,34 +165,32 @@ export default function CalendarTimeline() {
         year: currentYear.toString(),
       };
 
-      const method = editingEvent.id ? "PATCH" : "POST";
+      const method = editingEvent.id ? 'PATCH' : 'POST';
       const url = editingEvent.id
         ? `/api/task/${editingEvent.id}`
-        : "/api/task";
+        : '/api/task';
 
       const response = await fetch(url, {
-        method: method,
-        headers: { "Content-Type": "application/json" },
+        method,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      
-      if (!response.ok) {
-        console.error("Failed to save task:", response.statusText);
-      } else {
+
+      if (response.ok) {
         await fetchTasks();
+      } else {
+        console.error('Failed to save task:', response.statusText);
       }
       setEditingEvent(null);
     }
   }, [editingEvent, editText, selectedDate, mon, currentYear]);
 
   useEffect(() => {
-    fetchTasks().catch((error) =>
-      console.log("Failed to fetch tasks:", error)
-    );
+    fetchTasks().catch((error) => console.log('Failed to fetch tasks:', error));
   }, [retryCount]);
 
   const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
+    setRetryCount((prev) => prev + 1);
   };
 
   useEffect(() => {
@@ -196,13 +202,13 @@ export default function CalendarTimeline() {
           activeDateButton.offsetLeft -
           datePicker.offsetWidth / 2 +
           activeDateButton.offsetWidth / 2,
-        behavior: "smooth",
+        behavior: 'smooth',
       });
     }
   }, [selectedDate, daysInMonth]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       void handleSaveEdit();
     }
   };
@@ -217,9 +223,9 @@ export default function CalendarTimeline() {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [handleSaveEdit]);
 
@@ -231,36 +237,36 @@ export default function CalendarTimeline() {
         <h1 className="font-serif text-3xl">{monthNames[currentMonth]}</h1>
         <div className="flex items-center space-x-2">
           {fetchError && (
-            <button 
+            <button
+              className="flex rounded-md border-2 border-red-500 px-4 py-1 font-serif text-xs hover:bg-red-500"
               onClick={handleRetry}
-              className="border-2 flex px-4 py-1 rounded-md border-red-500 font-serif hover:bg-red-500 text-xs"
             >
               Retry
             </button>
           )}
           <button
-            onClick={handleNewEvent}
-            className="border-2 flex px-4 py-1 rounded-md border-[#f7eee323] font-serif hover:border-none justify-center items-end hover:bg-[#FF5E00]"
+            className="flex items-end justify-center rounded-md border-2 border-[#f7eee323] px-4 py-1 font-serif hover:border-none hover:bg-[#FF5E00]"
             disabled={isLoading}
+            onClick={handleNewEvent}
           >
-            {isLoading ? "Loading..." : "Add"}
+            {isLoading ? 'Loading...' : 'Add'}
           </button>
         </div>
       </div>
 
       <div
+        className="no-scrollbar mb-4 flex h-auto space-x-4 overflow-x-auto border-neutral-800 border-b pb-2"
         ref={datePickerRef}
-        className="no-scrollbar mb-4 flex h-auto space-x-4 overflow-x-auto border-b border-neutral-800 pb-2"
       >
         {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((date) => (
           <button
+            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg font-bold font-serif ${
+              selectedDate === date
+                ? 'border-2 border-[#f7eee323] bg-neutral-800 text-[#f7eee3]'
+                : 'text-gray-400 hover:bg-neutral-800'
+            }`}
             key={date}
             onClick={() => handleDateClick(date)}
-            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg font-serif font-bold ${
-              selectedDate === date
-                ? "border-2 border-[#f7eee323] bg-neutral-800 text-[#f7eee3]"
-                : "text-gray-400 hover:bg-neutral-800"
-            }`}
             ref={selectedDate === date ? activeDateRef : null}
           >
             {date}
@@ -270,42 +276,42 @@ export default function CalendarTimeline() {
 
       <div className="relative h-40 overflow-y-auto" id="box">
         {isLoading && events.length === 0 && (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex h-full items-center justify-center">
             <span className="text-gray-400">Loading events...</span>
           </div>
         )}
         {!isLoading && fetchError && events.length === 0 && (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex h-full items-center justify-center">
             <span className="text-red-400">Error: {fetchError}</span>
           </div>
         )}
         {filteredEvents.map((event, index) => (
           <div
-            key={event.id || index}
             className={`absolute flex h-8 items-center justify-center rounded-md p-2 text-[#f7eee3] ${
-              event.isSpecial ? 'border-[#FF5E00]/20 border-2 bg-neutral-800' : 'bg-neutral-800'
+              event.isSpecial
+                ? 'border-2 border-[#FF5E00]/20 bg-neutral-800'
+                : 'bg-neutral-800'
             }`}
+            key={event.id || index}
+            onDoubleClick={() => !event.isSpecial && handleEditStart(event)}
             style={{
-              left: "0",
-              right: "0",
+              left: '0',
+              right: '0',
               top: `${index * 3}rem`,
             }}
-            onDoubleClick={() => !event.isSpecial && handleEditStart(event)}
           >
             {editingEvent === event ? (
               <input
-                ref={inputRef}
-                type="text"
-                className="w-full bg-neutral-800 p-1 tracking-tight text-[#f7eee3]"
-                value={editText}
+                autoFocus
+                className="w-full bg-neutral-800 p-1 text-[#f7eee3] tracking-tight"
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                autoFocus
+                ref={inputRef}
+                type="text"
+                value={editText}
               />
             ) : (
-              <span className="flex items-center gap-2">
-                {event.text}
-              </span>
+              <span className="flex items-center gap-2">{event.text}</span>
             )}
           </div>
         ))}

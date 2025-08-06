@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useAction } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { useForm } from "@tanstack/react-form";
-import { Id } from "convex/_generated/dataModel";
-import { z } from "zod";
 import {
-  ArrowUpIcon,
   ArrowClockwiseIcon,
   ArrowLeftIcon,
-} from "@phosphor-icons/react";
-import ChatCommandPalette from "~/components/ui/ChatCommandPalette";
+  ArrowUpIcon,
+} from '@phosphor-icons/react';
+import { useForm } from '@tanstack/react-form';
+import type { Id } from 'convex/_generated/dataModel';
+import { useAction, useMutation, useQuery } from 'convex/react';
+import { useParams, useRouter } from 'next/navigation';
+import React, { useEffect, useRef, useState } from 'react';
+import { z } from 'zod';
+import ChatCommandPalette from '~/components/ui/ChatCommandPalette';
+import { api } from '../../convex/_generated/api';
 
 const messageSchema = z.object({
-  message: z.string().trim().min(1, { message: "Message cannot be empty" }),
+  message: z.string().trim().min(1, { message: 'Message cannot be empty' }),
 });
 
 type MessageFormValues = z.infer<typeof messageSchema>;
@@ -25,17 +25,17 @@ const Chatting = () => {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showChatPalette, setShowChatPalette] = useState(false);
-  const convexChatId = chatID as Id<"chats">;
+  const convexChatId = chatID as Id<'chats'>;
 
   // Convex hooks - only query if we have a valid chatId
   const chat = useQuery(
     api.chats.getChat,
-    chatID ? { chatId: convexChatId } : "skip",
+    chatID ? { chatId: convexChatId } : 'skip'
   );
 
   const messages = useQuery(
     api.message.getMessages,
-    chatID ? { chatId: convexChatId } : "skip",
+    chatID ? { chatId: convexChatId } : 'skip'
   );
 
   // Mutations
@@ -45,7 +45,7 @@ const Chatting = () => {
   // Form for new messages
   const form = useForm({
     defaultValues: {
-      message: "",
+      message: '',
     } as MessageFormValues,
     onSubmit: async ({ value }) => {
       if (!chat) return;
@@ -55,7 +55,7 @@ const Chatting = () => {
         const userMessageId = await addMessage({
           chatId: convexChatId,
           content: value.message,
-          role: "user",
+          role: 'user',
         });
 
         // Clear form
@@ -68,7 +68,7 @@ const Chatting = () => {
           parentMessageId: userMessageId,
         });
       } catch (error) {
-        console.error("Error sending message:", error);
+        console.error('Error sending message:', error);
       }
     },
     validators: {
@@ -78,7 +78,7 @@ const Chatting = () => {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   // Update document title when chat data is loaded
@@ -93,14 +93,14 @@ const Chatting = () => {
   // Keyboard shortcuts for command palette
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setShowChatPalette(true);
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   // Handle missing chatID
@@ -115,17 +115,17 @@ const Chatting = () => {
           className="absolute inset-0 z-10 opacity-20"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            backgroundRepeat: "repeat",
-            backgroundSize: "256px 256px",
+            backgroundRepeat: 'repeat',
+            backgroundSize: '256px 256px',
           }}
         />
 
         <div className="relative z-20 text-center">
-          <h1 className="mb-4 text-2xl font-bold text-white">Invalid Chat</h1>
+          <h1 className="mb-4 font-bold text-2xl text-white">Invalid Chat</h1>
           <p className="mb-4 text-white/70">No chat ID provided</p>
           <button
-            onClick={() => router.push("/learning")}
             className="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-white transition-colors hover:bg-white/20"
+            onClick={() => router.push('/learning')}
           >
             Go to Learning
           </button>
@@ -146,13 +146,13 @@ const Chatting = () => {
           className="absolute inset-0 z-10 opacity-20"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            backgroundRepeat: "repeat",
-            backgroundSize: "256px 256px",
+            backgroundRepeat: 'repeat',
+            backgroundSize: '256px 256px',
           }}
         />
 
         <div className="relative z-20 text-center">
-          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-white/60"></div>
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-white/60 border-b-2" />
           <p className="text-white/80">Loading conversation...</p>
         </div>
       </div>
@@ -171,17 +171,17 @@ const Chatting = () => {
           className="absolute inset-0 z-10 opacity-20"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            backgroundRepeat: "repeat",
-            backgroundSize: "256px 256px",
+            backgroundRepeat: 'repeat',
+            backgroundSize: '256px 256px',
           }}
         />
 
         <div className="relative z-20 text-center">
-          <h1 className="mb-4 text-2xl font-bold text-white">Chat Not Found</h1>
+          <h1 className="mb-4 font-bold text-2xl text-white">Chat Not Found</h1>
           <p className="mb-4 text-white/70">tey again after some time</p>
           <button
-            onClick={() => router.push("/learning")}
             className="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-white transition-colors hover:bg-white/20"
+            onClick={() => router.push('/learning')}
           >
             Go to Learning
           </button>
@@ -200,38 +200,38 @@ const Chatting = () => {
         className="absolute inset-0 z-10 opacity-20"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          backgroundRepeat: "repeat",
-          backgroundSize: "256px 256px",
+          backgroundRepeat: 'repeat',
+          backgroundSize: '256px 256px',
         }}
       />
 
       {/* Grid lines */}
-      <div className="z-15 pointer-events-none absolute inset-0">
+      <div className="pointer-events-none absolute inset-0 z-15">
         {/* Vertical lines */}
-        <div className="absolute left-[20%] top-0 h-full w-px bg-white/20"></div>
-        <div className="absolute left-[80%] top-0 h-full w-px bg-white/20"></div>
+        <div className="absolute top-0 left-[20%] h-full w-px bg-white/20" />
+        <div className="absolute top-0 left-[80%] h-full w-px bg-white/20" />
         {/* Horizontal lines */}
 
         {/* Corner circles */}
-        <div className="absolute left-[20%] top-[9%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
-        <div className="absolute left-[80%] top-[9%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
-        <div className="absolute left-[20%] top-[90%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
-        <div className="absolute left-[80%] top-[90%] h-2 w-2 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white/60"></div>
+        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-[9%] left-[20%] h-2 w-2 transform rounded-full bg-white/60" />
+        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-[9%] left-[80%] h-2 w-2 transform rounded-full bg-white/60" />
+        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-[90%] left-[20%] h-2 w-2 transform rounded-full bg-white/60" />
+        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-[90%] left-[80%] h-2 w-2 transform rounded-full bg-white/60" />
       </div>
 
       {/* Header */}
-      <div className="relative z-20 flex-shrink-0 border-b border-white/10">
+      <div className="relative z-20 flex-shrink-0 border-white/10 border-b">
         <div className="mx-auto max-w-4xl px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => router.push("/learning")}
                 className="text-white/60 transition-colors hover:text-white"
+                onClick={() => router.push('/learning')}
               >
                 <ArrowLeftIcon size={20} />
               </button>
               <div>
-                <h1 className="text-xl font-medium text-white">{chat.title}</h1>
+                <h1 className="font-medium text-white text-xl">{chat.title}</h1>
               </div>
             </div>
           </div>
@@ -245,14 +245,14 @@ const Chatting = () => {
             {messages && messages.length > 0 ? (
               messages.map((message, _index) => (
                 <div
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   key={message._id}
-                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
                     className={`max-w-[80%] rounded-lg px-4 py-3 ${
-                      message.role === "user"
-                        ? "border border-white/20 bg-white/10 text-white"
-                        : "border border-white/10 bg-white/5 text-white/90"
+                      message.role === 'user'
+                        ? 'border border-white/20 bg-white/10 text-white'
+                        : 'border border-white/10 bg-white/5 text-white/90'
                     }`}
                   >
                     <div className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -274,47 +274,47 @@ const Chatting = () => {
       </div>
 
       {/* Input area - Fixed at bottom */}
-      <div className="relative z-20 flex-shrink-0 border-t border-white/10">
+      <div className="relative z-20 flex-shrink-0 border-white/10 border-t">
         <div className="mx-auto max-w-4xl px-6 py-4">
           <form
+            className="flex items-end space-x-4"
             onSubmit={(e) => {
               e.preventDefault();
               void form.handleSubmit();
             }}
-            className="flex items-end space-x-4"
           >
             <div className="flex-1">
               <form.Field name="message">
                 {({ state, handleBlur, handleChange }) => (
                   <div className="relative">
                     <textarea
-                      placeholder="Continue the conversation..."
                       className="w-full resize-none rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-sm text-white backdrop-blur-sm placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/20"
-                      rows={1}
-                      value={state.value}
                       onBlur={handleBlur}
                       onChange={(e) => handleChange(e.target.value)}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = 'auto';
+                        target.style.height = `${target.scrollHeight}px`;
+                      }}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
+                        if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
                           void form.handleSubmit();
                         }
                       }}
+                      placeholder="Continue the conversation..."
+                      rows={1}
                       style={{
-                        minHeight: "44px",
-                        maxHeight: "120px",
-                        height: "auto",
+                        minHeight: '44px',
+                        maxHeight: '120px',
+                        height: 'auto',
                       }}
-                      onInput={(e) => {
-                        const target = e.target as HTMLTextAreaElement;
-                        target.style.height = "auto";
-                        target.style.height = `${target.scrollHeight}px`;
-                      }}
+                      value={state.value}
                     />
 
                     {/* Error message */}
                     {state.meta.errors.length > 0 && (
-                      <div className="absolute -bottom-6 left-0 text-xs text-red-400">
+                      <div className="-bottom-6 absolute left-0 text-red-400 text-xs">
                         {String(state.meta.errors[0])}
                       </div>
                     )}
@@ -328,12 +328,12 @@ const Chatting = () => {
             >
               {([canSubmit, isSubmitting]) => (
                 <button
-                  type="submit"
-                  disabled={!canSubmit || isSubmitting}
                   className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!canSubmit || isSubmitting}
+                  type="submit"
                 >
                   {isSubmitting ? (
-                    <ArrowClockwiseIcon size={20} className="animate-spin" />
+                    <ArrowClockwiseIcon className="animate-spin" size={20} />
                   ) : (
                     <ArrowUpIcon size={20} />
                   )}

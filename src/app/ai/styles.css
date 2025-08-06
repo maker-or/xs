@@ -1,54 +1,54 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap");
 
 /* AI Section Root Variables */
 :root {
   --background: #ffffff;
-  --foreground: #0B0B0B;
-  
+  --foreground: #0b0b0b;
+
   --primary: 210 100% 50%;
   --primary-foreground: 0 0% 100%;
-  
+
   --secondary: 212 10% 90%;
   --secondary-foreground: 222.2 47.4% 11.2%;
-  
+
   --muted: 210 20% 94%;
   --muted-foreground: 215.4 16.3% 46.9%;
-  
+
   --accent: 210 40% 96.1%;
   --accent-foreground: 222.2 47.4% 11.2%;
-  
+
   --card: 0 0% 100%;
   --card-foreground: 222.2 84% 4.9%;
-  
+
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
-  
+
   --ring: 221.2 83.2% 53.3%;
   --radius: 0.5rem;
 }
 
 .dark {
-  --background: #0B0B0B;
+  --background: #0b0b0b;
   --foreground: #ededed;
-  
+
   --primary: 210 100% 50%;
   --primary-foreground: 0 0% 100%;
-  
+
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
-  
+
   --muted: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
-  
+
   --accent: 217.2 32.6% 17.5%;
   --accent-foreground: 210 40% 98%;
-  
+
   --card: 222.2 84% 4.9%;
   --card-foreground: 210 40% 98%;
-  
+
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
-  
+
   --ring: 224.3 76.3% 48%;
 }
 
@@ -110,22 +110,40 @@ body {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulseNode {
-  0%, 100% { transform: scale(1); opacity: 0.7; }
-  50% { transform: scale(1.2); opacity: 1; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
 }
 
 @keyframes dashFlow {
-  to { stroke-dashoffset: 0; }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 @keyframes pulseAgent {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.15); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
 }
 
 @keyframes ping-slow {
@@ -157,12 +175,20 @@ body {
 }
 
 @keyframes pingSlow {
-  75%, 100% { transform: scale(2); opacity: 0; }
-  0% { transform: scale(1); opacity: 1; }
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes pulse-node {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.7;
     transform: scale(1);
   }
@@ -173,7 +199,8 @@ body {
 }
 
 @keyframes pulse-agent {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.9;
     transform: scale(1);
   }

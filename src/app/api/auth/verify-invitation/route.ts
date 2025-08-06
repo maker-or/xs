@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
 import { clerkClient } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
     const { invitationToken } = await request.json();
-    
+
     if (!invitationToken) {
       return NextResponse.json(
         { success: false, error: 'No invitation token provided' },
@@ -33,9 +33,8 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         organizationId: 'pending', // Will be resolved after signup
-        message: 'Valid invitation token detected'
+        message: 'Valid invitation token detected',
       });
-
     } catch (clerkError) {
       console.error('Clerk invitation verification error:', clerkError);
       return NextResponse.json(
@@ -43,7 +42,6 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
-
   } catch (error) {
     console.error('Invitation verification error:', error);
     return NextResponse.json(

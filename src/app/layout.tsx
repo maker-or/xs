@@ -1,52 +1,54 @@
-import { Monitoring } from "react-scan/monitoring/next";
-import "~/styles/globals.css";
-import "~/styles/circuit-bricks.css"; // Import Circuit-Bricks styles
-import { ClerkProvider, SignedIn, SignedOut } from "@clerk/nextjs";
-import { type Metadata } from "next";
-import { FolderProvider } from "../components/ui/FolderContext";
-import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
-import { extractRouterConfig } from "uploadthing/server";
-import { ourFileRouter } from "./api/uploadthing/core";
-import { Analytics } from "@vercel/analytics/react";
-import { CSPostHogProvider } from "~/app/_analytics/providers";
-import CommandPlate from "~/components/ui/CommandPlate";
-import { TimeProvider } from "~/providers/TimerProvider";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import Head from "next/head";
-import Script from "next/script";
-import RoleRedirect from "~/components/ui/RoleRedirect";
-import SpecialRoutes from "~/components/ui/SpecialRoutes";
-import ThemeScript from "~/components/ui/ThemeScript";
-import ConvexClientProvider from "~/components/ConvexClientProvider";
-import { dark } from '@clerk/themes'
+import { Monitoring } from 'react-scan/monitoring/next';
+import '~/styles/globals.css';
+import '~/styles/circuit-bricks.css'; // Import Circuit-Bricks styles
+import { ClerkProvider, SignedIn, SignedOut } from '@clerk/nextjs';
+import { dark } from '@clerk/themes';
+import { NextSSRPlugin } from '@uploadthing/react/next-ssr-plugin';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import type { Metadata } from 'next';
+import Head from 'next/head';
+import Script from 'next/script';
+import { extractRouterConfig } from 'uploadthing/server';
+import { CSPostHogProvider } from '~/app/_analytics/providers';
+import ConvexClientProvider from '~/components/ConvexClientProvider';
+import CommandPlate from '~/components/ui/CommandPlate';
+import RoleRedirect from '~/components/ui/RoleRedirect';
+import SpecialRoutes from '~/components/ui/SpecialRoutes';
+import ThemeScript from '~/components/ui/ThemeScript';
+import { TimeProvider } from '~/providers/TimerProvider';
+import { FolderProvider } from '../components/ui/FolderContext';
+import { ourFileRouter } from './api/uploadthing/core';
 // import ReactScan from "~/components/ui/ReactScan";
 
 export const metadata: Metadata = {
-  title: "Sphere",
-  description: "AI-powered knowledge management platform",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  title: 'Sphere',
+  description: 'AI-powered knowledge management platform',
+  icons: [{ rel: 'icon', url: '/favicon.ico' }],
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ClerkProvider waitlistUrl="/"
-    appearance={{
-      baseTheme: dark
-    }}>
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+      }}
+      waitlistUrl="/"
+    >
       <ConvexClientProvider>
         <CSPostHogProvider>
-          <html lang="en" className={`font-sans`} suppressHydrationWarning>
+          <html className={'font-sans'} lang="en" suppressHydrationWarning>
             <Head>
               <title>Sphereai</title>
-              <meta name="description" content="Your collage Your AI" />
+              <meta content="Your collage Your AI" name="description" />
 
-              <link rel="preconnect" href="https://fonts.googleapis.com" />
+              <link href="https://fonts.googleapis.com" rel="preconnect" />
               <link
-                rel="preconnect"
-                href="https://fonts.gstatic.com"
                 crossOrigin="anonymous"
+                href="https://fonts.gstatic.com"
+                rel="preconnect"
               />
             </Head>
             <Script
@@ -57,9 +59,9 @@ export default function RootLayout({
               {/* Theme script moved to a client component to avoid hydration issues */}
               <Monitoring
                 apiKey="demo" // Safe to expose publically
-                url="https://monitoring.react-scan.com/api/v1/ingest"
+                branch={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF}
                 commit={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA} // optional but recommended
-                branch={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF} // optional but recommended
+                url="https://monitoring.react-scan.com/api/v1/ingest" // optional but recommended
               />
               <ThemeScript />
 

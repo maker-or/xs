@@ -1,6 +1,6 @@
-import { UserResource } from "@clerk/types";
+import type { UserResource } from '@clerk/types';
 
-export type UserType = "google_user" | "college_user" | "admin";
+export type UserType = 'google_user' | 'college_user' | 'admin';
 
 export interface UserAccessLevel {
   type: UserType;
@@ -17,17 +17,25 @@ export interface UserAccessLevel {
  */
 export function getUserType(user: UserResource, authType?: string): UserType {
   // Check if user came through Google OAuth
-  if (authType === "google" || user.externalAccounts?.some(account => account.provider === "google")) {
-    return "google_user";
+  if (
+    authType === 'google' ||
+    user.externalAccounts?.some((account) => account.provider === 'google')
+  ) {
+    return 'google_user';
   }
-  
+
   // Check if user is admin based on role or metadata
-  if (user.publicMetadata?.role === "admin" || user.organizationMemberships?.some(membership => membership.role === "admin")) {
-    return "admin";
+  if (
+    user.publicMetadata?.role === 'admin' ||
+    user.organizationMemberships?.some(
+      (membership) => membership.role === 'admin'
+    )
+  ) {
+    return 'admin';
   }
-  
+
   // Default to college user for Microsoft OAuth or email/password
-  return "college_user";
+  return 'college_user';
 }
 
 /**
@@ -35,9 +43,9 @@ export function getUserType(user: UserResource, authType?: string): UserType {
  */
 export function getUserAccessLevel(userType: UserType): UserAccessLevel {
   switch (userType) {
-    case "google_user":
+    case 'google_user':
       return {
-        type: "google_user",
+        type: 'google_user',
         canAccessLearning: true,
         canAccessStudent: false,
         canAccessTeacher: false,
@@ -45,10 +53,10 @@ export function getUserAccessLevel(userType: UserType): UserAccessLevel {
         canAccessCalendar: false,
         canAccessTest: false,
       };
-    
-    case "college_user":
+
+    case 'college_user':
       return {
-        type: "college_user",
+        type: 'college_user',
         canAccessLearning: true,
         canAccessStudent: true,
         canAccessTeacher: false,
@@ -56,10 +64,10 @@ export function getUserAccessLevel(userType: UserType): UserAccessLevel {
         canAccessCalendar: true,
         canAccessTest: true,
       };
-    
-    case "admin":
+
+    case 'admin':
       return {
-        type: "admin",
+        type: 'admin',
         canAccessLearning: true,
         canAccessStudent: true,
         canAccessTeacher: true,
@@ -67,10 +75,10 @@ export function getUserAccessLevel(userType: UserType): UserAccessLevel {
         canAccessCalendar: true,
         canAccessTest: true,
       };
-    
+
     default:
       return {
-        type: "google_user",
+        type: 'google_user',
         canAccessLearning: true,
         canAccessStudent: false,
         canAccessTeacher: false,
@@ -86,42 +94,52 @@ export function getUserAccessLevel(userType: UserType): UserAccessLevel {
  */
 export function canAccessRoute(userType: UserType, pathname: string): boolean {
   const accessLevel = getUserAccessLevel(userType);
-  
-  console.log(`canAccessRoute called with userType: ${userType}, pathname: ${pathname}`);
-  console.log(`Access level:`, accessLevel);
-  
+
+  console.log(
+    `canAccessRoute called with userType: ${userType}, pathname: ${pathname}`
+  );
+  console.log('Access level:', accessLevel);
+
   // Check specific route access
-  if (pathname.startsWith("/learning")) {
+  if (pathname.startsWith('/learning')) {
     console.log(`Learning route access: ${accessLevel.canAccessLearning}`);
     return accessLevel.canAccessLearning;
   }
-  
-  if (pathname.startsWith("/student")) {
+
+  if (pathname.startsWith('/student')) {
     return accessLevel.canAccessStudent;
   }
-  
-  if (pathname.startsWith("/teacher")) {
+
+  if (pathname.startsWith('/teacher')) {
     return accessLevel.canAccessTeacher;
   }
-  
-  if (pathname.startsWith("/repo")) {
+
+  if (pathname.startsWith('/repo')) {
     return accessLevel.canAccessRepo;
   }
-  
-  if (pathname.startsWith("/calendar")) {
+
+  if (pathname.startsWith('/calendar')) {
     return accessLevel.canAccessCalendar;
   }
-  
-  if (pathname.startsWith("/test")) {
+
+  if (pathname.startsWith('/test')) {
     return accessLevel.canAccessTest;
   }
-  
+
   // Allow access to public routes
-  const publicRoutes = ["/", "/select", "/indauth", "/onboarding", "/privacy-policy", "/terms-of-service", "/pricing"];
-  if (publicRoutes.some(route => pathname.startsWith(route))) {
+  const publicRoutes = [
+    '/',
+    '/select',
+    '/indauth',
+    '/onboarding',
+    '/privacy-policy',
+    '/terms-of-service',
+    '/pricing',
+  ];
+  if (publicRoutes.some((route) => pathname.startsWith(route))) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -130,12 +148,12 @@ export function canAccessRoute(userType: UserType, pathname: string): boolean {
  */
 export function getDefaultRedirectUrl(userType: UserType): string {
   switch (userType) {
-    case "google_user":
-      return "/learning";
-    case "admin":
-      return "/teacher";
-    case "college_user":
+    case 'google_user':
+      return '/learning';
+    case 'admin':
+      return '/teacher';
+    case 'college_user':
     default:
-      return "/student";
+      return '/student';
   }
-} 
+}

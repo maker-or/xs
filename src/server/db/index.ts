@@ -1,5 +1,5 @@
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 // import {
 //   pgTable,
 //   serial,
@@ -7,7 +7,7 @@ import { neon } from "@neondatabase/serverless";
 //   timestamp,
 //   uniqueIndex,
 // } from "drizzle-orm/pg-core";
-import * as schema from "./schema";
+import * as schema from './schema';
 
 // Use this object to send drizzle queries to your DB
 const sql = neon(process.env.POSTGRES_URL!);

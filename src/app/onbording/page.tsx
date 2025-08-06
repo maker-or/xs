@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 // This is a simple redirect component for backward compatibility
 export default function OnboardingRedirect() {
@@ -12,7 +12,7 @@ export default function OnboardingRedirect() {
   }, [router]);
 
   return (
-    <div className="flex items-center justify-center h-screen bg-[#050A06] text-white">
+    <div className="flex h-screen items-center justify-center bg-[#050A06] text-white">
       <p>Redirecting to onboarding...</p>
     </div>
   );

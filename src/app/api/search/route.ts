@@ -65,8 +65,6 @@
 //       );
 //     }
 
-
-
 //       // Extract structured data from search results
 //       const sources: SearchResult[] = extractSourcesFromResults(searchResults);
 
@@ -97,7 +95,7 @@
 //         });
 
 //         // Create formatted response with metadata
-//         const responseData: FormattedSearchResponse = { 
+//         const responseData: FormattedSearchResponse = {
 //           results: result.text,
 //           metadata: {
 //             sources: sources,
@@ -109,7 +107,7 @@
 //         console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 //         console.log("response is: ", responseData)
 //         console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        
+
 //         return NextResponse.json(responseData);
 //       } catch (error) {
 //         console.error('Error during streamText:', error);
@@ -141,13 +139,13 @@
 //  */
 // function extractSourcesFromResults(rawResults: string): SearchResult[] {
 //   const sources: SearchResult[] = [];
-  
+
 //   try {
 //     // Simple regex-based extraction for title, URL, and snippets
 //     // Format typically follows: Title (URL) - Snippet
 //     const resultRegex = /([^\n(]+)\s*\(([^)]+)\)\s*-\s*([^\n]+)/g;
 //     let match;
-    
+
 //     while ((match = resultRegex.exec(rawResults)) !== null) {
 //       if (match.length >= 4 && match[1] && match[2] && match[3]) {
 //         sources.push({
@@ -157,13 +155,13 @@
 //         });
 //       }
 //     }
-    
+
 //     // Fallback for URLs if the above pattern doesn't match
 //     if (sources.length === 0) {
 //       const urlRegex = /(https?:\/\/[^\s]+)/g;
 //       let urlMatch;
 //       let index = 0;
-      
+
 //       while ((urlMatch = urlRegex.exec(rawResults)) !== null) {
 //         if (urlMatch[1]) {
 //           sources.push({
@@ -175,7 +173,7 @@
 //         }
 //       }
 //     }
-    
+
 //     return sources;
 //   } catch (error) {
 //     console.error("Error extracting sources:", error);
@@ -193,12 +191,12 @@
 //       const start = Math.max(0, urlIndex - charRange);
 //       const end = Math.min(text.length, urlIndex + url.length + charRange);
 //       let snippet = text.substring(start, end).replace(url, '');
-      
+
 //       // Clean up the snippet
 //       snippet = snippet
 //         .replace(/\s+/g, ' ')
 //         .trim();
-      
+
 //       return snippet || "No preview available";
 //     }
 //     return "No preview available";

@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
 const First = () => {
   return (
     <div className="flex h-[100svh] w-[100svw] flex-col items-center justify-center overflow-hidden bg-[#000000]">
       <div className="flex items-center justify-center text-center leading-none tracking-tight">
         <h1 className="text-[5em] text-white">
-          New <span className="font-serif italic">knowledge</span> layer{" "}
-          <br></br> for your <span className="font-serif italic">collage</span>
+          New <span className="font-serif italic">knowledge</span> layer <br />{' '}
+          for your <span className="font-serif italic">collage</span>
         </h1>
       </div>
 

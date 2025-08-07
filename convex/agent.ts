@@ -1,45 +1,44 @@
-"use node";
-import { v } from "convex/values";
-import { action } from "./_generated/server";
-import { api } from "./_generated/api";
-import { AgentOutputSchema } from "../src/SlidesSchema";
-import { generateObject, tool, generateText } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
-import { z } from "zod";
-import Exa from "exa-js";
+'use node';
+import { createOpenAI } from '@ai-sdk/openai';
+import { generateObject, generateText, tool } from 'ai';
+import { v } from 'convex/values';
+import Exa from 'exa-js';
+import { z } from 'zod';
+import { AgentOutputSchema } from '../src/SlidesSchema';
+import { api } from './_generated/api';
+import { action } from './_generated/server';
 
 export const agent = action({
   args: {
-    courseId: v.id("Course"),
+    courseId: v.id('Course'),
   },
   handler: async (ctx, args): Promise<any> => {
-
     const userId = await ctx.auth.getUserIdentity();
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) throw new Error('Not authenticated');
 
     const course = await ctx.runQuery(api.course.getCourse, {
       courseId: args.courseId,
     });
 
-    console.log("Agent received message sucessfully from the backend", course);
+    console.log('Agent received message sucessfully from the backend', course);
 
     // Get API key from environment
-    const openRouterKey = process.env.OPENROUTER_API_KEY || "";
+    const openRouterKey = process.env.OPENROUTER_API_KEY || '';
     if (!openRouterKey) {
       throw new Error(
-        "OpenRouter API key is required. Please add your API key in settings.",
+        'OpenRouter API key is required. Please add your API key in settings.'
       );
     }
 
-    if (!openRouterKey.startsWith("sk-")) {
+    if (!openRouterKey.startsWith('sk-')) {
       throw new Error(
-        "Invalid OpenRouter API key format. Key should start with 'sk-'",
+        "Invalid OpenRouter API key format. Key should start with 'sk-'"
       );
     }
 
     // Create OpenRouter client
     const openrouter = createOpenAI({
-      baseURL: "https://openrouter.ai/api/v1",
+      baseURL: 'https://openrouter.ai/api/v1',
       apiKey: openRouterKey,
     });
 
@@ -50,72 +49,72 @@ export const agent = action({
 
     // Define schemas for structured outputs
     const GetCodeSchema = z.object({
-      language: z.string().describe("Programming language for the code"),
+      language: z.string().describe('Programming language for the code'),
       code: z
         .string()
         .min(10)
-        .describe("The actual code in the specified language"),
-      explanation: z.string().describe("Explanation of the code"),
+        .describe('The actual code in the specified language'),
+      explanation: z.string().describe('Explanation of the code'),
     });
 
     const GetSyllabusSchema = z.object({
       query: z
         .string()
         .min(2)
-        .describe("The subject or concept for the syllabus"),
+        .describe('The subject or concept for the syllabus'),
       syllabus: z.object({
-        previousConcepts: z.array(z.string()).describe("Prerequisite concepts"),
+        previousConcepts: z.array(z.string()).describe('Prerequisite concepts'),
         currentConcepts: z
           .array(
             z.object({
-              topic: z.string().describe("Main topic"),
+              topic: z.string().describe('Main topic'),
               subtopics: z
                 .array(z.string())
-                .describe("Subtopics under this topic"),
-            }),
+                .describe('Subtopics under this topic'),
+            })
           )
-          .describe("Current concepts to learn"),
+          .describe('Current concepts to learn'),
       }),
     });
 
     const SvgGenerationSchema = z.object({
-      svg: z.string().describe("This must the code for SVG"),
+      svg: z.string().describe('This must the code for SVG'),
     });
 
     const TestQuestionSchema = z.object({
       questions: z.array(
         z.object({
-          question: z.string().describe("The actual question"),
+          question: z.string().describe('The actual question'),
           options: z
             .array(z.string())
             .length(4)
-            .describe("Four answer options"),
-          answer: z.string().describe("The correct answer"),
-        }),
+            .describe('Four answer options'),
+          answer: z.string().describe('The correct answer'),
+        })
       ),
     });
 
     const FlashcardSchema = z.object({
       flashcards: z.array(
         z.object({
-          front: z.string().describe("Question or concept for the front"),
-          back: z.string().describe("Summary or explanation for the back"),
-        }),
+          front: z.string().describe('Question or concept for the front'),
+          back: z.string().describe('Summary or explanation for the back'),
+        })
       ),
     });
 
     // Define tools using Vercel AI SDK - Fixed inputSchema to parameters
     const getSyllabusTools = tool({
-      description: "Get the syllabus for a course or subject",
+      description: 'Get the syllabus for a course or subject',
       parameters: z.object({
-        query: z.string().min(2).describe("The subject to get syllabus for"),
+        query: z.string().min(2).describe('The subject to get syllabus for'),
       }),
       execute: async ({ query }) => {
-        console.log("Getting syllabus for:", query);
+        console.log('Getting syllabus for:', query);
 
         // Use OpenRouter with structured output
         const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash-lite"),
+          model: openrouter('google/gemini-2.5-flash-lite'),
           schema: GetSyllabusSchema,
           prompt: `Generate a comprehensive syllabus for ${query}. Include prerequisite concepts and current concepts with topics and subtopics.`,
         });
@@ -124,24 +123,22 @@ export const agent = action({
       },
     });
 
-
-
     const webSearchTools = tool({
-      description: "Search the web for information about a topic",
+      description: 'Search the web for information about a topic',
       parameters: z.object({
-        query: z.string().min(2).describe("Query to search for"),
+        query: z.string().min(2).describe('Query to search for'),
       }),
       execute: async ({ query }) => {
-        console.log("Web searching for:", query);
+        console.log('Web searching for:', query);
 
         if (!EXA_API_KEY) {
-          return JSON.stringify({ error: "EXA API key not configured" });
+          return JSON.stringify({ error: 'EXA API key not configured' });
         }
 
         try {
           const exa = new Exa(EXA_API_KEY);
           const response = await exa.searchAndContents(query, {
-            type: "neural",
+            type: 'neural',
             numResults: 5,
             text: true,
           });
@@ -151,28 +148,28 @@ export const agent = action({
             results: response.results.map((r: any) => ({
               title: r.title,
               url: r.url,
-              content: r.text?.substring(0, 500) + "...",
+              content: r.text?.substring(0, 500) + '...',
             })),
           });
         } catch (error) {
-          console.error("Web search error:", error);
+          console.error('Web search error:', error);
           return JSON.stringify({
             error: true,
-            message: error instanceof Error ? error.message : "Unknown error",
+            message: error instanceof Error ? error.message : 'Unknown error',
           });
         }
       },
     });
 
     const knowledgeSearchTools = tool({
-      description: "Search the knowledge base for information",
+      description: 'Search the knowledge base for information',
       parameters: z.object({
-        query: z.string().min(2).describe("Query to search knowledge base"),
+        query: z.string().min(2).describe('Query to search knowledge base'),
       }),
       execute: async ({ query }) => {
-        console.log("Knowledge searching for:", query);
+        console.log('Knowledge searching for:', query);
         const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash-lite"),
+          model: openrouter('google/gemini-2.5-flash-lite'),
           schema: GetCodeSchema,
           prompt: ` ${query}`,
         });
@@ -182,16 +179,16 @@ export const agent = action({
     });
 
     const getCodeTools = tool({
-      description: "Get code examples for programming topics",
+      description: 'Get code examples for programming topics',
       parameters: z.object({
-        query: z.string().min(2).describe("Programming topic to get code for"),
-        language: z.string().min(1).describe("Programming language"),
+        query: z.string().min(2).describe('Programming topic to get code for'),
+        language: z.string().min(1).describe('Programming language'),
       }),
       execute: async ({ query, language }) => {
-        console.log("Getting code for:", query, "in", language);
+        console.log('Getting code for:', query, 'in', language);
 
         const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash-lite"),
+          model: openrouter('google/gemini-2.5-flash-lite'),
           schema: GetCodeSchema,
           prompt: `Generate code for ${query} in ${language}. Include the code and a clear explanation.`,
         });
@@ -201,16 +198,16 @@ export const agent = action({
     });
 
     const testTools = tool({
-      description: "Generate test questions on a topic",
+      description: 'Generate test questions on a topic',
       parameters: z.object({
-        topic: z.string().min(1).describe("Topic for test questions"),
-        no: z.number().min(1).max(10).describe("Number of questions"),
+        topic: z.string().min(1).describe('Topic for test questions'),
+        no: z.number().min(1).max(10).describe('Number of questions'),
       }),
       execute: async ({ topic, no }) => {
-        console.log("Generating test for:", topic, "with", no, "questions");
+        console.log('Generating test for:', topic, 'with', no, 'questions');
 
         const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash-lite"),
+          model: openrouter('google/gemini-2.5-flash-lite'),
           schema: TestQuestionSchema,
           system: `You are a world-class test generator. Your job is to create comprehensive tests based
           on the provided topic. Remember that students will use these tests for exam preparation, so ensure
@@ -225,13 +222,13 @@ export const agent = action({
 
     const svgTool = tool({
       description:
-        "this tool is usefull to create visual represent the context by creating a SVG  diagram of that",
+        'this tool is usefull to create visual represent the context by creating a SVG  diagram of that',
       parameters: z.object({
         Query: z.string(),
       }),
       execute: async ({ Query }) => {
         const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash-lite"),
+          model: openrouter('google/gemini-2.5-flash-lite'),
           schema: SvgGenerationSchema,
           system: `Your role is to generate minimalist SVG code based on the provided prompt or description.
           The SVG will be displayed on a black background, so prioritize high contrast and accessibility in
@@ -244,16 +241,16 @@ export const agent = action({
     });
 
     const flashcardsTools = tool({
-      description: "Create flashcards for studying a topic",
+      description: 'Create flashcards for studying a topic',
       parameters: z.object({
-        query: z.string().min(2).describe("Topic for flashcards"),
-        no: z.number().min(1).max(3).describe("Number of flashcards"),
+        query: z.string().min(2).describe('Topic for flashcards'),
+        no: z.number().min(1).max(3).describe('Number of flashcards'),
       }),
       execute: async ({ query, no }) => {
-        console.log("Creating flashcards for:", query, "count:", no);
+        console.log('Creating flashcards for:', query, 'count:', no);
 
         const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash-lite"),
+          model: openrouter('google/gemini-2.5-flash-lite'),
           schema: FlashcardSchema,
           prompt: `Generate ${no} flashcards on the topic ${query}. Each flashcard should have a clear question/concept on the front and a concise answer/explanation on the back.`,
         });
@@ -265,7 +262,7 @@ export const agent = action({
 
     const stages = course.course?.stages;
     if (!Array.isArray(stages) || stages.length === 0) {
-      throw new Error("No stages found for the course.");
+      throw new Error('No stages found for the course.');
     }
 
     const stageIds = [];
@@ -274,13 +271,13 @@ export const agent = action({
       const stagePrompt = `You are SphereAI, an advanced educational agent. Your mission is to produce a comprehensive, multi-slide learning module for the following stage of a course:
         Title: ${stage.title}
       Purpose: ${stage.purpose}
-      Topics: ${stage.include.join(", ")}
+      Topics: ${stage.include.join(', ')}
       Outcome: ${stage.outcome}
-      Discussion area: ${stage.discussion_prompt || ""}`;
+      Discussion area: ${stage.discussion_prompt || ''}`;
       try {
         // Use generateText with tools, then parse the result
         const answer = await generateText({
-          model: openrouter("google/gemini-2.5-flash-lite-preview-06-17"),
+          model: openrouter('google/gemini-2.5-flash-lite-preview-06-17'),
           system: `You are SphereAI, an advanced educational agent. Your mission is to produce a comprehensiv
           e, multi-slide learning module for any topic a student asks about.
 
@@ -360,40 +357,41 @@ export const agent = action({
           },
           maxSteps: 10,
         });
-        console.log("########################################################")
-        console.log("the answer is", answer.text);
-        console.log("########################################################")
+        console.log('########################################################');
+        console.log('the answer is', answer.text);
+        console.log('########################################################');
 
         const result = await generateObject({
-          model: openrouter("google/gemini-2.5-flash-lite"),
+          model: openrouter('google/gemini-2.5-flash-lite'),
           schema: AgentOutputSchema,
           prompt: `format the following information into the valid schema that we have provided ${answer.text} `,
-          system:`"Convert all provided information into the specified valid schema.
+          system: `"Convert all provided information into the specified valid schema.
             *   **Missing Information:** If schema fields are missing data, infer and populate them with contextually appropriate information.
             *   **Completeness:** Do NOT compress, summarize, or omit any given information.
-            *   **Output:** Your sole task is to ensure the output strictly adheres to the provided schema's structure and format." `
-
-        })
-        console.log("the final result is", result.object);
-
-
+            *   **Output:** Your sole task is to ensure the output strictly adheres to the provided schema's structure and format." `,
+        });
+        console.log('the final result is', result.object);
 
         const parsed = AgentOutputSchema.safeParse(result.object);
         if (!parsed.success) {
-          console.error("Invalid structured output:", parsed.error.format());
-          console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+          console.error('Invalid structured output:', parsed.error.format());
           console.log(
-            "Raw structured output:",
-            JSON.stringify(result.object, null, 2),
+            '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
           );
-          console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+          console.log(
+            'Raw structured output:',
+            JSON.stringify(result.object, null, 2)
+          );
+          console.log(
+            '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+          );
 
           // Log specific field errors for debugging
           if (parsed.error.issues) {
-            console.error("Validation issues:", parsed.error.issues);
+            console.error('Validation issues:', parsed.error.issues);
           }
 
-          throw new Error("Agent returned invalid structured content.");
+          throw new Error('Agent returned invalid structured content.');
         }
 
         const stageId = await ctx.runMutation(api.stage.createstage, {
@@ -403,7 +401,7 @@ export const agent = action({
         });
         stageIds.push(stageId);
       } catch (error) {
-        console.error("Agent processing error:", error);
+        console.error('Agent processing error:', error);
       }
     }
 

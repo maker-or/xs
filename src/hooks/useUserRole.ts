@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from '@clerk/nextjs';
+import { useEffect, useState } from 'react';
 
 export type RoleInfo = {
   userId?: string | null;
-  appRole?: "admin" | "member" | null;
+  appRole?: 'admin' | 'member' | null;
   isLoading: boolean;
   error: string | null;
 };
@@ -47,10 +47,10 @@ export function useUserRole(): RoleInfo {
       }
 
       try {
-        const res = await fetch("/api/auth/role");
+        const res = await fetch('/api/auth/role');
 
         if (!res.ok) {
-          throw new Error("Failed to fetch role information");
+          throw new Error('Failed to fetch role information');
         }
 
         const data = await res.json();
@@ -63,12 +63,12 @@ export function useUserRole(): RoleInfo {
           error: null,
         });
       } catch (error) {
-        console.error("Error fetching user role:", error);
+        console.error('Error fetching user role:', error);
         setRoleInfo((prev) => ({
           ...prev,
           isLoading: false,
           error:
-            error instanceof Error ? error.message : "Failed to fetch role",
+            error instanceof Error ? error.message : 'Failed to fetch role',
         }));
       }
     };

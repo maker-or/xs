@@ -1,9 +1,13 @@
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-// import { getEmbedding } from '~/utils/embeddings';
-import { type ConvertibleMessage } from '~/utils/types';
-import { streamText } from "ai";
+import { streamText } from 'ai';
 // import { Pinecone } from '@pinecone-database/pinecone';
-import { runGeneratedSQLQuery, generateQuery, explainQuery } from '~/app/api/chat/action';
+import {
+  explainQuery,
+  generateQuery,
+  runGeneratedSQLQuery,
+} from '~/app/api/chat/action';
+// import { getEmbedding } from '~/utils/embeddings';
+import type { ConvertibleMessage } from '~/utils/types';
 
 // Define a type for the expected request body structure
 interface RequestBody {
@@ -12,10 +16,10 @@ interface RequestBody {
 
 export async function POST(req: Request): Promise<Response> {
   try {
-    console.log("welcome to ai");
+    console.log('welcome to ai');
 
     // Parse the request JSON with explicit typing
-    const body = await req.json() as RequestBody;
+    const body = (await req.json()) as RequestBody;
 
     if (!body.messages || body.messages.length === 0) {
       throw new Error('No messages provided');
@@ -69,7 +73,7 @@ export async function POST(req: Request): Promise<Response> {
 
     // Generate SQL query
     const generatedSQL = await generateQuery(query);
-    console.log(generatedSQL)
+    console.log(generatedSQL);
     const sqlResults = await runGeneratedSQLQuery(generatedSQL);
     const sqlExplanation = await explainQuery(query, generatedSQL);
 
@@ -89,21 +93,22 @@ export async function POST(req: Request): Promise<Response> {
     //console.log(final_prompt)
 
     const result = streamText({
-      model: model,
-      system: 'Your job is to genrate the answers to the given question make the answer is clean clear in a strucured format',
+      model,
+      system:
+        'Your job is to genrate the answers to the given question make the answer is clean clear in a strucured format',
       prompt: final_prompt,
-
     });
 
     return result.toDataStreamResponse();
-
   } catch (error) {
     console.error('Error in chat route:', error);
     return new Response(
-      JSON.stringify({ error: 'An error occurred while processing your request' }),
+      JSON.stringify({
+        error: 'An error occurred while processing your request',
+      }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }

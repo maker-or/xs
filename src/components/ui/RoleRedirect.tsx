@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { useAuth, useUser } from "@clerk/nextjs";
-import { getUserType, canAccessRoute } from "~/lib/auth-utils";
-import AccessDenied from "./AccessDenied";
+import { useAuth, useUser } from '@clerk/nextjs';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { canAccessRoute, getUserType } from '~/lib/auth-utils';
+import AccessDenied from './AccessDenied';
 
 export default function RoleRedirect() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -13,11 +13,11 @@ export default function RoleRedirect() {
   const pathname = usePathname();
   const [showAccessDenied, setShowAccessDenied] = useState(false);
   const [userType, setUserType] = useState<
-    "google_user" | "college_user" | "admin"
-  >("google_user");
+    'google_user' | 'college_user' | 'admin'
+  >('google_user');
 
   useEffect(() => {
-    if (!isLoaded || !userLoaded || !isSignedIn || !user) return;
+    if (!(isLoaded && userLoaded && isSignedIn && user)) return;
 
     // Determine user type
     const currentUserType = getUserType(user);
@@ -25,17 +25,18 @@ export default function RoleRedirect() {
 
     // Always allow access to public routes and auth routes
     const publicRoutes = [
-      "/select",
-      "/indauth",
-      "/onboarding",
-      "/role-selection",
-      "/privacy-policy",
-      "/terms-of-service",
-      "/pricing",
-      "/accept-invitation/",
-      "/sign-in",
-      "/sign-up",
-      "/waitlist",
+      '/select',
+      '/indauth',
+      '/onboarding',
+      '/role-selection',
+      '/privacy-policy',
+      '/terms-of-service',
+      '/pricing',
+      '/accept-invitation/',
+      '/sign-in',
+      '/sign-up',
+          '/better',
+      '/waitlist',
     ];
 
     if (publicRoutes.some((route) => pathname.startsWith(route))) {
@@ -46,10 +47,10 @@ export default function RoleRedirect() {
     console.log(`Checking access for ${currentUserType} to route: ${pathname}`);
     const hasAccess = canAccessRoute(currentUserType, pathname);
     console.log(`Access granted: ${hasAccess}`);
-    
+
     if (!hasAccess) {
       console.log(
-        `Access denied for ${currentUserType} trying to access ${pathname}`,
+        `Access denied for ${currentUserType} trying to access ${pathname}`
       );
       setShowAccessDenied(true);
       return;
@@ -61,8 +62,11 @@ export default function RoleRedirect() {
     // Use setTimeout to defer router operations to avoid render cycle conflicts
     const performRedirects = () => {
       // Redirect /folder/[id] to /student/folder/[id] for college users
-      if (pathname.startsWith("/folder/") && currentUserType !== "google_user") {
-        const folderId = pathname.split("/")[2];
+      if (
+        pathname.startsWith('/folder/') &&
+        currentUserType !== 'google_user'
+      ) {
+        const folderId = pathname.split('/')[2];
         if (folderId) {
           router.replace(`/student/folder/${folderId}`);
           return;
@@ -70,8 +74,8 @@ export default function RoleRedirect() {
       }
 
       // Handle root path redirect based on user type
-      if (pathname === "/") {
-        router.replace("/select");
+      if (pathname === '/') {
+        router.replace('/select');
         return;
       }
     };
@@ -82,7 +86,7 @@ export default function RoleRedirect() {
 
   // Show access denied page if user doesn't have permission
   if (showAccessDenied) {
-    return <AccessDenied userType={userType} attemptedRoute={pathname} />;
+    return <AccessDenied attemptedRoute={pathname} userType={userType} />;
   }
 
   return null;

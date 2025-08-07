@@ -1,7 +1,7 @@
-import { and, eq } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "~/server/db";
-import { repo } from "~/server/db/schema";
+import { and, eq } from 'drizzle-orm';
+import { type NextRequest, NextResponse } from 'next/server';
+import { db } from '~/server/db';
+import { repo } from '~/server/db/schema';
 
 // interface FileResponse {
 //   doId: number;
@@ -34,24 +34,25 @@ export async function GET(
   try {
     const { year, branch, subject } = params;
 
-    const files = await db
+    const files = (await db
       .select()
       .from(repo)
       .where(
         and(
           eq(repo.year, year),
           eq(repo.branch, branch),
-          eq(repo.subject, subject),
-        ),
-      ) as DbFile[];
+          eq(repo.subject, subject)
+        )
+      )) as DbFile[];
 
     const formattedFiles: DbFile[] = files.map((file) => ({
       ...file,
-      tags: typeof file.tags === 'string' 
-        ? file.tags.split(',').map((tag: string) => tag.trim())
-        : Array.isArray(file.tags)
-        ? file.tags
-        : [],
+      tags:
+        typeof file.tags === 'string'
+          ? file.tags.split(',').map((tag: string) => tag.trim())
+          : Array.isArray(file.tags)
+            ? file.tags
+            : [],
     }));
 
     return NextResponse.json({ files: formattedFiles });

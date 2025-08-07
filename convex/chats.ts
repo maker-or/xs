@@ -1,17 +1,17 @@
-import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
 
 export const listChats = query({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
 
     const chats = await ctx.db
-      .query("chats")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .order("desc")
+      .query('chats')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .order('desc')
       .collect();
 
     return chats.sort((a, b) => {
@@ -22,10 +22,10 @@ export const listChats = query({
 });
 
 export const getChat = query({
-  args: { chatId: v.id("chats") },
+  args: { chatId: v.id('chats') },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
     const chat = await ctx.db.get(args.chatId);
 
@@ -44,11 +44,11 @@ export const getChatByShareId = query({
   args: { shareId: v.string() },
   handler: async (ctx, args) => {
     const chat = await ctx.db
-      .query("chats")
-      .withIndex("by_share_id", (q) => q.eq("shareId", args.shareId))
+      .query('chats')
+      .withIndex('by_share_id', (q) => q.eq('shareId', args.shareId))
       .unique();
 
-    if (!chat || !chat.isShared) return null;
+    if (!(chat && chat.isShared)) return null;
     return chat;
   },
 });
@@ -61,11 +61,11 @@ export const createChat = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
 
     const now = Date.now();
-    const chatId = await ctx.db.insert("chats", {
+    const chatId = await ctx.db.insert('chats', {
       title: args.title,
       userId,
       model: args.model,
@@ -81,19 +81,19 @@ export const createChat = mutation({
 
 export const updateChat = mutation({
   args: {
-    chatId: v.id("chats"),
+    chatId: v.id('chats'),
     title: v.optional(v.string()),
     model: v.optional(v.string()),
     systemPrompt: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
 
     const chat = await ctx.db.get(args.chatId);
     if (!chat || chat.userId !== userId) {
-      throw new Error("Chat not found or unauthorized");
+      throw new Error('Chat not found or unauthorized');
     }
 
     const updates: {
@@ -113,15 +113,15 @@ export const updateChat = mutation({
 });
 
 export const shareChat = mutation({
-  args: { chatId: v.id("chats") },
+  args: { chatId: v.id('chats') },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
 
     const chat = await ctx.db.get(args.chatId);
     if (!chat || chat.userId !== userId) {
-      throw new Error("Chat not found or unauthorized");
+      throw new Error('Chat not found or unauthorized');
     }
 
     const shareId = crypto.randomUUID();
@@ -136,21 +136,21 @@ export const shareChat = mutation({
 });
 
 export const deleteChat = mutation({
-  args: { chatId: v.id("chats") },
+  args: { chatId: v.id('chats') },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
 
     const chat = await ctx.db.get(args.chatId);
     if (!chat || chat.userId !== userId) {
-      throw new Error("Chat not found or unauthorized");
+      throw new Error('Chat not found or unauthorized');
     }
 
     // Delete all messages in the chat
     const messages = await ctx.db
-      .query("messages")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
+      .query('messages')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
       .collect();
 
     for (const message of messages) {
@@ -159,8 +159,8 @@ export const deleteChat = mutation({
 
     // Delete streaming sessions
     const sessions = await ctx.db
-      .query("streamingSessions")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
+      .query('streamingSessions')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
       .collect();
 
     for (const session of sessions) {
@@ -179,9 +179,9 @@ export const searchChats = query({
     const userId = identity.subject;
 
     const chats = await ctx.db
-      .query("chats")
-      .withSearchIndex("search_title", (q) =>
-        q.search("title", args.query).eq("userId", userId)
+      .query('chats')
+      .withSearchIndex('search_title', (q) =>
+        q.search('title', args.query).eq('userId', userId)
       )
       .take(20);
 
@@ -190,7 +190,7 @@ export const searchChats = query({
 });
 
 export const prefetchChatData = query({
-  args: { chatIds: v.array(v.id("chats")) },
+  args: { chatIds: v.array(v.id('chats')) },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];
@@ -205,11 +205,11 @@ export const prefetchChatData = query({
 
       // Get main thread messages (limit to last 50 for performance)
       const messages = await ctx.db
-        .query("messages")
-        .withIndex("by_chat", (q) => q.eq("chatId", chatId))
-        .filter((q) => q.eq(q.field("isActive"), true))
-        .filter((q) => q.eq(q.field("branchId"), undefined))
-        .order("desc")
+        .query('messages')
+        .withIndex('by_chat', (q) => q.eq('chatId', chatId))
+        .filter((q) => q.eq(q.field('isActive'), true))
+        .filter((q) => q.eq(q.field('branchId'), undefined))
+        .order('desc')
         .take(50);
 
       // Reverse to get chronological order
@@ -217,22 +217,22 @@ export const prefetchChatData = query({
 
       // Get active branch
       const activeBranch = await ctx.db
-        .query("branches")
-        .withIndex("by_chat", (q) => q.eq("chatId", chatId))
-        .filter((q) => q.eq(q.field("isActive"), true))
+        .query('branches')
+        .withIndex('by_chat', (q) => q.eq('chatId', chatId))
+        .filter((q) => q.eq(q.field('isActive'), true))
         .first();
 
       // Get streaming session
       const streamingSession = await ctx.db
-        .query("streamingSessions")
-        .withIndex("by_chat", (q) => q.eq("chatId", chatId))
-        .filter((q) => q.eq(q.field("isActive"), true))
+        .query('streamingSessions')
+        .withIndex('by_chat', (q) => q.eq('chatId', chatId))
+        .filter((q) => q.eq(q.field('isActive'), true))
         .first();
 
       // Check if chat has branches (just check existence, don't load all)
       const hasBranches = await ctx.db
-        .query("branches")
-        .withIndex("by_chat", (q) => q.eq("chatId", chatId))
+        .query('branches')
+        .withIndex('by_chat', (q) => q.eq('chatId', chatId))
         .first();
 
       return {
@@ -250,30 +250,30 @@ export const prefetchChatData = query({
 });
 
 export const pinned = mutation({
-  args: { chatId: v.id("chats") },
+  args: { chatId: v.id('chats') },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
 
     const chat = await ctx.db.get(args.chatId);
     if (!chat || chat.userId !== userId) {
-      throw new Error("Chat not found or unauthorized");
+      throw new Error('Chat not found or unauthorized');
     }
     await ctx.db.patch(args.chatId, { pinned: true });
   },
 });
 
 export const unpinned = mutation({
-  args: { chatId: v.id("chats") },
+  args: { chatId: v.id('chats') },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    if (!identity) throw new Error('Not authenticated');
     const userId = identity.subject;
 
     const chat = await ctx.db.get(args.chatId);
     if (!chat || chat.userId !== userId) {
-      throw new Error("Chat not found or unauthorized");
+      throw new Error('Chat not found or unauthorized');
     }
     await ctx.db.patch(args.chatId, { pinned: false });
   },

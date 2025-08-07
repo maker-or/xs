@@ -1,24 +1,27 @@
 // src/app/api/repo/year/[year]/[branch]/[subject]/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
-import { db } from "~/server/db";
-import { repo } from "~/server/db/schema";
 
-const years = ["1", "2", "3", "4"];
+import { and, eq } from 'drizzle-orm';
+import { type NextRequest, NextResponse } from 'next/server';
+import { db } from '~/server/db';
+import { repo } from '~/server/db/schema';
+
+const years = ['1', '2', '3', '4'];
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ year: string; branch: string; subject: string }> }
+  context: {
+    params: Promise<{ year: string; branch: string; subject: string }>;
+  }
 ) {
   try {
     // Await params before accessing properties (Next.js 15 requirement)
     const params = await context.params;
     const { year, branch, subject } = params;
     const searchParams = request.nextUrl.searchParams;
-    const category = searchParams.get("category") || "notes";
+    const category = searchParams.get('category') || 'notes';
 
     if (!years.includes(year)) {
-      throw new Error("Year not defined");
+      throw new Error('Year not defined');
     }
 
     const files = await db
@@ -45,13 +48,15 @@ export async function GET(
     // Filter by category client-side until schema is updated
     // This is a temporary solution
     const categoryFilteredFiles =
-      category === "notes"
+      category === 'notes'
         ? files.filter(
             (file) =>
-              file.filename.toLowerCase().includes("note") ||
-              !file.filename.toLowerCase().includes("question")
+              file.filename.toLowerCase().includes('note') ||
+              !file.filename.toLowerCase().includes('question')
           )
-        : files.filter((file) => file.filename.toLowerCase().includes("question"));
+        : files.filter((file) =>
+            file.filename.toLowerCase().includes('question')
+          );
 
     // Extract all unique tags from the files
     const allTags = new Set<string>();
@@ -67,6 +72,9 @@ export async function GET(
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch data' },
+      { status: 500 }
+    );
   }
 }

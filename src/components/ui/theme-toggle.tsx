@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useTheme } from "next-themes";
+import { useTheme } from 'next-themes';
+import * as React from 'react';
 // import { Moon, Sun } from "lucide-react";
-import { Button } from "~/components/ui/button";
+import { Button } from '~/components/ui/button';
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -17,7 +17,7 @@ export function ThemeToggle() {
   if (!mounted) {
     // Render placeholder to avoid layout shift
     return (
-      <Button variant="ghost" size="icon" className="w-10 h-10" disabled>
+      <Button className="h-10 w-10" disabled size="icon" variant="ghost">
         <span className="h-4 w-4" />
       </Button>
     );
@@ -25,14 +25,13 @@ export function ThemeToggle() {
 
   return (
     <Button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      variant={theme === "dark" ? "secondary" : "default"}
-      size="sm"
-      
-      className="gap-2"
       aria-label={
-        theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+        theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
       }
+      className="gap-2"
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      size="sm"
+      variant={theme === 'dark' ? 'secondary' : 'default'}
       // leftIcon={
       //   theme === "dark" ? (
       //     <Sun className="h-4 w-4" />
@@ -42,7 +41,7 @@ export function ThemeToggle() {
       // }
     >
       <span className="sr-only md:not-sr-only md:inline-block">
-        {theme === "dark" ? "Light Mode" : "Dark Mode"}
+        {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
       </span>
     </Button>
   );

@@ -1,5 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
-import { db } from "~/server/db";
+import { auth } from '@clerk/nextjs/server';
+import { db } from '~/server/db';
 
 export default async function getMyImages(folderId: number) {
   try {
@@ -16,9 +16,7 @@ export default async function getMyImages(folderId: number) {
 
     return images;
   } catch (error) {
-    console.error("Error fetching images:", error);
+    console.error('Error fetching images:', error);
     return null;
   }
 }
-
-

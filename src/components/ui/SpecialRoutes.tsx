@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { usePathname } from "next/navigation";
-import Header from "./Header";
-import LandingPage from "./LandingPage";
+import { usePathname } from 'next/navigation';
+import type React from 'react';
+import Header from './Header';
+import LandingPage from './LandingPage';
 
 export default function SpecialRoutes({
   children,
@@ -14,15 +14,15 @@ export default function SpecialRoutes({
 
   // Routes that should render their own content without the landing page layout
   const specialRoutes = [
-    "/role-selection",
-    "/signin",
-    "/signup",
-    "/sign-in",
-    "/sign-up",
-    "/select",
-    "/indauth",
-    "/onboarding",
-    "/waitlist",
+    '/role-selection',
+    '/signin',
+    '/signup',
+    '/sign-in',
+    '/sign-up',
+    '/select',
+    '/indauth',
+    '/onboarding',
+    '/waitlist',
   ];
 
   // If we're on any special route, show the page content directly

@@ -1,14 +1,8 @@
-import React from "react";
-import {
-  Plus,
-  ArrowLeftRight,
-  Trash,
-  FileText,
-
-} from "lucide-react";
+import { ArrowLeftRight, FileText, Plus, Trash } from 'lucide-react';
+import type React from 'react';
 // import { Button } from './ui/Button';
 // import ThemeToggle from './theme-toggle';
-import { ModelSelector, ModelOption } from "./ModelSelector";
+import { type ModelOption, ModelSelector } from './ModelSelector';
 
 interface TopNavProps {
   createNewChat(): void;
@@ -44,37 +38,37 @@ export const TopNav: React.FC<TopNavProps> = ({
   modelOptions,
 }) => (
   <nav
-    className={`sticky top-1 m-3 w-fit rounded-md bg-[#f8f8f8] dark:bg-[#0d0d0d] border-b border-gray-200 dark:border-[#f7eee332] backdrop-blur-md shadow-md transition-transform duration-300 ${showNav || isMobile ? "translate-y-0" : "-translate-y-full"}`}
+    className={`sticky top-1 m-3 w-fit rounded-md border-gray-200 border-b bg-[#f8f8f8] shadow-md backdrop-blur-md transition-transform duration-300 dark:border-[#f7eee332] dark:bg-[#0d0d0d] ${showNav || isMobile ? 'translate-y-0' : '-translate-y-full'}`}
   >
-    <div className="max-w-7xl mx-auto px-2 sm:px-4 flex items-center justify-between h-14">
+    <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-2 sm:px-4">
       {/* Desktop actions */}
-      <div className="hidden md:flex items-center space-x-2">
+      <div className="hidden items-center space-x-2 md:flex">
         <button
+          className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm hover:bg-gray-200 dark:hover:bg-[#575757]"
           onClick={createNewChat}
-          className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-[#575757]"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
           <span>New</span>
         </button>
         <button
+          className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm hover:bg-gray-200 dark:hover:bg-[#575757]"
           onClick={openChatSwitcher}
-          className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-[#575757]"
         >
-          <ArrowLeftRight className="w-4 h-4" />
+          <ArrowLeftRight className="h-4 w-4" />
           <span>Switch</span>
         </button>
         <button
+          className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm hover:bg-gray-200 dark:hover:bg-[#575757]"
           onClick={clearHistory}
-          className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-[#575757]"
         >
-          <Trash className="w-4 h-4" />
+          <Trash className="h-4 w-4" />
           <span>Delete</span>
         </button>
         <button
+          className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm hover:bg-gray-200 dark:hover:bg-[#575757]"
           onClick={exportPDF}
-          className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-[#575757]"
         >
-          <FileText className="w-4 h-4" />
+          <FileText className="h-4 w-4" />
           <span>Export</span>
         </button>
         {/* {isDesignMode && (
@@ -88,66 +82,66 @@ export const TopNav: React.FC<TopNavProps> = ({
         )} */}
         {/* Model selector */}
         <ModelSelector
+          modelOptions={modelOptions}
+          onModelChange={onModelChange}
           selectedModel={selectedModel}
           showModelSelector={showModelSelector}
-          onModelChange={onModelChange}
-          modelOptions={modelOptions}
         />
       </div>
 
       {/* Mobile actions */}
-      <div className="flex md:hidden items-center space-x-2">
+      <div className="flex items-center space-x-2 md:hidden">
         <button
+          className="rounded-lg p-2 hover:bg-gray-200 dark:hover:bg-[#575757]"
           onClick={toggleMobileMenu}
-          className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-[#575757]"
         >
           {/* Hamburger icon */}
-          <div className="w-5 h-5 flex flex-col justify-between">
+          <div className="flex h-5 w-5 flex-col justify-between">
             <span
-              className={`${showMobileMenu ? "rotate-45 translate-y-1.5" : ""} block h-0.5 w-full bg-current transition-all`}
+              className={`${showMobileMenu ? 'translate-y-1.5 rotate-45' : ''} block h-0.5 w-full bg-current transition-all`}
             />
 
             <span
-              className={`${showMobileMenu ? "opacity-0" : "opacity-100"} block h-0.5 w-full bg-current transition-all`}
+              className={`${showMobileMenu ? 'opacity-0' : 'opacity-100'} block h-0.5 w-full bg-current transition-all`}
             />
 
             <span
-              className={`${showMobileMenu ? "-rotate-45 -translate-y-1.5" : ""} block h-0.5 w-full bg-current transition-all`}
+              className={`${showMobileMenu ? '-rotate-45 -translate-y-1.5' : ''} block h-0.5 w-full bg-current transition-all`}
             />
           </div>
         </button>
         <button
+          className="rounded-xl bg-[#151515] p-3 text-white shadow-lg hover:bg-[#48AAFF]"
           onClick={createNewChat}
-          className="p-3 rounded-xl bg-[#151515] text-white hover:bg-[#48AAFF] shadow-lg"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
         </button>
       </div>
 
       {/* Mobile menu dropdown */}
       {showMobileMenu && (
-        <div className="absolute right-2 top-14 z-30 w-48 bg-white dark:bg-[#252525] rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+        <div className="absolute top-14 right-2 z-30 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-[#252525]">
           <button
-            onClick={() => onMenuAction(createNewChat)}
             className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={() => onMenuAction(createNewChat)}
           >
             New Chat
           </button>
           <button
-            onClick={() => onMenuAction(openChatSwitcher)}
             className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={() => onMenuAction(openChatSwitcher)}
           >
             Switch Chat
           </button>
           <button
+            className="dark:hover:bg.gray-700 w-full px-4 py-2 text-left hover:bg-gray-100"
             onClick={() => onMenuAction(clearHistory)}
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg.gray-700"
           >
             Delete Chat
           </button>
           <button
+            className="dark:hover:bg.gray-700 w-full px-4 py-2 text-left hover:bg-gray-100"
             onClick={() => onMenuAction(exportPDF)}
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg.gray-700"
           >
             Export PDF
           </button>

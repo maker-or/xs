@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { useUser } from '@clerk/nextjs';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function LoadingPage() {
   const { user, isLoaded } = useUser();
   // const { orgId, orgRole } = useAuth();
   const router = useRouter();
-  const [status, setStatus] = useState("Setting up your account...");
+  const [status, setStatus] = useState('Setting up your account...');
   const [isProcessing, setIsProcessing] = useState(true);
   const [progress, setProgress] = useState(0);
 
@@ -17,7 +17,7 @@ export default function LoadingPage() {
     if (!isLoaded) return;
 
     if (!user) {
-      console.log("User not loaded yet, waiting...");
+      console.log('User not loaded yet, waiting...');
       return;
     }
 
@@ -55,7 +55,7 @@ export default function LoadingPage() {
       try {
         // Since we're receiving users directly from auth/redirect,
         // we assume this user needs onboarding
-        setStatus("Setting up your account...");
+        setStatus('Setting up your account...');
 
         // First check role from session claims
         // const roleCheck = await fetch('/api/auth/role', {
@@ -81,20 +81,20 @@ export default function LoadingPage() {
         console.log(metadataOrgId);
 
         const role =
-          (user.publicMetadata?.role as string) || "no role from /loading";
+          (user.publicMetadata?.role as string) || 'no role from /loading';
         console.log(role);
 
         // Only use organizationId from URL or from publicMetadata - these are the correct sources
-        const effectiveOrgId = metadataOrgId || "no orgid from /loading";
+        const effectiveOrgId = metadataOrgId || 'no orgid from /loading';
         console.log(effectiveOrgId);
 
         // console.log('Using organization ID for onboarding:', effectiveOrgId,
         //   urlOrgId ? '(from URL)' : metadataOrgId ? '(from user publicMetadata.organizationId)' : '(empty)',
         //   'Full publicMetadata:', user.publicMetadata);
 
-        const res = await fetch("/api/onboarding", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const res = await fetch('/api/onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email: user?.emailAddresses || [], // Add null check with fallback
             organisationId: effectiveOrgId,
@@ -105,15 +105,15 @@ export default function LoadingPage() {
         if (res.ok) {
           const data = await res.json();
           setProgress(100);
-          setStatus("Account setup complete!");
+          setStatus('Account setup complete!');
 
           // Redirect based on role from the API response
           // Use router.replace to prevent users from going back to the loading page
           setTimeout(() => {
-            if (data.role === "admin") {
-              router.replace("/teacher");
+            if (data.role === 'admin') {
+              router.replace('/teacher');
             } else {
-              router.replace("/student");
+              router.replace('/student');
             }
           }, 1500);
         } else {
@@ -124,33 +124,33 @@ export default function LoadingPage() {
               errorData.error || `Server error (${res.status})`;
             setStatus(`Onboarding failed: ${errorMessage}`);
             console.error(
-              "Onboarding failed:",
+              'Onboarding failed:',
               errorData,
-              "Status:",
-              res.status,
+              'Status:',
+              res.status
             );
           } catch (jsonError) {
             setStatus(
-              `Onboarding failed: Unable to parse error response (${res.status})`,
+              `Onboarding failed: Unable to parse error response (${res.status})`
             );
             console.error(
-              "Onboarding failed with status:",
+              'Onboarding failed with status:',
               res.status,
-              "Error parsing response:",
-              jsonError,
+              'Error parsing response:',
+              jsonError
             );
           }
           setIsProcessing(false);
         }
       } catch (error) {
-        console.error("Onboarding error:", error);
+        console.error('Onboarding error:', error);
         // Show detailed error for debugging
         if (error instanceof Error) {
           setStatus(`Error: ${error.message}`);
-          console.error("Error stack:", error.stack);
+          console.error('Error stack:', error.stack);
         } else {
-          setStatus("An unexpected error occurred. Please try again.");
-          console.error("Unhandled error type:", typeof error);
+          setStatus('An unexpected error occurred. Please try again.');
+          console.error('Unhandled error type:', typeof error);
         }
         setIsProcessing(false);
 
@@ -176,28 +176,28 @@ export default function LoadingPage() {
             <div
               className="h-full rounded-full bg-blue-500 transition-all duration-300"
               style={{ width: `${progress}%` }}
-            ></div>
+            />
           </div>
-          <p className="text-sm text-gray-400">{Math.round(progress)}%</p>
+          <p className="text-gray-400 text-sm">{Math.round(progress)}%</p>
         </>
       ) : (
         // Show retry button if there was an error
         <>
           <button
+            className="mt-4 rounded-md bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700"
             onClick={() => {
               setIsProcessing(true);
               setProgress(0);
-              setStatus("Retrying account setup...");
+              setStatus('Retrying account setup...');
               // Force reload the page to restart the onboarding process
               window.location.reload();
             }}
-            className="mt-4 rounded-md bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700"
           >
             Retry
           </button>
           <a
+            className="mt-2 text-blue-400 text-sm hover:text-blue-300"
             href="/auth/redirect"
-            className="mt-2 text-sm text-blue-400 hover:text-blue-300"
           >
             Return to dashboard
           </a>

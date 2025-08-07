@@ -1,8 +1,9 @@
 // app/api/upload/route.ts
-import { db } from "~/server/db";
-import { posts } from "~/server/db/schema";
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+
+import { auth } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+import { db } from '~/server/db';
+import { posts } from '~/server/db/schema';
 
 // Define the expected structure of the request body
 interface UploadRequest {
@@ -14,30 +15,26 @@ interface UploadRequest {
   folderId: number;
 }
 
-
 function isValidUploadRequest(data: unknown): data is UploadRequest {
-const upload = data as UploadRequest;
-return (
-    typeof upload?.name === "string" &&
-    typeof upload?.url === "string" &&
-    typeof upload?.type === "string" &&
-    typeof upload?.size === "number" &&
-    typeof upload?.userId === "object" &&
-    typeof upload?.folderId === "number"
-);
+  const upload = data as UploadRequest;
+  return (
+    typeof upload?.name === 'string' &&
+    typeof upload?.url === 'string' &&
+    typeof upload?.type === 'string' &&
+    typeof upload?.size === 'number' &&
+    typeof upload?.userId === 'object' &&
+    typeof upload?.folderId === 'number'
+  );
 }
 
 export async function POST(req: Request) {
-  
   try {
     // Safely parse the request body
-    const { userId:authUserId } = (await auth()) as { userId: string | null };
+    const { userId: authUserId } = (await auth()) as { userId: string | null };
 
+    console.log('authUserId', authUserId);
 
-
-    console.log("authUserId", authUserId);
-
-    if (!authUserId) throw new Error("Unauthorized");
+    if (!authUserId) throw new Error('Unauthorized');
     const body = await req.json();
     // console.log("body", body);
     // console.log("type", typeof body.userId);
@@ -48,7 +45,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid request body format"
+          error: 'Invalid request body format',
         },
         { status: 400 }
       );
@@ -57,30 +54,31 @@ export async function POST(req: Request) {
     // Now TypeScript knows the body is properly typed
     // const { name, url, type, size, userId, folderId } = body;
     const { userId, name, url, type, size, folderId } = body;
-     const ud = JSON.stringify(userId);
-     console.log("ud", ud);
-    
-        console.log("type", type);
-        console.log("size", size);
+    const ud = JSON.stringify(userId);
+    console.log('ud', ud);
+
+    console.log('type', type);
+    console.log('size', size);
 
     const post = await db.insert(posts).values({
-      name: name,
-      url: url,
+      name,
+      url,
       userId: authUserId,
-      folderId: folderId,
+      folderId,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
     return NextResponse.json({ success: true, post });
-} catch (error) {
-    console.error("Error updating database:", error);
+  } catch (error) {
+    console.error('Error updating database:', error);
     return NextResponse.json(
-    {
+      {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to update database"
-    },
-    { status: 500 }
+        error:
+          error instanceof Error ? error.message : 'Failed to update database',
+      },
+      { status: 500 }
     );
-}
+  }
 }

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Button } from './button';
 
 interface Exam {
@@ -25,17 +25,17 @@ const ExamStatus = () => {
   const checkExam = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch('/api/exams/current');
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to check for exams');
       }
-      
+
       setExamAvailable(data.available);
-      
+
       if (data.available && data.exam) {
         setExam(data.exam);
       } else {
@@ -44,7 +44,10 @@ const ExamStatus = () => {
         setHasSubmitted(!!data.hasSubmitted);
       }
     } catch (err: Error | unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to check for available exams';
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to check for available exams';
       setError(errorMessage);
       setExam(null);
       setExamAvailable(false);
@@ -66,11 +69,11 @@ const ExamStatus = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="w-full bg-gray-800/50 rounded-lg p-6 my-4 animate-pulse">
-        <div className="h-7 bg-gray-700 rounded w-1/3 mb-4"></div>
-        <div className="h-4 bg-gray-700 rounded w-4/5 mb-2"></div>
-        <div className="h-4 bg-gray-700 rounded w-2/3 mb-4"></div>
-        <div className="h-10 bg-gray-700 rounded w-1/4"></div>
+      <div className="my-4 w-full animate-pulse rounded-lg bg-gray-800/50 p-6">
+        <div className="mb-4 h-7 w-1/3 rounded bg-gray-700" />
+        <div className="mb-2 h-4 w-4/5 rounded bg-gray-700" />
+        <div className="mb-4 h-4 w-2/3 rounded bg-gray-700" />
+        <div className="h-10 w-1/4 rounded bg-gray-700" />
       </div>
     );
   }
@@ -78,12 +81,14 @@ const ExamStatus = () => {
   // Error state
   if (error) {
     return (
-      <div className="w-full bg-red-900/30 border border-red-500 rounded-lg p-6 my-4">
-        <h3 className="text-lg font-medium text-red-300 mb-2">Error checking exam status</h3>
+      <div className="my-4 w-full rounded-lg border border-red-500 bg-red-900/30 p-6">
+        <h3 className="mb-2 font-medium text-lg text-red-300">
+          Error checking exam status
+        </h3>
         <p className="text-red-200">{error}</p>
-        <Button 
-          onClick={checkExam}
+        <Button
           className="mt-4 bg-red-600 hover:bg-red-700"
+          onClick={checkExam}
         >
           Try Again
         </Button>
@@ -94,16 +99,13 @@ const ExamStatus = () => {
   // No active exam, but has submitted an exam
   if (!examAvailable && hasSubmitted) {
     return (
-      <div className="w-full bg-gray-800/50 rounded-lg p-6 my-4">
-        <h3 className="text-xl font-semibold mb-3">Exam Submitted</h3>
-        <p className="text-gray-300 mb-4">
-          You have already submitted your exam. Your teacher will review the results.
+      <div className="my-4 w-full rounded-lg bg-gray-800/50 p-6">
+        <h3 className="mb-3 font-semibold text-xl">Exam Submitted</h3>
+        <p className="mb-4 text-gray-300">
+          You have already submitted your exam. Your teacher will review the
+          results.
         </p>
-        <Button 
-          onClick={checkExam}
-          variant="outline"
-          className="text-sm"
-        >
+        <Button className="text-sm" onClick={checkExam} variant="outline">
           Refresh Status
         </Button>
       </div>
@@ -113,31 +115,33 @@ const ExamStatus = () => {
   // Available exam
   if (examAvailable && exam) {
     return (
-      <div className="w-full rounded-lg p-6 my-4 border ">
-        <div className="flex justify-between items-start">
+      <div className="my-4 w-full rounded-lg border p-6 ">
+        <div className="flex items-start justify-between">
           <div>
-            <span className="px-3 py-1 text-xs font-medium  rounded-full mb-3 inline-block">
+            <span className="mb-3 inline-block rounded-full px-3 py-1 font-medium text-xs">
               Available Now
             </span>
-            <h3 className="text-xl font-bold mb-1">{exam.subject}</h3>
-            {exam.topic && <p className="text-gray-300 mb-3">Topic: {exam.topic}</p>}
-            <div className="flex flex-wrap gap-3 text-xs mt-3 mb-4">
-              <span className="bg-gray-700/70 px-3 py-1 rounded-full">
+            <h3 className="mb-1 font-bold text-xl">{exam.subject}</h3>
+            {exam.topic && (
+              <p className="mb-3 text-gray-300">Topic: {exam.topic}</p>
+            )}
+            <div className="mt-3 mb-4 flex flex-wrap gap-3 text-xs">
+              <span className="rounded-full bg-gray-700/70 px-3 py-1">
                 {exam.num_questions} Questions
               </span>
-              <span className="bg-gray-700/70 px-3 py-1 rounded-full capitalize">
+              <span className="rounded-full bg-gray-700/70 px-3 py-1 capitalize">
                 {exam.difficulty} Difficulty
               </span>
-              <span className="bg-gray-700/70 px-3 py-1 rounded-full">
+              <span className="rounded-full bg-gray-700/70 px-3 py-1">
                 {exam.duration} Minutes
               </span>
             </div>
           </div>
         </div>
 
-        <Button 
-          onClick={startExam}
+        <Button
           className="mt-2 bg-blue-600 hover:bg-blue-700"
+          onClick={startExam}
         >
           Start Exam
         </Button>
@@ -147,16 +151,13 @@ const ExamStatus = () => {
 
   // No active exam
   return (
-    <div className="w-fullrounded-lg p-6 my-4">
-      <h3 className="text-xl font-semibold mb-3">No Active Exams</h3>
-      <p className="text-gray-300 mb-4">
-        You don&apos;t have any exams available at this time. Check back later or contact your teacher.
+    <div className="my-4 w-fullrounded-lg p-6">
+      <h3 className="mb-3 font-semibold text-xl">No Active Exams</h3>
+      <p className="mb-4 text-gray-300">
+        You don&apos;t have any exams available at this time. Check back later
+        or contact your teacher.
       </p>
-      <Button 
-        onClick={checkExam}
-        variant="outline"
-        className="text-sm"
-      >
+      <Button className="text-sm" onClick={checkExam} variant="outline">
         Refresh Status
       </Button>
     </div>

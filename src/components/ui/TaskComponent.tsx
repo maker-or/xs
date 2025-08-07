@@ -1,7 +1,7 @@
-"use client";
-import React, { useState, useRef } from "react";
-import useSWR, { mutate, SWRResponse } from "swr";
-import { Plus, Check, ChevronLeft } from "lucide-react";
+'use client';
+import { Check, ChevronLeft, Plus } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import useSWR, { mutate, type SWRResponse } from 'swr';
 
 interface TaskTypes {
   id: string;
@@ -10,36 +10,39 @@ interface TaskTypes {
 }
 
 const fetcher = async (): Promise<TaskTypes[]> => {
-  const response = await fetch("/api/userTasks");
-  if (!response.ok) throw new Error("Failed to fetch tasks");
+  const response = await fetch('/api/userTasks');
+  if (!response.ok) throw new Error('Failed to fetch tasks');
   const data = (await response.json()) as TaskTypes[];
 
-  return data.map((task) => ({
-    ...task,
-    completed: typeof task.completed === "string"
-      ? task.completed.toLowerCase() === "true"
-      : Boolean(task.completed),
-  })).filter((task) => !task.completed);
+  return data
+    .map((task) => ({
+      ...task,
+      completed:
+        typeof task.completed === 'string'
+          ? task.completed.toLowerCase() === 'true'
+          : Boolean(task.completed),
+    }))
+    .filter((task) => !task.completed);
 };
 
 const TaskComponent = ({ onClose }: { onClose: () => void }) => {
   const { data: tasks = [], error }: SWRResponse<TaskTypes[], Error> = useSWR(
-    "/api/userTasks",
+    '/api/userTasks',
     fetcher,
     { fallbackData: [] }
   );
-  const [newTask, setNewTask] = useState<string>("");
+  const [newTask, setNewTask] = useState<string>('');
   const [showInput, setShowInput] = useState<boolean>(false);
   const [removingTask, setRemovingTask] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const addTask = async (taskText: string) => {
-    await fetch("api/userTasks", {
-      method: "POST",
+    await fetch('api/userTasks', {
+      method: 'POST',
       body: JSON.stringify({ task: taskText.trim() }),
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
-    await mutate("/api/userTasks");
+    await mutate('/api/userTasks');
   };
 
   React.useEffect(() => {
@@ -51,7 +54,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
   const handleAddTask = async () => {
     if (newTask.trim()) {
       await addTask(newTask);
-      setNewTask("");
+      setNewTask('');
       setShowInput(false);
     }
   };
@@ -62,7 +65,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
       setTimeout(async () => {
         if (!tasks) return;
         await mutate(
-          "/api/userTasks",
+          '/api/userTasks',
           tasks.filter((task) => task.id !== taskId),
           false
         );
@@ -73,17 +76,17 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
   };
 
   const taskComplete = async (taskId: string) => {
-    await fetch("/api/userTasks", {
-      method: "PATCH",
+    await fetch('/api/userTasks', {
+      method: 'PATCH',
       body: JSON.stringify({ taskId }),
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
-    await mutate("/api/userTasks");
+    await mutate('/api/userTasks');
   };
 
   const handleToggleComplete = async (taskId: string) => {
     await mutate(
-      "/api/userTasks",
+      '/api/userTasks',
       tasks.map((task) =>
         task.id === taskId ? { ...task, completed: true } : task
       ),
@@ -94,7 +97,7 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       void handleAddTask();
     }
   };
@@ -104,87 +107,92 @@ const TaskComponent = ({ onClose }: { onClose: () => void }) => {
   }
 
   return (
-    <div className=" bg-[#121212]   text-[#f7eee3] shadow-2xl backdrop-blur-xl rounded-3xl p-1 pb-12  border-[#5858583d] border-2">
-      <div className=" bg-[#2a2a2a] text-[#a0a0a0] rounded-2xl w-[600px] max-w-[90vw] shadow-2xl p-4  overflow-hidden">
-
-      <div className="mb-6 flex items-center justify-between">
-        <button
-          onClick={onClose}
-          className="rounded-xl bg-[#0E0D0D]p-2 text-[#f7eee3]/70 transition-colors hover:text-[#f7eee3]"
-          aria-label="Close"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <h2 className="text-2xl text-[#f7eee3] font-serif">Tasks</h2>
-      </div>
-
-      <div className="flex-grow space-y-2 overflow-y-auto">
-        {tasks.map((task) => (
-          <div
-            key={task.id}
-            className={`flex items-center justify-between p-3 transition-all duration-500 ${
-              removingTask === task.id
-                ? "scale-90 opacity-0"
-                : task.completed
-                ? "border-b-2 border-[#f7eee323] text-green-600 line-through"
-                : "border-b-2 border-[#f7eee323] bg-[#000000]/0"
-            }`}
+    <div className=" rounded-3xl border-2 border-[#5858583d] bg-[#121212] p-1 pb-12 text-[#f7eee3] shadow-2xl backdrop-blur-xl">
+      <div className=" w-[600px] max-w-[90vw] overflow-hidden rounded-2xl bg-[#2a2a2a] p-4 text-[#a0a0a0] shadow-2xl">
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            aria-label="Close"
+            className="rounded-xl bg-[#0E0D0D]p-2 text-[#f7eee3]/70 transition-colors hover:text-[#f7eee3]"
+            onClick={onClose}
           >
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => { void handleToggleComplete(task.id); }}
-                className={`flex h-6 w-6 items-center justify-center rounded-md border ${
-                  task.completed
-                    ? "border-green-500/70 bg-green-500/70"
-                    : "border-[#f7eee3]/30 hover:border-[#FF5E00]-400/50"
-                }`}
-                aria-label={`Mark task ${task.text} as complete`}
-              >
-                {task.completed && <Check size={16} />}
-              </button>
-              <span>{task.text}</span>
-            </div>
-            <button
-              onClick={() => { void handleDeleteTask(task.id); }}
-              className="rounded-full p-2 text-[#f7eee3] transition-colors hover:text-red-500"
-              aria-label={`Delete task ${task.text}`}
+            <ChevronLeft size={24} />
+          </button>
+          <h2 className="font-serif text-2xl text-[#f7eee3]">Tasks</h2>
+        </div>
+
+        <div className="flex-grow space-y-2 overflow-y-auto">
+          {tasks.map((task) => (
+            <div
+              className={`flex items-center justify-between p-3 transition-all duration-500 ${
+                removingTask === task.id
+                  ? 'scale-90 opacity-0'
+                  : task.completed
+                    ? 'border-[#f7eee323] border-b-2 text-green-600 line-through'
+                    : 'border-[#f7eee323] border-b-2 bg-[#000000]/0'
+              }`}
+              key={task.id}
             >
-              {/* <Trash2 size={18} /> */}
+              <div className="flex items-center space-x-3">
+                <button
+                  aria-label={`Mark task ${task.text} as complete`}
+                  className={`flex h-6 w-6 items-center justify-center rounded-md border ${
+                    task.completed
+                      ? 'border-green-500/70 bg-green-500/70'
+                      : 'border-[#f7eee3]/30 hover:border-[#FF5E00]-400/50'
+                  }`}
+                  onClick={() => {
+                    void handleToggleComplete(task.id);
+                  }}
+                >
+                  {task.completed && <Check size={16} />}
+                </button>
+                <span>{task.text}</span>
+              </div>
+              <button
+                aria-label={`Delete task ${task.text}`}
+                className="rounded-full p-2 text-[#f7eee3] transition-colors hover:text-red-500"
+                onClick={() => {
+                  void handleDeleteTask(task.id);
+                }}
+              >
+                {/* <Trash2 size={18} /> */}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {showInput ? (
+          <div className="mt-4 flex gap-2">
+            <input
+              className="flex-grow rounded-xl border border-[#f7eee3]/20 bg-[#f7eee3]/10 p-3 text-[#f7eee3] backdrop-blur-md placeholder:text-[#6D6D6C] focus:outline-none"
+              onChange={(e) => setNewTask(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter new task"
+              ref={inputRef}
+              type="text"
+              value={newTask}
+            />
+            <button
+              className={`rounded-md bg-[#FF5E00]/70 p-3 text-[#f7eee3] backdrop-blur-md transition-colors ${newTask.trim() ? 'hover:bg-[#FF5E00]/90' : 'cursor-not-allowed opacity-50'}`}
+              disabled={!newTask.trim()}
+              onClick={() => {
+                void handleAddTask();
+              }}
+            >
+              Add
             </button>
           </div>
-        ))}
-      </div>
-
-      {showInput ? (
-        <div className="mt-4 flex gap-2">
-          <input
-            ref={inputRef}
-            type="text"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Enter new task"
-            className="flex-grow rounded-xl border border-[#f7eee3]/20 bg-[#f7eee3]/10 p-3 text-[#f7eee3] placeholder:text-[#6D6D6C] backdrop-blur-md focus:outline-none"
-          />
-          <button
-            onClick={() => { void handleAddTask(); }}
-            className={`rounded-md bg-[#FF5E00]/70 p-3 text-[#f7eee3] backdrop-blur-md transition-colors ${!newTask.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#FF5E00]/90'}`}
-            disabled={!newTask.trim()}
-          >
-            Add
-          </button>
-        </div>
-      ) : (
-        <div className="mt-4">
-          <button
-            onClick={() => setShowInput(true)}
-            className="w-3/2 flex items-center justify-end rounded-md border-2 border-[#f7eee323] bg-[#343333] p-2 text-[#f7eee3] transition-colors hover:bg-[#FF5E00]/90"
-            aria-label="Add new task"
-          >
-            <Plus size={20} />
-          </button>
-        </div>
-      )}
+        ) : (
+          <div className="mt-4">
+            <button
+              aria-label="Add new task"
+              className="flex w-3/2 items-center justify-end rounded-md border-2 border-[#f7eee323] bg-[#343333] p-2 text-[#f7eee3] transition-colors hover:bg-[#FF5E00]/90"
+              onClick={() => setShowInput(true)}
+            >
+              <Plus size={20} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

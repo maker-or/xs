@@ -1,20 +1,33 @@
-"use client";
+'use client';
 
-import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import type React from 'react';
+import { useState } from 'react';
 import { z } from 'zod';
 import Navbar from '~/components/ui/Navbar';
 
 // Form validation schema
 const examFormSchema = z.object({
-  subject: z.string().min(1, "Subject is required"),
+  subject: z.string().min(1, 'Subject is required'),
   topic: z.string().optional(),
-  num_questions: z.number().int().min(1, "Number of questions must be at least 1").max(50, "Maximum 50 questions"),
+  num_questions: z
+    .number()
+    .int()
+    .min(1, 'Number of questions must be at least 1')
+    .max(50, 'Maximum 50 questions'),
   difficulty: z.enum(['easy', 'medium', 'hard'] as const),
-  duration: z.number().int().min(5, "Duration must be at least 5 minutes").max(180, "Maximum 3 hours"),
-  question_time_limit: z.number().int().min(10, "Question time limit must be at least 10 seconds").max(300, "Maximum 5 minutes per question"),
-  starts_at: z.string().min(1, "Start date and time is required"),
-  ends_at: z.string().min(1, "End date and time is required"),
+  duration: z
+    .number()
+    .int()
+    .min(5, 'Duration must be at least 5 minutes')
+    .max(180, 'Maximum 3 hours'),
+  question_time_limit: z
+    .number()
+    .int()
+    .min(10, 'Question time limit must be at least 10 seconds')
+    .max(300, 'Maximum 5 minutes per question'),
+  starts_at: z.string().min(1, 'Start date and time is required'),
+  ends_at: z.string().min(1, 'End date and time is required'),
 });
 
 type ExamFormValues = z.infer<typeof examFormSchema>;
@@ -22,14 +35,14 @@ type ExamFormValues = z.infer<typeof examFormSchema>;
 export default function ExamCreationPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<Partial<ExamFormValues>>({
-    subject: "",
-    topic: "",
+    subject: '',
+    topic: '',
     num_questions: 10,
-    difficulty: "medium",
+    difficulty: 'medium',
     duration: 60,
     question_time_limit: 30,
-    starts_at: "",
-    ends_at: "",
+    starts_at: '',
+    ends_at: '',
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -38,14 +51,20 @@ export default function ExamCreationPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
 
     // Handle numeric inputs
-    if (name === 'num_questions' || name === 'duration' || name === 'question_time_limit') {
+    if (
+      name === 'num_questions' ||
+      name === 'duration' ||
+      name === 'question_time_limit'
+    ) {
       setFormData((prev) => ({
         ...prev,
-        [name]: parseInt(value) || 0,
+        [name]: Number.parseInt(value) || 0,
       }));
     } else {
       setFormData((prev) => ({
@@ -88,7 +107,7 @@ export default function ExamCreationPage() {
       const formDataForValidation = {
         ...formData,
         starts_at: formData.starts_at || '',
-        ends_at: formData.ends_at || ''
+        ends_at: formData.ends_at || '',
       };
 
       examFormSchema.parse(formDataForValidation);
@@ -100,7 +119,7 @@ export default function ExamCreationPage() {
       if (endDate <= startDate) {
         setFormErrors((prev) => ({
           ...prev,
-          ends_at: "End date must be after start date"
+          ends_at: 'End date must be after start date',
         }));
         return false;
       }
@@ -164,14 +183,17 @@ export default function ExamCreationPage() {
         throw new Error(result.error || 'Failed to create exam');
       }
 
-      setSuccess(`Exam created successfully! ${result.num_questions} questions were generated for ${result.num_students} students.`);
+      setSuccess(
+        `Exam created successfully! ${result.num_questions} questions were generated for ${result.num_students} students.`
+      );
 
       // Optionally redirect after a delay
       setTimeout(() => {
         router.push('/teacher'); // Or redirect to a dashboard or exam list page
       }, 3000);
     } catch (err: Error | unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      const errorMessage =
+        err instanceof Error ? err.message : 'An unknown error occurred';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -182,233 +204,248 @@ export default function ExamCreationPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-[#000000]">
       <Navbar />
 
-      <div className="container mx-auto py-8 px-4">
-        <div className="max-w-2xl mx-auto bg-white dark:bg-[#000000] rounded-lg shadow p-6">
-          <h1 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Create New Exam</h1>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mx-auto max-w-2xl rounded-lg bg-white p-6 shadow dark:bg-[#000000]">
+          <h1 className="mb-6 font-bold text-2xl text-gray-800 dark:text-white">
+            Create New Exam
+          </h1>
 
           {success && (
-            <div className="mb-4 p-3 bg-green-100      -green-400 text-green-700 rounded">
+            <div className="-green-400 mb-4 rounded bg-green-100 p-3 text-green-700">
               {success}
             </div>
           )}
 
           {error && (
-            <div className="mb-4 p-3 bg-red-100      -red-400 text-green-700 rounded">
+            <div className="-red-400 mb-4 rounded bg-red-100 p-3 text-green-700">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
+                <label className="mb-1 block font-medium text-gray-700 text-sm dark:text-[#818181]">
                   Subject
                 </label>
                 <input
-                  type="text"
+                  className={`w-full rounded-md p-2 ${formErrors.subject ? ' -red-500' : ' -gray-300 '} placeholder:text-[#818181] dark:bg-[#181818]`}
                   name="subject"
-                  value={formData.subject}
                   onChange={handleInputChange}
-                  className={`w-full p-2    rounded-md ${formErrors.subject ? '  -red-500' : '  -gray-300   '} dark:bg-[#181818] placeholder:text-[#818181]`}
-     
+                  type="text"
+                  value={formData.subject}
                 />
                 {formErrors.subject && (
-                  <p className="text-red-500 text-xs mt-1">{formErrors.subject}</p>
+                  <p className="mt-1 text-red-500 text-xs">
+                    {formErrors.subject}
+                  </p>
                 )}
               </div>
 
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
+                <label className="mb-1 block font-medium text-gray-700 text-sm dark:text-[#818181]">
                   Topic (Optional)
                 </label>
                 <input
-                  type="text"
+                  className="-gray-300 w-full rounded-md p-2 placeholder:text-[#818181] dark:bg-[#181818]"
                   name="topic"
-                  value={formData.topic}
                   onChange={handleInputChange}
-                  className="w-full p-2      -gray-300    rounded-md dark:bg-[#181818] placeholder:text-[#818181]"
-             
+                  type="text"
+                  value={formData.topic}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
+                <label className="mb-1 block font-medium text-gray-700 text-sm dark:text-[#818181]">
                   Number of Questions
                 </label>
                 <input
-                  type="number"
-                  name="num_questions"
-                  value={formData.num_questions}
-                  onChange={handleInputChange}
-                  min="1"
+                  className={`w-full rounded-md p-2 ${formErrors.num_questions ? ' -red-500' : ' -gray-300 '} dark:bg-[#181818]`}
                   max="50"
-                  className={`w-full p-2    rounded-md ${formErrors.num_questions ? '  -red-500' : '  -gray-300   '} dark:bg-[#181818]`}
+                  min="1"
+                  name="num_questions"
+                  onChange={handleInputChange}
+                  type="number"
+                  value={formData.num_questions}
                 />
                 {formErrors.num_questions && (
-                  <p className="text-red-500 text-xs mt-1">{formErrors.num_questions}</p>
+                  <p className="mt-1 text-red-500 text-xs">
+                    {formErrors.num_questions}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
+                <label className="mb-1 block font-medium text-gray-700 text-sm dark:text-[#818181]">
                   Difficulty Level
                 </label>
                 <select
+                  className={`w-full rounded-md p-2 ${formErrors.difficulty ? ' -red-500' : ' -gray-300 '} dark:bg-[#181818]`}
                   name="difficulty"
-                  value={formData.difficulty}
                   onChange={handleInputChange}
-                  className={`w-full p-2    rounded-md ${formErrors.difficulty ? '  -red-500' : '  -gray-300   '} dark:bg-[#181818]`}
+                  value={formData.difficulty}
                 >
                   <option value="easy">Easy</option>
                   <option value="medium">Medium</option>
                   <option value="hard">Hard</option>
                 </select>
                 {formErrors.difficulty && (
-                  <p className="text-red-500 text-xs mt-1">{formErrors.difficulty}</p>
+                  <p className="mt-1 text-red-500 text-xs">
+                    {formErrors.difficulty}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
+                <label className="mb-1 block font-medium text-gray-700 text-sm dark:text-[#818181]">
                   Duration (minutes)
                 </label>
                 <input
-                  type="number"
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleInputChange}
-                  min="5"
+                  className={`w-full rounded-md p-2 ${formErrors.duration ? ' -red-500' : ' -gray-300 '} dark:bg-[#181818]`}
                   max="180"
-                  className={`w-full p-2    rounded-md ${formErrors.duration ? '  -red-500' : '  -gray-300   '} dark:bg-[#181818]`}
+                  min="5"
+                  name="duration"
+                  onChange={handleInputChange}
+                  type="number"
+                  value={formData.duration}
                 />
                 {formErrors.duration && (
-                  <p className="text-red-500 text-xs mt-1">{formErrors.duration}</p>
+                  <p className="mt-1 text-red-500 text-xs">
+                    {formErrors.duration}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
+                <label className="mb-1 block font-medium text-gray-700 text-sm dark:text-[#818181]">
                   Time per Question (seconds)
                 </label>
                 <input
-                  type="number"
-                  name="question_time_limit"
-                  value={formData.question_time_limit}
-                  onChange={handleInputChange}
-                  min="10"
+                  className={`w-full rounded-md p-2 ${formErrors.question_time_limit ? ' -red-500' : ' -gray-300 '} dark:bg-[#181818]`}
                   max="300"
-                  className={`w-full p-2    rounded-md ${formErrors.question_time_limit ? '  -red-500' : '  -gray-300   '} dark:bg-[#181818]`}
+                  min="10"
+                  name="question_time_limit"
+                  onChange={handleInputChange}
+                  type="number"
+                  value={formData.question_time_limit}
                 />
                 {formErrors.question_time_limit && (
-                  <p className="text-red-500 text-xs mt-1">{formErrors.question_time_limit}</p>
+                  <p className="mt-1 text-red-500 text-xs">
+                    {formErrors.question_time_limit}
+                  </p>
                 )}
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">
                   Each question will auto-advance after this time limit
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
+                <label className="mb-1 block font-medium text-gray-700 text-sm dark:text-[#818181]">
                   Start Date & Time
                 </label>
                 <input
-                  type="datetime-local"
+                  className={`w-full rounded-md p-2 ${formErrors.starts_at ? ' -red-500' : ' -gray-300 '} dark:bg-[#181818]`}
                   name="starts_at"
-                  value={formData.starts_at}
                   onChange={handleInputChange}
-                  className={`w-full p-2    rounded-md ${formErrors.starts_at ? '  -red-500' : '  -gray-300   '} dark:bg-[#181818]`}
+                  type="datetime-local"
+                  value={formData.starts_at}
                 />
                 {formErrors.starts_at && (
-                  <p className="text-red-500 text-xs mt-1">{formErrors.starts_at}</p>
+                  <p className="mt-1 text-red-500 text-xs">
+                    {formErrors.starts_at}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
+                <label className="mb-1 block font-medium text-gray-700 text-sm dark:text-[#818181]">
                   End Date & Time
                 </label>
                 <input
-                  type="datetime-local"
+                  className={`w-full rounded-md p-2 ${formErrors.ends_at ? ' -red-500' : ' -gray-300 '} dark:bg-[#181818]`}
                   name="ends_at"
-                  value={formData.ends_at}
                   onChange={handleInputChange}
-                  className={`w-full p-2    rounded-md ${formErrors.ends_at ? '  -red-500' : '  -gray-300   '} dark:bg-[#181818]`}
+                  type="datetime-local"
+                  value={formData.ends_at}
                 />
                 {formErrors.ends_at && (
-                  <p className="text-red-500 text-xs mt-1">{formErrors.ends_at}</p>
+                  <p className="mt-1 text-red-500 text-xs">
+                    {formErrors.ends_at}
+                  </p>
                 )}
               </div>
 
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-[#818181] mb-1">
+                <label className="mb-1 block font-medium text-gray-700 text-sm dark:text-[#818181]">
                   Student List (CSV)
                 </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 bg-[#181818] rounded-lg  ">
+                <div className="mt-1 flex justify-center rounded-lg bg-[#181818] px-6 pt-5 pb-6 ">
                   <div className="space-y-1 text-center">
                     <svg
-                      className="mx-auto h-12 w-12 text-gray-400"
-                      stroke="currentColor"
-                      fill="none"
-                      viewBox="0 0 48 48"
                       aria-hidden="true"
+                      className="mx-auto h-12 w-12 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 48 48"
                     >
                       <path
                         d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                        strokeWidth={2}
                         strokeLinecap="round"
                         strokeLinejoin="round"
+                        strokeWidth={2}
                       />
                     </svg>
-                    <div className="flex text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex text-gray-600 text-sm dark:text-gray-400">
                       <label
+                        className="relative cursor-pointer rounded-sm bg-white p-1/2 font-medium text-[#FF5E00] focus-within:outline-none hover:text-blue-500 dark:bg-[#232323] dark:hover:text-blue-300"
                         htmlFor="students-csv"
-                        className="relative cursor-pointer bg-white dark:bg-[#232323] p-1/2 rounded-sm font-medium text-[#FF5E00]  hover:text-blue-500 dark:hover:text-blue-300 focus-within:outline-none"
                       >
                         <span>Upload a CSV file</span>
                         <input
+                          accept=".csv"
+                          className="sr-only"
                           id="students-csv"
                           name="students-csv"
-                          type="file"
-                          accept=".csv"
                           onChange={handleFileChange}
-                          className="sr-only"
+                          type="file"
                         />
                       </label>
                       <p className="pl-1">or drag and drop</p>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-gray-500 text-xs dark:text-gray-400">
                       CSV file with student emails or roll numbers
                     </p>
                     {csvFile && (
-                      <p className="text-xs text-green-600 dark:text-green-400">
+                      <p className="text-green-600 text-xs dark:text-green-400">
                         Selected: {csvFile.name}
                       </p>
                     )}
                   </div>
                 </div>
                 {csvError && (
-                  <p className="text-red-500 text-xs mt-1">{csvError}</p>
+                  <p className="mt-1 text-red-500 text-xs">{csvError}</p>
                 )}
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Upload a CSV file with either email addresses or roll numbers (one per line).
-                  Both formats are supported and will be automatically detected.
+                <p className="mt-2 text-gray-500 text-xs dark:text-gray-400">
+                  Upload a CSV file with either email addresses or roll numbers
+                  (one per line). Both formats are supported and will be
+                  automatically detected.
                 </p>
               </div>
             </div>
 
             <div className="flex justify-end space-x-3">
               <button
-                type="button"
-                onClick={() => router.back()}
-                className="px-4 py-2 text-sm      -gray-300 rounded-md shadow-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-[#181818] hover:bg-gray-50 dark:hover:bg-gray-600"
+                className="-gray-300 rounded-md bg-white px-4 py-2 text-gray-700 text-sm shadow-sm hover:bg-gray-50 dark:bg-[#181818] dark:text-gray-200 dark:hover:bg-gray-600"
                 disabled={isLoading}
+                onClick={() => router.back()}
+                type="button"
               >
                 Cancel
               </button>
               <button
-                type="submit"
-                className="px-4 py-2 text-sm bg-[#FF5E00]      -transparent rounded-md shadow-sm text-white hover:bg-[#a3582c] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="-transparent rounded-md bg-[#FF5E00] px-4 py-2 text-sm text-white shadow-sm hover:bg-[#a3582c] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
                 disabled={isLoading}
+                type="submit"
               >
                 {isLoading ? 'Creating...' : 'Create Exam'}
               </button>
@@ -416,24 +453,46 @@ export default function ExamCreationPage() {
           </form>
         </div>
 
-        <div className="max-w-2xl mx-auto mt-8 bg-white dark:bg-[#202020] rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">CSV Format Help</h2>
+        <div className="mx-auto mt-8 max-w-2xl rounded-lg bg-white p-6 shadow dark:bg-[#202020]">
+          <h2 className="mb-4 font-semibold text-gray-800 text-xl dark:text-white">
+            CSV Format Help
+          </h2>
 
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-[#0c0c0c] dark:text-gray-300">Email Format Example:</h3>
-            <pre className="bg-gray-100 dark:bg-[#181818] p-3 rounded mt-2 overflow-x-auto">
-              <code>email<br/>student1@example.com<br/>student2@example.com<br/>student3@example.com</code>
+            <h3 className="font-medium text-[#0c0c0c] text-lg dark:text-gray-300">
+              Email Format Example:
+            </h3>
+            <pre className="mt-2 overflow-x-auto rounded bg-gray-100 p-3 dark:bg-[#181818]">
+              <code>
+                email
+                <br />
+                student1@example.com
+                <br />
+                student2@example.com
+                <br />
+                student3@example.com
+              </code>
             </pre>
           </div>
 
           <div>
-            <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">Roll Number Format Example:</h3>
-            <pre className="bg-gray-100 dark:bg-[#181818] p-3 rounded mt-2 overflow-x-auto">
-              <code>roll_number<br/>22bq1a05g6<br/>22bq1a05xx<br/>22bq1a05xx</code>
+            <h3 className="font-medium text-gray-700 text-lg dark:text-gray-300">
+              Roll Number Format Example:
+            </h3>
+            <pre className="mt-2 overflow-x-auto rounded bg-gray-100 p-3 dark:bg-[#181818]">
+              <code>
+                roll_number
+                <br />
+                22bq1a05g6
+                <br />
+                22bq1a05xx
+                <br />
+                22bq1a05xx
+              </code>
             </pre>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              The system will automatically detect the format and convert roll numbers to emails
-              using your organization&apos;s domain if needed.
+            <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">
+              The system will automatically detect the format and convert roll
+              numbers to emails using your organization&apos;s domain if needed.
             </p>
           </div>
         </div>

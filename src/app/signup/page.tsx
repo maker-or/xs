@@ -1,15 +1,14 @@
 // SignUpPage.tsx
 
-"use client";
+'use client';
 
-import { SignUp, useSignUp } from "@clerk/nextjs";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { SignUp, useSignUp, useUser } from '@clerk/nextjs';
+import { dark } from '@clerk/themes';
+import { ArrowLeft } from 'lucide-react';
 
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { dark } from "@clerk/themes";
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function SignUpPage() {
   const { isSignedIn, isLoaded } = useUser();
@@ -18,12 +17,12 @@ export default function SignUpPage() {
   const searchParams = useSearchParams();
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [isValidInvitation, setIsValidInvitation] = useState<boolean | null>(
-    null,
+    null
   );
 
   // Get the invitation token from the URL
-  const invitationToken = searchParams.get("__clerk_ticket");
-  const orgId = searchParams.get("organization");
+  const invitationToken = searchParams.get('__clerk_ticket');
+  const orgId = searchParams.get('organization');
   setOrganizationId(orgId);
 
   useEffect(() => {
@@ -37,7 +36,7 @@ export default function SignUpPage() {
 
     // If user is already signed in, redirect to onboarding
     if (isLoaded && isSignedIn) {
-      router.replace("/onboarding");
+      router.replace('/onboarding');
     }
   }, [isSignedIn, isLoaded, router, signUpLoaded, invitationToken]);
 
@@ -46,7 +45,7 @@ export default function SignUpPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#050A06] text-white">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-t-4 border-solid border-blue-500"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-blue-500 border-t-4 border-solid" />
           <p>Validating invitation...</p>
         </div>
       </div>
@@ -67,8 +66,8 @@ export default function SignUpPage() {
             contact your administrator for a valid invitation link.
           </p>
           <Link
-            href="/"
             className="inline-block rounded-md bg-[#FF5E00] px-6 py-2 text-white transition-colors hover:bg-[#e54d00]"
+            href="/"
           >
             Return to Home
           </Link>
@@ -82,7 +81,7 @@ export default function SignUpPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#050A06] text-white">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-t-4 border-solid border-blue-500"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-blue-500 border-t-4 border-solid" />
           <p>Redirecting to your dashboard...</p>
         </div>
       </div>
@@ -93,11 +92,11 @@ export default function SignUpPage() {
     <div className="flex h-screen w-full bg-[#050A06]">
       {/* Back button to landing page */}
       <Link
-        href="/"
-        className="absolute left-6 top-6 z-20 flex items-center text-sm text-[#d0cfcf] transition-colors duration-200 hover:text-[#f7eee3]"
         aria-label="Back to landing page"
+        className="absolute top-6 left-6 z-20 flex items-center text-[#d0cfcf] text-sm transition-colors duration-200 hover:text-[#f7eee3]"
+        href="/"
       >
-        <ArrowLeft size={24} className="mr-1" />
+        <ArrowLeft className="mr-1" size={24} />
         Back
       </Link>
 
@@ -105,18 +104,18 @@ export default function SignUpPage() {
       <div className="relative hidden h-full overflow-hidden md:block md:w-1/2">
         {/* Welcome Text */}
         <div className="relative z-10 flex h-full flex-col items-center justify-start p-16">
-          <h1 className="text-center font-serif text-5xl italic tracking-wide text-[#f7eee3]">
+          <h1 className="text-center font-serif text-5xl text-[#f7eee3] italic tracking-wide">
             Join Your Team
           </h1>
-          <p className="mt-4 text-center text-xl text-[#d0cfcf]">
+          <p className="mt-4 text-center text-[#d0cfcf] text-xl">
             You&apos;ve been invited to join an organization
           </p>
           {organizationId && (
             <div className="mt-6 rounded-lg border border-[#333] bg-[#1a1a1a] p-4">
-              <p className="text-sm text-[#d0cfcf]">
+              <p className="text-[#d0cfcf] text-sm">
                 Valid invitation detected
               </p>
-              <p className="text-sm text-[#FF5E00]">
+              <p className="text-[#FF5E00] text-sm">
                 ✓ Ready to join organization
               </p>
             </div>
@@ -134,10 +133,10 @@ export default function SignUpPage() {
             <p className="text-[#d0cfcf]">You&apos;ve been invited to join</p>
             {organizationId && (
               <div className="mt-4 rounded-lg border border-[#333] bg-[#1a1a1a] p-3">
-                <p className="text-xs text-[#d0cfcf]">
+                <p className="text-[#d0cfcf] text-xs">
                   Valid invitation detected
                 </p>
-                <p className="text-sm text-[#FF5E00]">✓ Ready to join</p>
+                <p className="text-[#FF5E00] text-sm">✓ Ready to join</p>
               </div>
             )}
           </div>

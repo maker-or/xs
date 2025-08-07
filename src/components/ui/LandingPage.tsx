@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import React from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import StackedLayers3D from "./stackedLayers3D";
-import Knowledge from "./Knowledge";
-import Link from "next/link";
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Link from 'next/link';
+import React from 'react';
+import Knowledge from './Knowledge';
+import StackedLayers3D from './stackedLayers3D';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,9 +17,8 @@ const LandingPage = () => {
       <div className="flex h-screen w-full flex-col items-center justify-center">
         <div className="flex items-center justify-center text-center leading-none tracking-tight">
           <h1 className="text-[5em] text-white">
-            New <span className="font-serif italic">knowledge</span> layer{" "}
-            <br></br> for your{" "}
-            <span className="font-serif italic">collage</span>
+            New <span className="font-serif italic">knowledge</span> layer{' '}
+            <br /> for your <span className="font-serif italic">collage</span>
           </h1>
         </div>
 

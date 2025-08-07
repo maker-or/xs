@@ -9,7 +9,7 @@ import { getAllComponentSchemas } from 'circuit-bricks/llm';
  * Core system instructions that apply to all queries (Rules 1-8)
  */
 const getCoreInstructions = (): string => {
-    return `
+  return `
     You are an expert exam assistant named SphereAI designed to provide accurate, detailed, and structured answers to user queries help them to prepare for their exams. Follow these guidelines:
 
               1. **Role**: Act as a knowledgeable and helpful assistant don't show the thinking process. just provide the answer. you will be provided with the context from the web and knowledge base to answer the user query.
@@ -50,7 +50,7 @@ const getCoreInstructions = (): string => {
  * UML diagram instructions (Rules 9-10)
  */
 const getUMLInstructions = (): string => {
-    return `
+  return `
                 9. **Reminder**:draw uml diagrams only if the user explicitly asks for it.
             10. **For UML diagrams like ['Flowcharts','Sequence diagrams'. 'Class diagrams' , 'State diagrams' , 'Entity Relationship Diagrams', 'User Journey Diagram', 'Gantt diagrams', 'Pie chart diagrams', 'Quadrant Chart' , 'Requirement Diagram' , 'Gitgraph Diagrams' , 'Timeline Diagram', 'ZenUML' ,'Sankey diagram' , 'XY Chart' , 'Block Diagrams Documentation', 'Packet Diagram', 'Architecture Diagrams Documentation' , 'Radar Diagram'] **:
                     -To create UML diagram, only use mermaid syntax.
@@ -72,7 +72,7 @@ const getUMLInstructions = (): string => {
  * Automata theory instructions (Rules 11-12)
  */
 const getAutomataInstructions = (): string => {
-    return `
+  return `
                 11. **Transition diagram and other finite state machine / automaton diagrams**:
                     - For transition diagrams, finite state machines, and automata, ALWAYS use ASCII representation:
                     - Example:
@@ -117,9 +117,9 @@ const getAutomataInstructions = (): string => {
  * Circuit diagram instructions (Rules 14-15)
  */
 const getCircuitInstructions = (): string => {
-    // Get the latest component schemas from circuit-bricks
-    const componentSchemas = getAllComponentSchemas();
-    return `
+  // Get the latest component schemas from circuit-bricks
+  const componentSchemas = getAllComponentSchemas();
+  return `
               14. **Circuit Diagrams**:
                   - For electrical circuit diagrams, use the native circuit-bricks package with CircuitCanvas component via JSON format in code blocks with 'circuit' or 'circuit-bricks' language tag.
                   - The circuit-bricks package provides professional-grade circuit rendering with interactive features including component selection, zooming, panning, and grid snapping.
@@ -231,22 +231,65 @@ const getCircuitInstructions = (): string => {
  * Keywords that trigger specific instruction sets
  */
 const UML_KEYWORDS = [
-    'flowchart', 'sequence diagram', 'class diagram', 'state diagram', 'entity relationship',
-    'user journey', 'gantt', 'pie chart', 'quadrant chart', 'requirement diagram',
-    'gitgraph', 'timeline', 'zenuml', 'sankey', 'xy chart', 'block diagram',
-    'packet diagram', 'architecture diagram', 'radar diagram', 'uml', 'mermaid'
+  'flowchart',
+  'sequence diagram',
+  'class diagram',
+  'state diagram',
+  'entity relationship',
+  'user journey',
+  'gantt',
+  'pie chart',
+  'quadrant chart',
+  'requirement diagram',
+  'gitgraph',
+  'timeline',
+  'zenuml',
+  'sankey',
+  'xy chart',
+  'block diagram',
+  'packet diagram',
+  'architecture diagram',
+  'radar diagram',
+  'uml',
+  'mermaid',
 ];
 
 const AUTOMATA_KEYWORDS = [
-    'finite state machine', 'automaton', 'automata', 'transition diagram',
-    'state machine', 'grammar', 'parsing', 'production rule', 'context free',
-    'regular expression', 'dfa', 'nfa', 'pushdown automaton', 'turing machine'
+  'finite state machine',
+  'automaton',
+  'automata',
+  'transition diagram',
+  'state machine',
+  'grammar',
+  'parsing',
+  'production rule',
+  'context free',
+  'regular expression',
+  'dfa',
+  'nfa',
+  'pushdown automaton',
+  'turing machine',
 ];
 
 const CIRCUIT_KEYWORDS = [
-    'circuit', 'electrical', 'electronic', 'resistor', 'capacitor', 'inductor',
-    'battery', 'voltage', 'current', 'led', 'diode', 'transistor', 'amplifier',
-    'oscillator', 'filter', 'power supply', 'schematic', 'breadboard'
+  'circuit',
+  'electrical',
+  'electronic',
+  'resistor',
+  'capacitor',
+  'inductor',
+  'battery',
+  'voltage',
+  'current',
+  'led',
+  'diode',
+  'transistor',
+  'amplifier',
+  'oscillator',
+  'filter',
+  'power supply',
+  'schematic',
+  'breadboard',
 ];
 
 /**
@@ -255,27 +298,27 @@ const CIRCUIT_KEYWORDS = [
  * @returns Formatted system instructions string with relevant rules
  */
 export const getDynamicSystemInstructions = (query: string): string => {
-    const lowerQuery = query.toLowerCase();
+  const lowerQuery = query.toLowerCase();
 
-    // Start with core instructions (Rules 1-8)
-    let instructions = getCoreInstructions();
+  // Start with core instructions (Rules 1-8)
+  let instructions = getCoreInstructions();
 
-    // Add UML instructions if query contains UML-related keywords
-    if (UML_KEYWORDS.some(keyword => lowerQuery.includes(keyword))) {
-        instructions += '\n' + getUMLInstructions();
-    }
+  // Add UML instructions if query contains UML-related keywords
+  if (UML_KEYWORDS.some((keyword) => lowerQuery.includes(keyword))) {
+    instructions += '\n' + getUMLInstructions();
+  }
 
-    // Add Automata instructions if query contains automata-related keywords
-    if (AUTOMATA_KEYWORDS.some(keyword => lowerQuery.includes(keyword))) {
-        instructions += '\n' + getAutomataInstructions();
-    }
+  // Add Automata instructions if query contains automata-related keywords
+  if (AUTOMATA_KEYWORDS.some((keyword) => lowerQuery.includes(keyword))) {
+    instructions += '\n' + getAutomataInstructions();
+  }
 
-    // Add Circuit instructions if query contains circuit-related keywords
-    if (CIRCUIT_KEYWORDS.some(keyword => lowerQuery.includes(keyword))) {
-        instructions += '\n' + getCircuitInstructions();
-    }
+  // Add Circuit instructions if query contains circuit-related keywords
+  if (CIRCUIT_KEYWORDS.some((keyword) => lowerQuery.includes(keyword))) {
+    instructions += '\n' + getCircuitInstructions();
+  }
 
-    return instructions + '\n    ';
+  return instructions + '\n    ';
 };
 
 /**
@@ -284,17 +327,22 @@ export const getDynamicSystemInstructions = (query: string): string => {
  * @returns Formatted system instructions string
  */
 export const getSystemInstructions = (query?: string): string => {
-    if (query) {
-        return getDynamicSystemInstructions(query);
-    }
+  if (query) {
+    return getDynamicSystemInstructions(query);
+  }
 
-    // Fallback to all instructions for backward compatibility
-    return getCoreInstructions() + '\n' +
-           getUMLInstructions() + '\n' +
-           getAutomataInstructions() + '\n' +
-           getCircuitInstructions() + '\n    ';
+  // Fallback to all instructions for backward compatibility
+  return (
+    getCoreInstructions() +
+    '\n' +
+    getUMLInstructions() +
+    '\n' +
+    getAutomataInstructions() +
+    '\n' +
+    getCircuitInstructions() +
+    '\n    '
+  );
 };
-
 
 /**
  * Get system instructions for the RAG decision-making process
@@ -302,7 +350,7 @@ export const getSystemInstructions = (query?: string): string => {
  * @returns Instructions for determining whether to use RAG
  */
 export const getDecisionPrompt = (query: string): string => {
-    return `
+  return `
     Analyze this query: "${query}"
     Should I use RAG (retrieval from knowledge base) or answer from general knowledge?
     If the query is related to studies, exams, or educational content only theroy question respond with "USE_RAG".
@@ -317,7 +365,7 @@ export const getDecisionPrompt = (query: string): string => {
  * @returns Instructions for subject classification
  */
 export const getSubjectClassificationPrompt = (query: string): string => {
-    return `
+  return `
 You are a query classifier. Your task is to categorize a given query into one of the following subjects and return only the corresponding subject tag. Do not include any other text,symbols or information in your response even the new line.
 
 The possible subject categories and their tags are:
@@ -329,6 +377,3 @@ The possible subject categories and their tags are:
 Analyze the following query: "${query}" and return the appropriate tag.
   `;
 };
-
-
-

@@ -1,20 +1,20 @@
-import { streamText, generateText } from "ai";
-import { PostHog } from "posthog-node";
-import { auth } from "@clerk/nextjs/server";
-import { createOpenAI } from "@ai-sdk/openai";
-import { withTracing } from "@posthog/ai";
+import { createOpenAI } from '@ai-sdk/openai';
+import { auth } from '@clerk/nextjs/server';
 // import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { Pinecone } from "@pinecone-database/pinecone";
-import { getEmbedding } from "~/utils/embeddings";
-import { type ConvertibleMessage } from "~/utils/types";
-import { getDynamicSystemInstructions } from "~/utils/systemPrompts";
-import { v4 as uuidv4 } from "uuid";
+import { Pinecone } from '@pinecone-database/pinecone';
+import { withTracing } from '@posthog/ai';
+import { generateText, streamText } from 'ai';
+import { PostHog } from 'posthog-node';
+import { v4 as uuidv4 } from 'uuid';
+import { getEmbedding } from '~/utils/embeddings';
+import { getDynamicSystemInstructions } from '~/utils/systemPrompts';
+import type { ConvertibleMessage } from '~/utils/types';
 
 // Response timeout in milliseconds
-const RESPONSE_TIMEOUT = 45000; // Reduced from 60s to 45s
+const RESPONSE_TIMEOUT = 45_000; // Reduced from 60s to 45s
 const API_TIMEOUT = 8000; // Reduced from 10s to 8s for individual API calls
 const EMBEDDING_TIMEOUT = 6000; // Reduced embedding timeout
-const PINECONE_TIMEOUT = 12000; // Reduced Pinecone timeout
+const PINECONE_TIMEOUT = 12_000; // Reduced Pinecone timeout
 
 // Cache for frequently used objects
 let cachedPineconeClient: Pinecone | null = null;
@@ -41,7 +41,7 @@ function getOpenRouterClient(): ReturnType<typeof createOpenAI> {
   if (!cachedOpenRouterClient) {
     cachedOpenRouterClient = createOpenAI({
       apiKey: process.env.OPENROUTER_API_KEY!,
-      baseURL: "https://openrouter.ai/api/v1",
+      baseURL: 'https://openrouter.ai/api/v1',
     });
   }
   return cachedOpenRouterClient;
@@ -51,7 +51,7 @@ function getOpenRouterClient(): ReturnType<typeof createOpenAI> {
 const withTimeout = <T>(
   promise: Promise<T>,
   ms: number,
-  message: string,
+  message: string
 ): Promise<T> => {
   const timeoutPromise = new Promise<T>((_, reject) => {
     const timeoutId = setTimeout(() => reject(new Error(message)), ms);
@@ -63,12 +63,12 @@ const withTimeout = <T>(
 // Early validation function
 function validateRequest(body: RequestBody): string | null {
   if (!body.messages || body.messages.length === 0) {
-    return "No messages provided";
+    return 'No messages provided';
   }
 
   const lastMessage = body.messages[body.messages.length - 1];
   if (!lastMessage?.content) {
-    return "No valid last message found";
+    return 'No valid last message found';
   }
 
   return null;
@@ -80,45 +80,45 @@ async function makeRagDecision(
   openrouter: ReturnType<typeof createOpenAI>,
   userId: string,
   traceId: string,
-  phClient: PostHog,
+  phClient: PostHog
 ): Promise<boolean> {
   // Simple keyword-based pre-filtering to avoid API calls for obvious cases
   const generalKeywords = [
-    "calculate",
-    "solve",
-    "formula",
-    "equation",
-    "compute",
-    "math",
-    "physics",
-    "chemistry",
-    "biology",
+    'calculate',
+    'solve',
+    'formula',
+    'equation',
+    'compute',
+    'math',
+    'physics',
+    'chemistry',
+    'biology',
   ];
   const hasGeneralKeywords = generalKeywords.some((keyword) =>
-    query.toLowerCase().includes(keyword),
+    query.toLowerCase().includes(keyword)
   );
 
   if (hasGeneralKeywords) {
-    console.log("Quick decision: Using general knowledge based on keywords");
+    console.log('Quick decision: Using general knowledge based on keywords');
     return false;
   }
 
   const studyKeywords = [
-    "study",
-    "exam",
-    "theory",
-    "concept",
-    "definition",
-    "explain",
-    "what is",
-    "how does",
+    'study',
+    'exam',
+    'theory',
+    'concept',
+    'definition',
+    'explain',
+    'what is',
+    'how does',
   ];
   const hasStudyKeywords = studyKeywords.some((keyword) =>
-    query.toLowerCase().includes(keyword),
+    query.toLowerCase().includes(keyword)
   );
 
   if (hasStudyKeywords) {
-    console.log("Quick decision: Using RAG based on keywords");
+    console.log('Quick decision: Using RAG based on keywords');
     return true;
   }
 
@@ -133,18 +133,18 @@ async function makeRagDecision(
 
   try {
     const decisionModel = withTracing(
-      openrouter("qwen/qwen3-0.6b-04-28"),
+      openrouter('qwen/qwen3-0.6b-04-28'),
       phClient,
       {
         posthogDistinctId: userId,
         posthogTraceId: traceId,
         posthogProperties: {
-          step: "decision",
-          query_type: "rag_decision",
+          step: 'decision',
+          query_type: 'rag_decision',
           conversation_id: traceId,
         },
         posthogPrivacyMode: false,
-      },
+      }
     );
 
     const decision = await withTimeout(
@@ -154,12 +154,12 @@ async function makeRagDecision(
         temperature: 0,
       }),
       API_TIMEOUT,
-      "Decision model API call timed out",
+      'Decision model API call timed out'
     );
 
-    return decision.text.includes("USE_RAG");
+    return decision.text.includes('USE_RAG');
   } catch (error) {
-    console.error("Error in decision step:", error);
+    console.error('Error in decision step:', error);
     // Default to general knowledge on error
     return false;
   }
@@ -171,15 +171,15 @@ async function classifySubject(
   openrouter: ReturnType<typeof createOpenAI>,
   userId: string,
   traceId: string,
-  phClient: PostHog,
+  phClient: PostHog
 ): Promise<string> {
   // Quick classification based on keywords
   const subjectKeywords: Record<string, string[]> = {
-    cd: ["compiler", "parsing", "lexical", "syntax", "semantic"],
-    daa: ["algorithm", "data structure", "complexity", "sorting", "searching"],
-    ol: ["network", "protocol", "tcp", "ip", "security", "cryptography"],
-    eem: ["economics", "management", "finance", "business", "cost"],
-    chemistry: ["chemical", "reaction", "molecule", "atom", "compound"],
+    cd: ['compiler', 'parsing', 'lexical', 'syntax', 'semantic'],
+    daa: ['algorithm', 'data structure', 'complexity', 'sorting', 'searching'],
+    ol: ['network', 'protocol', 'tcp', 'ip', 'security', 'cryptography'],
+    eem: ['economics', 'management', 'finance', 'business', 'cost'],
+    chemistry: ['chemical', 'reaction', 'molecule', 'atom', 'compound'],
   };
 
   const queryLower = query.toLowerCase();
@@ -204,18 +204,18 @@ Analyze the following query: "${query}" and return the appropriate tag.
 
   try {
     const subjectModel = withTracing(
-      openrouter("google/gemini-2.5-flash"),
+      openrouter('google/gemini-2.5-flash'),
       phClient,
       {
         posthogDistinctId: userId,
         posthogTraceId: traceId,
         posthogProperties: {
-          step: "subject_classification",
-          query_type: "rag_subject",
+          step: 'subject_classification',
+          query_type: 'rag_subject',
           conversation_id: traceId,
         },
         posthogPrivacyMode: false,
-      },
+      }
     );
 
     const result = await withTimeout(
@@ -225,13 +225,13 @@ Analyze the following query: "${query}" and return the appropriate tag.
         temperature: 0,
       }),
       API_TIMEOUT,
-      "Subject classification timed out",
+      'Subject classification timed out'
     );
 
-    return result.text.trim() || "daa";
+    return result.text.trim() || 'daa';
   } catch (error) {
-    console.error("Error in subject classification:", error);
-    return "daa"; // Default fallback
+    console.error('Error in subject classification:', error);
+    return 'daa'; // Default fallback
   }
 }
 
@@ -241,7 +241,7 @@ async function processRAG(
   openrouter: ReturnType<typeof createOpenAI>,
   userId: string,
   traceId: string,
-  phClient: PostHog,
+  phClient: PostHog
 ): Promise<string> {
   try {
     // Parallel execution of subject classification and embedding generation
@@ -250,9 +250,9 @@ async function processRAG(
       withTimeout(
         getEmbedding(query),
         EMBEDDING_TIMEOUT,
-        "Embedding generation timed out",
+        'Embedding generation timed out'
       ).catch((error) => {
-        console.error("Embedding error:", error);
+        console.error('Embedding error:', error);
         throw error;
       }),
     ]);
@@ -262,44 +262,44 @@ async function processRAG(
     const index = pinecone.index(subjectResult);
 
     const queryResponse = await withTimeout(
-      index.namespace("").query({
+      index.namespace('').query({
         vector: queryEmbedding,
         topK: 5,
         includeMetadata: true,
       }),
       PINECONE_TIMEOUT,
-      "Pinecone query timed out",
+      'Pinecone query timed out'
     );
 
     if (!queryResponse.matches || queryResponse.matches.length === 0) {
-      console.log("No matches found in Pinecone");
-      return "";
+      console.log('No matches found in Pinecone');
+      return '';
     }
 
     const context = queryResponse.matches
       .map(
         (match) =>
-          `Book: ${String(match.metadata?.book ?? "Unknown")}\nPage: ${String(match.metadata?.page_number ?? "Unknown")}\nText: ${String(match.metadata?.text ?? "")}`,
+          `Book: ${String(match.metadata?.book ?? 'Unknown')}\nPage: ${String(match.metadata?.page_number ?? 'Unknown')}\nText: ${String(match.metadata?.text ?? '')}`
       )
-      .join("\n\n");
+      .join('\n\n');
 
     return context;
   } catch (error) {
-    console.error("Error in RAG process:", error);
-    return "";
+    console.error('Error in RAG process:', error);
+    return '';
   }
 }
 
 export async function POST(req: Request): Promise<Response> {
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => {
-    abortController.abort("Request timeout");
+    abortController.abort('Request timeout');
   }, RESPONSE_TIMEOUT);
 
   // Initialize PostHog client
   const phClient = new PostHog(
-    "phc_sjPTqJzPZW9FgJls2UBHfwjUHP4UCFIOEifTkyUDdZA",
-    { host: "https://us.i.posthog.com" },
+    'phc_sjPTqJzPZW9FgJls2UBHfwjUHP4UCFIOEifTkyUDdZA',
+    { host: 'https://us.i.posthog.com' }
   );
 
   let body: RequestBody;
@@ -309,30 +309,32 @@ export async function POST(req: Request): Promise<Response> {
   try {
     // Early validation of environment variables
     if (
-      !process.env.GROQ_API_KEY ||
-      !process.env.OPENROUTER_API_KEY ||
-      !process.env.PINECONE_API_KEY
+      !(
+        process.env.GROQ_API_KEY &&
+        process.env.OPENROUTER_API_KEY &&
+        process.env.PINECONE_API_KEY
+      )
     ) {
       return new Response(
         JSON.stringify({
-          error: "Server configuration error - missing API keys",
+          error: 'Server configuration error - missing API keys',
         }),
-        { status: 500, headers: { "Content-Type": "application/json" } },
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     // Parallel execution of auth and request parsing
     const [authResult, bodyResult] = await Promise.all([
-      auth().catch(() => ({ userId: "anonymous" })),
+      auth().catch(() => ({ userId: 'anonymous' })),
       req.json().catch(() => null),
     ]);
 
     userId = (authResult as { userId: string }).userId;
 
     if (!bodyResult) {
-      return new Response(JSON.stringify({ error: "Invalid request body" }), {
+      return new Response(JSON.stringify({ error: 'Invalid request body' }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -343,22 +345,22 @@ export async function POST(req: Request): Promise<Response> {
     if (validationError) {
       return new Response(JSON.stringify({ error: validationError }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const query = body.messages[body.messages.length - 1]?.content || "";
-    console.log("Query:", query);
+    const query = body.messages[body.messages.length - 1]?.content || '';
+    console.log('Query:', query);
 
     // Optimized conversation context (only last 3 messages instead of 5)
     const lastMessages = body.messages.slice(
       Math.max(0, body.messages.length - 1),
-      -1,
+      -1
     );
     const conversationContext =
       lastMessages.length > 0
-        ? `Previous conversation:\n${lastMessages.map((msg) => msg.content).join("\n\n")}\n`
-        : "";
+        ? `Previous conversation:\n${lastMessages.map((msg) => msg.content).join('\n\n')}\n`
+        : '';
 
     const openrouter = getOpenRouterClient();
 
@@ -367,11 +369,11 @@ export async function POST(req: Request): Promise<Response> {
       openrouter,
       userId,
       traceId,
-      phClient,
+      phClient
     );
-    console.log("Using RAG:", useRag);
+    console.log('Using RAG:', useRag);
 
-    let finalPrompt = "";
+    let finalPrompt = '';
 
     if (useRag) {
       const context = await processRAG(
@@ -379,7 +381,7 @@ export async function POST(req: Request): Promise<Response> {
         openrouter,
         userId,
         traceId,
-        phClient,
+        phClient
       );
 
       if (context) {
@@ -405,14 +407,14 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     // Generate response
-    const model = withTracing(openrouter("google/gemini-2.5-flash"), phClient, {
+    const model = withTracing(openrouter('google/gemini-2.5-flash'), phClient, {
       posthogDistinctId: userId,
       posthogTraceId: traceId,
       posthogProperties: {
-        step: "main_generation",
-        query_type: useRag ? "rag_response" : "general_response",
+        step: 'main_generation',
+        query_type: useRag ? 'rag_response' : 'general_response',
         conversation_id: traceId,
-        model_selected: "google/gemini-2.5-flash",
+        model_selected: 'google/gemini-2.5-flash',
         rag_enabled: useRag,
         conversation_length: body.messages.length,
       },
@@ -426,19 +428,19 @@ export async function POST(req: Request): Promise<Response> {
     // });
 
     const result = streamText({
-      model: model,
+      model,
       messages: [
         {
-          role: "system",
+          role: 'system',
           content: getDynamicSystemInstructions(query),
           experimental_providerMetadata: {
             openrouter: {
-              cacheControl: { type: "ephemeral" },
+              cacheControl: { type: 'ephemeral' },
             },
           },
         },
         {
-          role: "user",
+          role: 'user',
           content: finalPrompt,
         },
       ],
@@ -450,7 +452,7 @@ export async function POST(req: Request): Promise<Response> {
     return result.toDataStreamResponse();
   } catch (error: unknown) {
     clearTimeout(timeoutId);
-    console.error("Error in chat route:", error);
+    console.error('Error in chat route:', error);
 
     // Enhanced error handling with fallback streaming response
     const encoder = new TextEncoder();
@@ -460,14 +462,14 @@ export async function POST(req: Request): Promise<Response> {
     // Check for specific error types
     if (error instanceof Error) {
       if (
-        error.message.includes("Rate limit") ||
-        error.message.includes("429")
+        error.message.includes('Rate limit') ||
+        error.message.includes('429')
       ) {
         fallbackMessage =
           "You've reached your free usage limit. Please try again tomorrow.";
-      } else if (error.message.includes("timeout")) {
+      } else if (error.message.includes('timeout')) {
         fallbackMessage =
-          "The request timed out. Please try again with a simpler question.";
+          'The request timed out. Please try again with a simpler question.';
       }
     }
 
@@ -475,10 +477,10 @@ export async function POST(req: Request): Promise<Response> {
       start(controller) {
         controller.enqueue(
           encoder.encode(
-            `data: ${JSON.stringify({ text: fallbackMessage })}\n\n`,
-          ),
+            `data: ${JSON.stringify({ text: fallbackMessage })}\n\n`
+          )
         );
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
         controller.close();
       },
     });
@@ -486,14 +488,14 @@ export async function POST(req: Request): Promise<Response> {
     try {
       await phClient.flush();
     } catch (phError) {
-      console.error("Error flushing PostHog:", phError);
+      console.error('Error flushing PostHog:', phError);
     }
 
     return new Response(stream, {
       headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
       },
     });
   }

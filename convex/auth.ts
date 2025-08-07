@@ -1,38 +1,46 @@
 // import {
+//   AuthFunctions,
 //   BetterAuth,
-//   type AuthFunctions,
-//   type PublicAuthFunctions,
+//   PublicAuthFunctions,
 // } from "@convex-dev/better-auth";
 // import { api, components, internal } from "./_generated/api";
 // import { query } from "./_generated/server";
-// import type { Id, DataModel } from "./_generated/dataModel";
+// import { DataModel, Id } from "./_generated/dataModel";
+// import { asyncMap } from "convex-helpers";
 
-// // Typesafe way to pass Convex functions defined in this file
 // const authFunctions: AuthFunctions = internal.auth;
 // const publicAuthFunctions: PublicAuthFunctions = api.auth;
 
-// // Initialize the component
 // export const betterAuthComponent = new BetterAuth(components.betterAuth, {
 //   authFunctions,
 //   publicAuthFunctions,
+//   verbose: false,
 // });
 
-// // These are required named exports
 // export const {
 //   createUser,
-//   updateUser,
 //   deleteUser,
+//   updateUser,
 //   createSession,
 //   isAuthenticated,
 // } = betterAuthComponent.createAuthFunctions<DataModel>({
-//   // Must create a user and return the user id
 //   onCreateUser: async (ctx, user) => {
-//     return ctx.db.insert("users", {});
+//     // Example: copy the user's email to the application users table.
+//     // We'll use onUpdateUser to keep it synced.
+//     const userId = await ctx.db.insert("users", {
+//       email: user.email,
+//     });
+
+//     // This function must return the user id.
+//     return userId;
 //   },
 
-//   // Delete the user when they are deleted from Better Auth
-//   onDeleteUser: async (ctx, userId) => {
-//     await ctx.db.delete(userId as Id<"users">);
+//   onUpdateUser: async (ctx, user) => {
+//     // Keep the user's email synced
+//     const userId = user.userId as Id<"users">;
+//     await ctx.db.patch(userId, {
+//       email: user.email,
+//     });
 //   },
 // });
 
@@ -46,8 +54,8 @@
 //     if (!userMetadata) {
 //       return null;
 //     }
-//     // Get user data from your application's database
-//     // (skip this if you have no fields in your users table schema)
+//     // Get user data from your application's database (skip this if you have no
+//     // fields in your users table schema)
 //     const user = await ctx.db.get(userMetadata.userId as Id<"users">);
 //     return {
 //       ...user,

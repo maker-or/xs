@@ -1,33 +1,33 @@
-import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { v } from 'convex/values';
 // import { getAuthUserId } from "@convex-dev/auth/server";
-import { Id } from "./_generated/dataModel";
+import { Id } from './_generated/dataModel';
+import { mutation, query } from './_generated/server';
 
 // Chat branching functionality
 export const createBranch = mutation({
   args: {
-    chatId: v.id("chats"),
-    fromMessageId: v.id("messages"),
+    chatId: v.id('chats'),
+    fromMessageId: v.id('messages'),
     branchName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await ctx.auth.getUserIdentity();
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) throw new Error('Not authenticated');
 
     const chat = await ctx.db.get(args.chatId);
     if (!chat || chat.userId !== userId.subject) {
-      throw new Error("Unauthorized");
+      throw new Error('Unauthorized');
     }
 
     const fromMessage = await ctx.db.get(args.fromMessageId);
     if (!fromMessage || fromMessage.chatId !== args.chatId) {
-      throw new Error("Message not found");
+      throw new Error('Message not found');
     }
 
     // Deactivate all other branches for this chat first
     const allBranches = await ctx.db
-      .query("branches")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
+      .query('branches')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
       .collect();
 
     for (const branch of allBranches) {
@@ -35,7 +35,7 @@ export const createBranch = mutation({
     }
 
     // Create branch record
-    const branchId = await ctx.db.insert("branches", {
+    const branchId = await ctx.db.insert('branches', {
       chatId: args.chatId,
       fromMessageId: args.fromMessageId,
       name: args.branchName || `Branch ${Date.now()}`,
@@ -48,7 +48,7 @@ export const createBranch = mutation({
 });
 
 export const getBranches = query({
-  args: { chatId: v.id("chats") },
+  args: { chatId: v.id('chats') },
   handler: async (ctx, args) => {
     const userId = await ctx.auth.getUserIdentity();
     if (!userId) return [];
@@ -59,9 +59,9 @@ export const getBranches = query({
     }
 
     const branches = await ctx.db
-      .query("branches")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
-      .order("desc")
+      .query('branches')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
+      .order('desc')
       .collect();
 
     return branches;
@@ -70,22 +70,22 @@ export const getBranches = query({
 
 export const switchToBranch = mutation({
   args: {
-    branchId: v.optional(v.id("branches")),
-    chatId: v.id("chats"),
+    branchId: v.optional(v.id('branches')),
+    chatId: v.id('chats'),
   },
   handler: async (ctx, args) => {
     const userId = await ctx.auth.getUserIdentity();
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) throw new Error('Not authenticated');
 
     const chat = await ctx.db.get(args.chatId);
     if (!chat || chat.userId !== userId.subject) {
-      throw new Error("Unauthorized");
+      throw new Error('Unauthorized');
     }
 
     // Deactivate all branches for this chat
     const allBranches = await ctx.db
-      .query("branches")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
+      .query('branches')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
       .collect();
 
     for (const branch of allBranches) {
@@ -95,19 +95,19 @@ export const switchToBranch = mutation({
     // If switching to a specific branch, activate it
     if (args.branchId) {
       const targetBranch = await ctx.db.get(args.branchId);
-      if (!targetBranch) throw new Error("Branch not found");
+      if (!targetBranch) throw new Error('Branch not found');
 
       await ctx.db.patch(args.branchId, { isActive: true });
       return targetBranch;
     }
 
     // Switching to main thread (no active branch)
-    return undefined;
+    return;
   },
 });
 
 export const getActiveBranch = query({
-  args: { chatId: v.id("chats") },
+  args: { chatId: v.id('chats') },
   handler: async (ctx, args) => {
     const userId = await ctx.auth.getUserIdentity();
     if (!userId) return null;
@@ -118,9 +118,9 @@ export const getActiveBranch = query({
     }
 
     const activeBranch = await ctx.db
-      .query("branches")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
-      .filter((q) => q.eq(q.field("isActive"), true))
+      .query('branches')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
+      .filter((q) => q.eq(q.field('isActive'), true))
       .first();
 
     return activeBranch;
@@ -129,8 +129,8 @@ export const getActiveBranch = query({
 
 export const getBranchMessages = query({
   args: {
-    chatId: v.id("chats"),
-    branchId: v.optional(v.id("branches")),
+    chatId: v.id('chats'),
+    branchId: v.optional(v.id('branches')),
   },
   handler: async (ctx, args) => {
     const userId = await ctx.auth.getUserIdentity();
@@ -144,11 +144,11 @@ export const getBranchMessages = query({
     if (!args.branchId) {
       // Return main thread messages (no branchId)
       return await ctx.db
-        .query("messages")
-        .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
-        .filter((q) => q.eq(q.field("isActive"), true))
-        .filter((q) => q.eq(q.field("branchId"), undefined))
-        .order("asc")
+        .query('messages')
+        .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
+        .filter((q) => q.eq(q.field('isActive'), true))
+        .filter((q) => q.eq(q.field('branchId'), undefined))
+        .order('asc')
         .collect();
     }
 
@@ -160,20 +160,20 @@ export const getBranchMessages = query({
     if (!branchPoint) return [];
 
     const beforeBranchMessages = await ctx.db
-      .query("messages")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
-      .filter((q) => q.eq(q.field("isActive"), true))
-      .filter((q) => q.eq(q.field("branchId"), undefined))
-      .filter((q) => q.lte(q.field("createdAt"), branchPoint.createdAt))
-      .order("asc")
+      .query('messages')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
+      .filter((q) => q.eq(q.field('isActive'), true))
+      .filter((q) => q.eq(q.field('branchId'), undefined))
+      .filter((q) => q.lte(q.field('createdAt'), branchPoint.createdAt))
+      .order('asc')
       .collect();
 
     // Get messages specific to this branch
     const branchMessages = await ctx.db
-      .query("messages")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.branchId))
-      .filter((q) => q.eq(q.field("isActive"), true))
-      .order("asc")
+      .query('messages')
+      .withIndex('by_branch', (q) => q.eq('branchId', args.branchId))
+      .filter((q) => q.eq(q.field('isActive'), true))
+      .order('asc')
       .collect();
 
     return [...beforeBranchMessages, ...branchMessages];
@@ -181,7 +181,7 @@ export const getBranchMessages = query({
 });
 
 export const chatHasBranches = query({
-  args: { chatId: v.id("chats") },
+  args: { chatId: v.id('chats') },
   handler: async (ctx, args) => {
     const userId = await ctx.auth.getUserIdentity();
     if (!userId) return false;
@@ -192,8 +192,8 @@ export const chatHasBranches = query({
     }
 
     const branches = await ctx.db
-      .query("branches")
-      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
+      .query('branches')
+      .withIndex('by_chat', (q) => q.eq('chatId', args.chatId))
       .first();
 
     return !!branches;

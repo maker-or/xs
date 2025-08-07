@@ -1,58 +1,58 @@
-"use node";
+'use node';
 
-import { v } from "convex/values";
-import { action } from "./_generated/server";
-import { api } from "./_generated/api";
-import { z } from "zod";
-import { generateObject } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAI } from '@ai-sdk/openai';
+import { generateObject } from 'ai';
+import { v } from 'convex/values';
+import { z } from 'zod';
+import { api } from './_generated/api';
+import { action } from './_generated/server';
 
 export const StageSchema = z.object({
-  title: z.string().min(2, "Stage title is required"),
-  purpose: z.string().min(2, "Stage purpose is required"),
+  title: z.string().min(2, 'Stage title is required'),
+  purpose: z.string().min(2, 'Stage purpose is required'),
   include: z
     .array(z.string())
-    .min(1, "At least one topic/activity must be included"),
-  outcome: z.string().min(2, "Learning outcome is required"),
+    .min(1, 'At least one topic/activity must be included'),
+  outcome: z.string().min(2, 'Learning outcome is required'),
   discussion_prompt: z.string(),
 });
 
 export const CourseSchema = z.object({
-  stages: z.array(StageSchema).min(2, "A course must have at least 2 stages."),
+  stages: z.array(StageSchema).min(2, 'A course must have at least 2 stages.'),
 });
 export const contextgather = action({
   args: {
     messages: v.string(), // Current message content
   },
   handler: async (ctx, args): Promise<any> => {
-    console.log(`📝 Full args received:`, JSON.stringify(args, null, 2));
+    console.log('📝 Full args received:', JSON.stringify(args, null, 2));
 
     const userId = await ctx.auth.getUserIdentity();
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) throw new Error('Not authenticated');
 
-    const openRouterKey = process.env.OPENROUTER_API_KEY || "";
+    const openRouterKey = process.env.OPENROUTER_API_KEY || '';
 
     if (!openRouterKey) {
       throw new Error(
-        "OpenRouter API key is required. Please add your API key in settings.",
+        'OpenRouter API key is required. Please add your API key in settings.'
       );
     }
 
     // Validate API key format
-    if (!openRouterKey.startsWith("sk-")) {
+    if (!openRouterKey.startsWith('sk-')) {
       throw new Error(
-        "Invalid OpenRouter API key format. Key should start with 'sk-'",
+        "Invalid OpenRouter API key format. Key should start with 'sk-'"
       );
     }
 
     const openrouter = createOpenAI({
-      baseURL: "https://openrouter.ai/api/v1",
+      baseURL: 'https://openrouter.ai/api/v1',
       apiKey: openRouterKey,
     });
 
     try {
       const result = await generateObject({
-        model: openrouter("google/gemini-2.5-flash-lite"),
+        model: openrouter('google/gemini-2.5-flash-lite'),
         system: `You are an expert AI curriculum designer.
         When a student provides a learning topic or question, you will instantly design a multi-stage educational plan. Each stage must correspond to a key phase in an effective learning sequence, such as:
         ->Prerequisites: Knowledge or skills the student should ideally have mastered before the main topic.
@@ -78,13 +78,13 @@ export const contextgather = action({
         prompt: args.messages,
         schema: CourseSchema,
       });
-      console.log("AI response created successfully");
+      console.log('AI response created successfully');
 
       // Access the generated object directly
       const generatedResponse = result.object;
       const fullContent = generatedResponse.stages;
 
-      console.log("Generated response:", generatedResponse);
+      console.log('Generated response:', generatedResponse);
 
       // Create a message
       if (fullContent) {
@@ -97,14 +97,13 @@ export const contextgather = action({
         };
       }
     } catch (error) {
-      console.error("AI generation error:", error);
+      console.error('AI generation error:', error);
 
       // Provide more detailed error information
       if (error instanceof Error) {
         throw new Error(`Chat completion failed: ${error.message}`);
-      } else {
-        throw new Error("Chat completion failed with unknown error");
       }
+      throw new Error('Chat completion failed with unknown error');
     }
   },
 });

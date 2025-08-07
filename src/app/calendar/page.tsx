@@ -1,20 +1,20 @@
-"use client";
-import React, { useState } from "react";
+'use client';
+import React, { useState } from 'react';
 
-const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 const months = [
-  "JAN",
-  "FEB",
-  "MAR",
-  "APR",
-  "MAY",
-  "JUN",
-  "JUL",
-  "AUG",
-  "SEP",
-  "OCT",
-  "NOV",
-  "DEC",
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MAY',
+  'JUN',
+  'JUL',
+  'AUG',
+  'SEP',
+  'OCT',
+  'NOV',
+  'DEC',
 ];
 
 function NoofDays(year: number, month: number) {
@@ -53,12 +53,12 @@ export default function Page() {
   const [month, setMonth] = useState(currentDate.getMonth());
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
   const [events, setEvents] = useState<{ [key: string]: string[] }>({});
-  const [newEvent, setNewEvent] = useState("");
+  const [newEvent, setNewEvent] = useState('');
 
   const calendar = generateCalendar(year, month);
 
   function addEvent() {
-    if (selectedDate === null || newEvent.trim() === "") return;
+    if (selectedDate === null || newEvent.trim() === '') return;
 
     const key = `${year}-${month}-${selectedDate}`;
     setEvents((prev) => ({
@@ -66,25 +66,23 @@ export default function Page() {
       [key]: [...(prev[key] || []), newEvent],
     }));
 
-    setNewEvent("");
+    setNewEvent('');
     setSelectedDate(null); // hide modal or input
   }
 
-  const navigateMonth = (direction: "prev" | "next") => {
-    if (direction === "prev") {
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
       if (month === 0) {
         setMonth(11);
         setYear(year - 1);
       } else {
         setMonth(month - 1);
       }
+    } else if (month === 11) {
+      setMonth(0);
+      setYear(year + 1);
     } else {
-      if (month === 11) {
-        setMonth(0);
-        setYear(year + 1);
-      } else {
-        setMonth(month + 1);
-      }
+      setMonth(month + 1);
     }
     setSelectedDate(null);
   };
@@ -96,16 +94,16 @@ export default function Page() {
         <div className="flex h-[100svh] w-[70svw] flex-col rounded-xl p-4">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-5xl font-light text-[#3A3A3A]">{year}</h2>
-            <h2 className="text-5xl font-light text-[#3A3A3A]">
+            <h2 className="font-light text-5xl text-[#3A3A3A]">{year}</h2>
+            <h2 className="font-light text-5xl text-[#3A3A3A]">
               {months[month]}
             </h2>
           </div>
 
           {/* Weekday Names */}
-          <div className="mb-4 grid grid-cols-7 text-center text-lg font-medium text-gray-400">
+          <div className="mb-4 grid grid-cols-7 text-center font-medium text-gray-400 text-lg">
             {days.map((day) => (
-              <div key={day} className="py-2">
+              <div className="py-2" key={day}>
                 {day}
               </div>
             ))}
@@ -123,19 +121,19 @@ export default function Page() {
 
               return (
                 <div
-                  key={idx}
-                  className={`flex aspect-square w-full cursor-pointer items-center justify-center rounded-xl text-2xl font-medium transition-colors ${
+                  className={`flex aspect-square w-full cursor-pointer items-center justify-center rounded-xl font-medium text-2xl transition-colors ${
                     cell.day === null
-                      ? "bg-transparent"
+                      ? 'bg-transparent'
                       : isToday
-                        ? "bg-white text-black"
+                        ? 'bg-white text-black'
                         : isSelected
-                          ? "bg-blue-500"
-                          : "border-4 border-[#393939] bg-zinc-800 text-white hover:bg-zinc-700"
+                          ? 'bg-blue-500'
+                          : 'border-4 border-[#393939] bg-zinc-800 text-white hover:bg-zinc-700'
                   }`}
+                  key={idx}
                   onClick={() => cell.day && setSelectedDate(cell.day)}
                 >
-                  {cell.day ?? ""}
+                  {cell.day ?? ''}
                 </div>
               );
             })}
@@ -148,21 +146,21 @@ export default function Page() {
           <div className="flex justify-between">
             <div className="mb-6 flex items-center justify-start gap-4">
               <button
-                onClick={() => navigateMonth("prev")}
                 className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-700 text-white transition-colors hover:bg-zinc-600"
+                onClick={() => navigateMonth('prev')}
               >
                 ←
               </button>
               <button
-                onClick={() => navigateMonth("next")}
                 className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-700 text-white transition-colors hover:bg-zinc-600"
+                onClick={() => navigateMonth('next')}
               >
                 →
               </button>
             </div>
 
             <div className="text-right">
-              <span className="text-lg text-gray-300">Hola :)</span>
+              <span className="text-gray-300 text-lg">Hola :)</span>
             </div>
           </div>
 
@@ -170,16 +168,16 @@ export default function Page() {
           <div className="mt-8">
             <div className="mb-4">
               <input
-                type="text"
                 className="w-full rounded-md bg-zinc-700 p-2 text-white outline-none placeholder:text-[#f7eee3]"
-                placeholder="Add event..."
-                value={newEvent}
                 onChange={(e) => setNewEvent(e.target.value)}
+                placeholder="Add event..."
+                type="text"
+                value={newEvent}
               />
             </div>
             <button
-              onClick={addEvent}
               className="w-full rounded-md bg-[#D2D2D2] p-2 text-white hover:bg-blue-500"
+              onClick={addEvent}
             >
               Add Event
             </button>
@@ -188,14 +186,14 @@ export default function Page() {
           {/* Event List */}
           {selectedDate !== null && (
             <div className="mt-6">
-              <h3 className="mb-2 text-lg font-bold text-white">
+              <h3 className="mb-2 font-bold text-lg text-white">
                 Events on {selectedDate} {months[month]} {year}
               </h3>
               <ul className="list-disc pl-5 text-white">
                 {(events[`${year}-${month}-${selectedDate}`] || []).map(
                   (event, idx) => (
                     <li key={idx}>{event}</li>
-                  ),
+                  )
                 )}
               </ul>
             </div>

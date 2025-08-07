@@ -4,8 +4,6 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-
-
 @layer base {
   :root {
     --radius: 0.5rem;
@@ -157,8 +155,8 @@ body {
 input::placeholder {
   color: #ff5e00;
   opacity: 1;
-   /* Change this to your desired color */
-   /* Optional: Set opacity to 1 to make it fully opaque */
+  /* Change this to your desired color */
+  /* Optional: Set opacity to 1 to make it fully opaque */
 }
 @keyframes dotFlashing {
   0% {

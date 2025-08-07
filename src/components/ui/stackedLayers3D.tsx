@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+import React, { useEffect, useRef } from 'react';
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -28,15 +28,17 @@ function StackedLayers3D() {
     const text = textRef.current;
 
     if (
-      !container ||
-      !title ||
-      !svg ||
-      !layer1 ||
-      !layer2 ||
-      !layer3 ||
-      !layer4 ||
-      !connectors ||
-      !text
+      !(
+        container &&
+        title &&
+        svg &&
+        layer1 &&
+        layer2 &&
+        layer3 &&
+        layer4 &&
+        connectors &&
+        text
+      )
     )
       return;
 
@@ -45,11 +47,11 @@ function StackedLayers3D() {
     gsap.set([layer1, layer2, layer3, layer4], {
       opacity: 0,
       scale: 0.8,
-      transformOrigin: "center",
+      transformOrigin: 'center',
     });
     gsap.set(connectors, {
       opacity: 0,
-      strokeDasharray: "10,5",
+      strokeDasharray: '10,5',
       strokeDashoffset: 100,
     });
     gsap.set(text, { opacity: 0, y: 30 });
@@ -58,8 +60,8 @@ function StackedLayers3D() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: container,
-        start: "top 50%",
-        end: "bottom 90%",
+        start: 'top 50%',
+        end: 'bottom 90%',
         scrub: 1,
         markers: false,
       },
@@ -70,7 +72,7 @@ function StackedLayers3D() {
       opacity: 1,
       y: 0,
       duration: 0.5,
-      ease: "power2.out",
+      ease: 'power2.out',
     })
       // Animate SVG container
       .to(
@@ -79,9 +81,9 @@ function StackedLayers3D() {
           opacity: 1,
           y: 0,
           duration: 0.5,
-          ease: "power2.out",
+          ease: 'power2.out',
         },
-        "-=0.2",
+        '-=0.2'
       )
       // Animate text labels
       .to(
@@ -90,9 +92,9 @@ function StackedLayers3D() {
           opacity: 1,
           y: 0,
           duration: 0.4,
-          ease: "power2.out",
+          ease: 'power2.out',
         },
-        "-=0.1",
+        '-=0.1'
       )
       // Animate layers in sequence from bottom to top
       .to(
@@ -101,9 +103,9 @@ function StackedLayers3D() {
           opacity: 1,
           scale: 1,
           duration: 0.6,
-          ease: "back.out(1.7)",
+          ease: 'back.out(1.7)',
         },
-        "-=0.1",
+        '-=0.1'
       )
       .to(
         layer2,
@@ -111,9 +113,9 @@ function StackedLayers3D() {
           opacity: 1,
           scale: 1,
           duration: 0.6,
-          ease: "back.out(1.7)",
+          ease: 'back.out(1.7)',
         },
-        "-=0.3",
+        '-=0.3'
       )
       .to(
         layer3,
@@ -121,9 +123,9 @@ function StackedLayers3D() {
           opacity: 1,
           scale: 1,
           duration: 0.6,
-          ease: "back.out(1.7)",
+          ease: 'back.out(1.7)',
         },
-        "-=0.3",
+        '-=0.3'
       )
       .to(
         layer4,
@@ -131,9 +133,9 @@ function StackedLayers3D() {
           opacity: 1,
           scale: 1,
           duration: 0.6,
-          ease: "back.out(1.7)",
+          ease: 'back.out(1.7)',
         },
-        "-=0.3",
+        '-=0.3'
       )
       // Animate connectors last with dash animation
       .to(
@@ -142,16 +144,16 @@ function StackedLayers3D() {
           opacity: 1,
           strokeDashoffset: 0,
           duration: 0.8,
-          ease: "power2.inOut",
+          ease: 'power2.inOut',
         },
-        "-=0.2",
+        '-=0.2'
       );
 
     // Add floating animation for the entire SVG
     gsap.to(svg, {
       y: -10,
       duration: 3,
-      ease: "sine.inOut",
+      ease: 'sine.inOut',
       yoyo: true,
       repeat: -1,
     });
@@ -164,24 +166,24 @@ function StackedLayers3D() {
 
   return (
     <div
-      ref={containerRef}
-      className="flex h-[100svh] w-[100svw] items-center justify-center overflow-hidden bg-[#0c0c0c]"
       aria-hidden="true"
+      className="flex h-[100svh] w-[100svw] items-center justify-center overflow-hidden bg-[#0c0c0c]"
+      ref={containerRef}
     >
       <div
         className="flex-col items-center justify-center gap-6"
-        style={{ perspective: "400px", transformStyle: "preserve-3d" }}
+        style={{ perspective: '400px', transformStyle: 'preserve-3d' }}
       >
-        <h1 ref={titleRef} className="text-[4em]">
-          <span className="font-serif italic text-[#FF5E00]"> sphaereai </span>
+        <h1 className="text-[4em]" ref={titleRef}>
+          <span className="font-serif text-[#FF5E00] italic"> sphaereai </span>
           architecture
         </h1>
         <svg
-          ref={svgRef}
-          width="581"
-          height="297"
-          viewBox="0 0 581 297"
           fill="none"
+          height="297"
+          ref={svgRef}
+          viewBox="0 0 581 297"
+          width="581"
           xmlns="http://www.w3.org/2000/svg"
         >
           {/* Layer 1 - Bottom layer with longest arrows */}
@@ -462,29 +464,29 @@ function StackedLayers3D() {
           {/* Text elements */}
           <g ref={textRef}>
             <text
+              fill="#F4F4F4"
+              fontFamily="Arial, sans-serif"
+              fontSize="14"
               x="50"
               y="150"
-              fill="#F4F4F4"
-              fontSize="14"
-              fontFamily="Arial, sans-serif"
             >
               LLM Layer
             </text>
             <text
+              fill="#F4F4F4"
+              fontFamily="Arial, sans-serif"
+              fontSize="14"
               x="450"
               y="70"
-              fill="#F4F4F4"
-              fontSize="14"
-              fontFamily="Arial, sans-serif"
             >
               Knowledge Base
             </text>
             <text
+              fill="#F4F4F4"
+              fontFamily="Arial, sans-serif"
+              fontSize="14"
               x="450"
               y="220"
-              fill="#F4F4F4"
-              fontSize="14"
-              fontFamily="Arial, sans-serif"
             >
               Tools Layer
             </text>

@@ -1,5 +1,5 @@
-import getMyImages from "../../server/quries"; // Assuming this is a server-side function
-import ClientComponent from "./ClientComponent"; // This will be your client-side code
+import getMyImages from '../../server/quries'; // Assuming this is a server-side function
+import ClientComponent from './ClientComponent'; // This will be your client-side code
 
 interface ServerComponentProps {
   folderId: number;
@@ -10,6 +10,6 @@ export default async function ServerComponent({
 }: ServerComponentProps) {
   const images = await getMyImages(Number(folderId)); // Pass folderId to getMyImages
 
-  return <ClientComponent folderId={folderId}  images={images ?? []} />;
+  return <ClientComponent folderId={folderId} images={images ?? []} />;
 }
-//folderId={folderId} 
+//folderId={folderId}

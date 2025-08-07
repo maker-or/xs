@@ -1,30 +1,30 @@
-"use client";
+'use client';
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React, { useState } from "react";
-import dynamic from "next/dynamic";
-import DOMPurify from "dompurify";
-import ReactMarkdown from "react-markdown";
-
-import remarkGfm from "remark-gfm";
-import remarkBreaks from "remark-breaks";
-import remarkEmoji from "remark-emoji";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import rehypeHighlight from "rehype-highlight";
-import rehypeRaw from "rehype-raw";
-import rehypeSlug from "rehype-slug";
-import rehypeExternalLinks from "rehype-external-links";
-
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import GrammarRenderer from "./GrammarRenderer";
-import "katex/dist/katex.min.css";
-import { Copy, Check } from "lucide-react";
-import MermaidRenderer from "./MermaidRenderer";
-import TypogramRenderer from "./TypogramRenderer";
-import AutomataRenderer from "./AutomataRenderer";
-import CitationRenderer from "./CitationRenderer";
+import DOMPurify from 'dompurify';
+import dynamic from 'next/dynamic';
+import type React from 'react';
+import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import rehypeExternalLinks from 'rehype-external-links';
+import rehypeHighlight from 'rehype-highlight';
+import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
+import rehypeSlug from 'rehype-slug';
+import remarkBreaks from 'remark-breaks';
+import remarkEmoji from 'remark-emoji';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import GrammarRenderer from './GrammarRenderer';
+import 'katex/dist/katex.min.css';
+import { Check, Copy } from 'lucide-react';
+import AutomataRenderer from './AutomataRenderer';
+import CitationRenderer from './CitationRenderer';
+import MermaidRenderer from './MermaidRenderer';
+import TypogramRenderer from './TypogramRenderer';
 
 // Extract static plugin configurations outside component for React Compiler optimization
 const REMARK_PLUGINS = [
@@ -45,63 +45,63 @@ const REHYPE_PLUGINS = [
       strict: false,
       trust: true,
       throwOnError: false,
-      errorColor: "#cc0000",
+      errorColor: '#cc0000',
       displayMode: false,
       fleqn: false,
       macros: {
         // Vector notation
-        "\\vec": "\\overrightarrow{#1}",
-        "\\vect": "\\mathbf{#1}",
+        '\\vec': '\\overrightarrow{#1}',
+        '\\vect': '\\mathbf{#1}',
 
         // Common mathematical shortcuts
-        "\\R": "\\mathbb{R}",
-        "\\N": "\\mathbb{N}",
-        "\\Z": "\\mathbb{Z}",
-        "\\Q": "\\mathbb{Q}",
-        "\\C": "\\mathbb{C}",
+        '\\R': '\\mathbb{R}',
+        '\\N': '\\mathbb{N}',
+        '\\Z': '\\mathbb{Z}',
+        '\\Q': '\\mathbb{Q}',
+        '\\C': '\\mathbb{C}',
 
         // Derivatives and differentials
-        "\\dd": "\\,\\mathrm{d}",
-        "\\dv": "\\frac{\\mathrm{d}#1}{\\mathrm{d}#2}",
-        "\\pdv": "\\frac{\\partial#1}{\\partial#2}",
+        '\\dd': '\\,\\mathrm{d}',
+        '\\dv': '\\frac{\\mathrm{d}#1}{\\mathrm{d}#2}',
+        '\\pdv': '\\frac{\\partial#1}{\\partial#2}',
 
         // Common functions
-        "\\abs": "\\left|#1\\right|",
-        "\\norm": "\\left\\|#1\\right\\|",
-        "\\floor": "\\left\\lfloor#1\\right\\rfloor",
-        "\\ceil": "\\left\\lceil#1\\right\\rceil",
+        '\\abs': '\\left|#1\\right|',
+        '\\norm': '\\left\\|#1\\right\\|',
+        '\\floor': '\\left\\lfloor#1\\right\\rfloor',
+        '\\ceil': '\\left\\lceil#1\\right\\rceil',
 
         // Probability and statistics
-        "\\Pr": "\\mathrm{Pr}",
-        "\\E": "\\mathrm{E}",
-        "\\Var": "\\mathrm{Var}",
-        "\\Cov": "\\mathrm{Cov}",
+        '\\Pr': '\\mathrm{Pr}',
+        '\\E': '\\mathrm{E}',
+        '\\Var': '\\mathrm{Var}',
+        '\\Cov': '\\mathrm{Cov}',
 
         // Linear algebra
-        "\\tr": "\\mathrm{tr}",
-        "\\rank": "\\mathrm{rank}",
-        "\\det": "\\mathrm{det}",
+        '\\tr': '\\mathrm{tr}',
+        '\\rank': '\\mathrm{rank}',
+        '\\det': '\\mathrm{det}',
 
         // Limits and big operators
-        "\\lim": "\\lim",
-        "\\limsup": "\\limsup",
-        "\\liminf": "\\liminf",
+        '\\lim': '\\lim',
+        '\\limsup': '\\limsup',
+        '\\liminf': '\\liminf',
 
         // Set theory
-        "\\powerset": "\\mathcal{P}",
+        '\\powerset': '\\mathcal{P}',
 
         // Complex analysis
-        "\\Re": "\\mathrm{Re}",
-        "\\Im": "\\mathrm{Im}",
+        '\\Re': '\\mathrm{Re}',
+        '\\Im': '\\mathrm{Im}',
 
         // Number theory
-        "\\gcd": "\\mathrm{gcd}",
-        "\\lcm": "\\mathrm{lcm}",
+        '\\gcd': '\\mathrm{gcd}',
+        '\\lcm': '\\mathrm{lcm}',
 
         // Logic
-        "\\land": "\\wedge",
-        "\\lor": "\\vee",
-        "\\lnot": "\\neg",
+        '\\land': '\\wedge',
+        '\\lor': '\\vee',
+        '\\lnot': '\\neg',
       },
     },
   ],
@@ -109,12 +109,12 @@ const REHYPE_PLUGINS = [
   rehypeSlug,
   [
     rehypeExternalLinks,
-    { target: "_blank", rel: ["nofollow", "noopener", "noreferrer"] },
+    { target: '_blank', rel: ['nofollow', 'noopener', 'noreferrer'] },
   ],
 ];
 
 // Dynamic import for CircuitBricksRenderer to avoid SSR issues
-const CircuitBricksRenderer = dynamic(() => import("./CircuitBricksRenderer"), {
+const CircuitBricksRenderer = dynamic(() => import('./CircuitBricksRenderer'), {
   ssr: false,
 });
 
@@ -142,17 +142,17 @@ const parseAndFormatContent = (content: string): string => {
     const nonCodeSegment = content.substring(lastIndex, match.index);
     const sanitizedNonCode = DOMPurify.sanitize(nonCodeSegment, {
       USE_PROFILES: { html: true },
-      FORBID_TAGS: ["style"],
-      ADD_TAGS: ["script"],
-      ADD_ATTR: ["type"],
+      FORBID_TAGS: ['style'],
+      ADD_TAGS: ['script'],
+      ADD_ATTR: ['type'],
     });
     segments.push(sanitizedNonCode);
 
     // Keep the code block intact, but trim the inner code
     const lang = match[1];
-    const code = (match[2] ?? "").trim();
+    const code = (match[2] ?? '').trim();
     segments.push(
-      `\n\n<pre><code class="language-${lang}">${code}</code></pre>\n\n`,
+      `\n\n<pre><code class="language-${lang}">${code}</code></pre>\n\n`
     );
     lastIndex = match.index + match[0].length;
   }
@@ -160,14 +160,14 @@ const parseAndFormatContent = (content: string): string => {
   const remaining = content.substring(lastIndex);
   const sanitizedRemaining = DOMPurify.sanitize(remaining, {
     USE_PROFILES: { html: true },
-    FORBID_TAGS: ["style"],
-    ADD_TAGS: ["script"],
-    ADD_ATTR: ["type"],
+    FORBID_TAGS: ['style'],
+    ADD_TAGS: ['script'],
+    ADD_ATTR: ['type'],
   });
   segments.push(sanitizedRemaining);
 
   // Return the combined content
-  return segments.join("");
+  return segments.join('');
 };
 
 // Enhanced mathematical notation preprocessing
@@ -190,103 +190,103 @@ const preprocessMathNotation = (content: string): string => {
   // Now process mathematical expressions in regular text
   content = content
     // Handle already formatted expressions like 3^{4} that need math delimiters
-    .replace(/\b([a-zA-Z0-9]+)\^(\{[^}]+\})/g, "$$$1^$2$$") // 3^{4} -> $3^{4}$
-    .replace(/\b([a-zA-Z0-9]+)_(\{[^}]+\})/g, "$$$1_$2$$") // x_{1} -> $x_{1}$
+    .replace(/\b([a-zA-Z0-9]+)\^(\{[^}]+\})/g, '$$$1^$2$$') // 3^{4} -> $3^{4}$
+    .replace(/\b([a-zA-Z0-9]+)_(\{[^}]+\})/g, '$$$1_$2$$') // x_{1} -> $x_{1}$
 
     // Handle only very specific mathematical superscripts and subscripts
 
     // Handle numbers with simple superscripts (like 2^8)
-    .replace(/\b(\d+)\^(\d+)\b/g, "$$$1^{$2}$$")
+    .replace(/\b(\d+)\^(\d+)\b/g, '$$$1^{$2}$$')
 
     // Handle specific mathematical expressions like 2^φ(15)
-    .replace(/\b(\d+)\^φ\((\d+)\)/g, "$$$1^{\\phi($2)}$$")
+    .replace(/\b(\d+)\^φ\((\d+)\)/g, '$$$1^{\\phi($2)}$$')
 
     // Handle specific mathematical function notation only
-    .replace(/\bφ\((\d+)\)/g, "$$\\phi($1)$$")
+    .replace(/\bφ\((\d+)\)/g, '$$\\phi($1)$$')
 
     // Handle modular arithmetic only when clearly formatted
     .replace(
       /(\d+)\s*≡\s*(\d+)\s*\(mod\s*(\d+)\)/g,
-      "$$$1 \\equiv $2 \\pmod{$3}$$",
+      '$$$1 \\equiv $2 \\pmod{$3}$$'
     )
 
     // Handle fractions
-    .replace(/\b(\d+)\/(\d+)\b/g, "$$\\frac{$1}{$2}$$")
-    .replace(/\(([^)]+)\)\/\(([^)]+)\)/g, "$$\\frac{$1}{$2}$$")
+    .replace(/\b(\d+)\/(\d+)\b/g, '$$\\frac{$1}{$2}$$')
+    .replace(/\(([^)]+)\)\/\(([^)]+)\)/g, '$$\\frac{$1}{$2}$$')
 
     // Handle modular arithmetic
-    .replace(/\b(\d+)\s+mod\s+(\d+)/g, "$$$1 \\bmod $2$$")
-    .replace(/≡\s*(\d+)\s+mod\s+(\d+)/g, "$$\\equiv $1 \\pmod{$2}$$")
+    .replace(/\b(\d+)\s+mod\s+(\d+)/g, '$$$1 \\bmod $2$$')
+    .replace(/≡\s*(\d+)\s+mod\s+(\d+)/g, '$$\\equiv $1 \\pmod{$2}$$')
     .replace(
       /([^$]+)\s*≡\s*([^$]+)\s+mod\s+(\d+)/g,
-      "$$$1 \\equiv $2 \\pmod{$3}$$",
+      '$$$1 \\equiv $2 \\pmod{$3}$$'
     )
 
     // Handle square roots
-    .replace(/sqrt\(([^)]+)\)/g, "$$\\sqrt{$1}$$")
+    .replace(/sqrt\(([^)]+)\)/g, '$$\\sqrt{$1}$$')
 
     // Handle absolute values
-    .replace(/\|([^|]+)\|/g, "$$\\left|$1\\right|$$")
+    .replace(/\|([^|]+)\|/g, '$$\\left|$1\\right|$$')
 
     // Handle infinity
-    .replace(/\binfinity\b/g, "$$\\infty$$")
-    .replace(/\binf\b/g, "$$\\infty$$")
+    .replace(/\binfinity\b/g, '$$\\infty$$')
+    .replace(/\binf\b/g, '$$\\infty$$')
 
     // Handle common operators
-    .replace(/\+\/-/g, "$$\\pm$$")
-    .replace(/-\+/g, "$$\\mp$$")
-    .replace(/\*\*/g, "$$\\cdot$$")
-    .replace(/\.\.\./g, "$$\\ldots$$")
+    .replace(/\+\/-/g, '$$\\pm$$')
+    .replace(/-\+/g, '$$\\mp$$')
+    .replace(/\*\*/g, '$$\\cdot$$')
+    .replace(/\.\.\./g, '$$\\ldots$$')
 
     // Handle degree symbol
-    .replace(/(\d+)\s*degrees?/g, "$$$1^\\circ$$")
-    .replace(/(\d+)°/g, "$$$1^\\circ$$")
+    .replace(/(\d+)\s*degrees?/g, '$$$1^\\circ$$')
+    .replace(/(\d+)°/g, '$$$1^\\circ$$')
 
     // Handle common mathematical constants
-    .replace(/\be\b(?![a-zA-Z])/g, "$$\\mathrm{e}$$")
-    .replace(/\bpi\b/g, "$$\\pi$$")
+    .replace(/\be\b(?![a-zA-Z])/g, '$$\\mathrm{e}$$')
+    .replace(/\bpi\b/g, '$$\\pi$$')
 
     // Handle summation and product notation
     .replace(
       /sum\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g,
-      "$$\\sum_{$1=$2}^{$3}$$",
+      '$$\\sum_{$1=$2}^{$3}$$'
     )
     .replace(
       /prod\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g,
-      "$$\\prod_{$1=$2}^{$3}$$",
+      '$$\\prod_{$1=$2}^{$3}$$'
     )
 
     // Handle limit notation
-    .replace(/lim\s*\(([^,]+)\s*->\s*([^)]+)\)/g, "$$\\lim_{$1 \\to $2}$$")
+    .replace(/lim\s*\(([^,]+)\s*->\s*([^)]+)\)/g, '$$\\lim_{$1 \\to $2}$$')
 
     // Handle integral notation
     .replace(
       /int\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g,
-      "$$\\int_{$1}^{$2} $3$$",
+      '$$\\int_{$1}^{$2} $3$$'
     )
 
     // Handle matrix notation shortcuts
     .replace(/matrix\s*\(\s*([^)]+)\s*\)/g, (_, content) => {
       const rows = content
-        .split(";")
+        .split(';')
         .map((row: string) =>
           row
             .trim()
-            .split(",")
+            .split(',')
             .map((cell: string) => cell.trim())
-            .join(" & "),
+            .join(' & ')
         )
-        .join(" \\\\ ");
+        .join(' \\\\ ');
       return `$$\\begin{pmatrix} ${rows} \\end{pmatrix}$$`;
     })
 
     // Clean up multiple consecutive math delimiters
-    .replace(/\$\$\s*\$\$/g, "$$")
-    .replace(/\$\$([^$]+)\$\$\s*\$\$([^$]+)\$\$/g, "$$$1 $2$$");
+    .replace(/\$\$\s*\$\$/g, '$$')
+    .replace(/\$\$([^$]+)\$\$\s*\$\$([^$]+)\$\$/g, '$$$1 $2$$');
 
   // Restore protected math expressions
   mathExpressions.forEach((expr, index) => {
-    if (expr.startsWith("$$")) {
+    if (expr.startsWith('$$')) {
       content = content.replace(`__MATH_BLOCK_${index}__`, expr);
     } else {
       content = content.replace(`__MATH_INLINE_${index}__`, expr);
@@ -318,20 +318,20 @@ const isDiagramCodeBlock = (language: string, codeString: string): boolean => {
   // Explicit diagram languages
   if (
     [
-      "mermaid",
-      "typogram",
-      "grammar",
-      "automata",
-      "cct",
-      "circuit-bricks",
-      "circuit",
+      'mermaid',
+      'typogram',
+      'grammar',
+      'automata',
+      'cct',
+      'circuit-bricks',
+      'circuit',
     ].includes(language)
   ) {
     return true;
   }
 
   // ALL code blocks with language specified should go to right panel
-  if (language && language.trim() !== "") {
+  if (language && language.trim() !== '') {
     return true;
   }
 
@@ -364,19 +364,19 @@ const isDiagramCodeBlock = (language: string, codeString: string): boolean => {
 
 // Function to separate content into text and code/diagrams (for right panel)
 const separateContentAndDiagrams = (
-  content: string,
+  content: string
 ): { textContent: string; diagramContent: string } => {
   const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
   let textContent = content;
-  let diagramContent = "";
+  let diagramContent = '';
   let match;
 
   // Extract all code blocks and check if they're diagrams
   const codeBlocks: Array<{ match: RegExpExecArray; isDiagram: boolean }> = [];
 
   while ((match = codeBlockRegex.exec(content)) !== null) {
-    const language = match[1] || "";
-    const codeString = (match[2] ?? "").trim();
+    const language = match[1] || '';
+    const codeString = (match[2] ?? '').trim();
     const isDiagram = isDiagramCodeBlock(language, codeString);
 
     codeBlocks.push({ match, isDiagram });
@@ -386,7 +386,7 @@ const separateContentAndDiagrams = (
   codeBlocks.reverse().forEach(({ match, isDiagram }) => {
     if (isDiagram) {
       // Add to diagram content
-      diagramContent = match[0] + "\n\n" + diagramContent;
+      diagramContent = match[0] + '\n\n' + diagramContent;
       // Remove from text content
       textContent =
         textContent.substring(0, match.index) +
@@ -402,19 +402,19 @@ const separateContentAndDiagrams = (
 
 // Function to separate citations from content
 const separateContentAndCitations = (
-  content: string,
+  content: string
 ): { mainContent: string; citations: string } => {
   // First check for ```citations blocks
   const citationBlockRegex = /```citations\n([\s\S]*?)```/g;
   let mainContent = content;
-  let citations = "";
+  let citations = '';
   let match;
 
   // Process citation code blocks
   while ((match = citationBlockRegex.exec(content)) !== null) {
-    citations += (match[1] ?? "").trim() + "\n";
+    citations += (match[1] ?? '').trim() + '\n';
     // Remove citation block from main content
-    mainContent = mainContent.replace(match[0], "");
+    mainContent = mainContent.replace(match[0], '');
   }
 
   // Then check for References or References sections
@@ -422,20 +422,20 @@ const separateContentAndCitations = (
     /(?:^|\n)(?:##?\s*)?References?\s*\n((?:[-*•]?\s*.*(?:\n|$))*)/gim;
   while ((match = referencesRegex.exec(content)) !== null) {
     // Convert bullets/dashes to citation format
-    const referenceLines = (match[1] ?? "")
-      .split("\n")
+    const referenceLines = (match[1] ?? '')
+      .split('\n')
       .filter((line) => line.trim())
       .map((line) => {
-        line = line.replace(/^[-*•]\s*/, "").trim(); // Remove bullets
-        return line ? ` | ${line} | Reference` : ""; // Convert to citation format
+        line = line.replace(/^[-*•]\s*/, '').trim(); // Remove bullets
+        return line ? ` | ${line} | Reference` : ''; // Convert to citation format
       })
       .filter(Boolean)
-      .join("\n");
+      .join('\n');
 
     if (referenceLines) {
-      citations += (citations ? "\n" : "") + referenceLines;
+      citations += (citations ? '\n' : '') + referenceLines;
       // Remove the references section from main content
-      mainContent = mainContent.replace(match[0], "");
+      mainContent = mainContent.replace(match[0], '');
     }
   }
 
@@ -453,11 +453,11 @@ const STABLE_MARKDOWN_COMPONENTS = {
       children: React.ReactNode;
       [key: string]: unknown;
     };
-    const isInline = !className || !/language-(\w+)/.test(className);
+    const isInline = !(className && /language-(\w+)/.test(className));
     if (isInline) {
       return (
         <code
-          className={`${className || ''} text-base md:text-lg bg-[#50636a2d] text-[#617D82] px-1 py-0.5 rounded`}
+          className={`${className || ''} rounded bg-[#50636a2d] px-1 py-0.5 text-[#617D82] text-base md:text-lg`}
           {...restProps}
           data-oid="cqf0ne7"
         >
@@ -465,51 +465,46 @@ const STABLE_MARKDOWN_COMPONENTS = {
         </code>
       );
     }
-    const match = /language-(\w+)/.exec(className || "");
-    const codeString = String(children).replace(/\n$/, "");
-    const language = match ? match[1] : "";
+    const match = /language-(\w+)/.exec(className || '');
+    const codeString = String(children).replace(/\n$/, '');
+    const language = match ? match[1] : '';
 
     // Citations rendering
-    if (language === "citations") {
+    if (language === 'citations') {
       return <CitationRenderer citations={codeString} />;
     }
 
     // Typogram rendering for ASCII diagrams
-    if (language === "typogram") {
+    if (language === 'typogram') {
       return (
         <TypogramRenderer
+          data-oid="5ot1p9l"
+          debug={false}
           source={codeString}
           zoom={0.3}
-          debug={false}
-          data-oid="5ot1p9l"
         />
       );
     }
     // Grammar rendering for automata languages
-    if (language === "grammar") {
-      return (
-        <GrammarRenderer grammar={codeString} data-oid="x0f:jrz" />
-      );
+    if (language === 'grammar') {
+      return <GrammarRenderer data-oid="x0f:jrz" grammar={codeString} />;
     }
     // Automata rendering for finite state machines
-    if (language === "automata") {
-      return (
-        <AutomataRenderer automata={codeString} data-oid="xxbh19:" />
-      );
+    if (language === 'automata') {
+      return <AutomataRenderer automata={codeString} data-oid="xxbh19:" />;
     }
     // Detect Mermaid diagrams by keywords even if no language tag is provided
     const trimmed = codeString.trim();
     const mermaidKeywords =
       /^(graph|flowchart|sequenceDiagram|stateDiagram|classDiagram|gantt|pie|erDiagram)/;
     const isMermaid =
-      language === "mermaid" ||
-      (!language && mermaidKeywords.test(trimmed));
+      language === 'mermaid' || (!language && mermaidKeywords.test(trimmed));
     if (isMermaid) {
       return <MermaidRenderer chart={codeString} data-oid="tji:5pw" />;
     }
 
     // Circuit-Bricks circuit diagram rendering
-    if (language === "circuit-bricks" || language === "circuit") {
+    if (language === 'circuit-bricks' || language === 'circuit') {
       // Verify the circuit data is valid JSON before attempting to render
       let isValidJSON = true;
       try {
@@ -525,12 +520,14 @@ const STABLE_MARKDOWN_COMPONENTS = {
               <CircuitBricksRenderer circuitData={codeString} />
             </div>
           ) : (
-            <div className="p-4 text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-b-md bg-red-50 dark:bg-red-900 dark:bg-opacity-20">
-              <strong>Invalid Circuit JSON:</strong> Could not parse the circuit data.
+            <div className="rounded-b-md border border-red-300 bg-red-50 p-4 text-red-600 text-sm dark:border-red-800 dark:bg-red-900 dark:bg-opacity-20 dark:text-red-400">
+              <strong>Invalid Circuit JSON:</strong> Could not parse the circuit
+              data.
               <div className="mt-2">
-                Please ensure your circuit definition is valid JSON and includes proper component and wire definitions.
+                Please ensure your circuit definition is valid JSON and includes
+                proper component and wire definitions.
               </div>
-              <pre className="mt-3 p-3 bg-gray-900 rounded text-gray-300 text-xs overflow-auto">
+              <pre className="mt-3 overflow-auto rounded bg-gray-900 p-3 text-gray-300 text-xs">
                 {codeString}
               </pre>
             </div>
@@ -544,28 +541,25 @@ const STABLE_MARKDOWN_COMPONENTS = {
       return (
         <div className="relative my-6" data-oid="hp1.teh">
           <div
-            className="px-3 py-1.5 bg-gray-800 text-xs text-gray-300 rounded-t-md border-b border-gray-700 flex justify-between items-center"
+            className="flex items-center justify-between rounded-t-md border-gray-700 border-b bg-gray-800 px-3 py-1.5 text-gray-300 text-xs"
             data-oid="4l4h924"
           >
             <span data-oid="a8m7p1o">
               Finite State Machine / Automaton Diagram (ASCII)
             </span>
             <button
+              aria-label="Copy diagram"
+              className="rounded p-1 transition-colors hover:bg-gray-700"
+              data-oid="brz05dt"
               onClick={() => {
                 navigator.clipboard.writeText(codeString);
               }}
-              className="p-1 rounded hover:bg-gray-700 transition-colors"
-              aria-label="Copy diagram"
-              data-oid="brz05dt"
             >
-              <Copy
-                className="h-3.5 w-3.5 text-gray-400"
-                data-oid="5sazyxv"
-              />
+              <Copy className="h-3.5 w-3.5 text-gray-400" data-oid="5sazyxv" />
             </button>
           </div>
           <pre
-            className="p-4 bg-gray-900 font-mono text-sm overflow-x-auto rounded-b-md whitespace-pre leading-snug text-gray-200 border border-gray-700"
+            className="overflow-x-auto whitespace-pre rounded-b-md border border-gray-700 bg-gray-900 p-4 font-mono text-gray-200 text-sm leading-snug"
             data-oid="1by4g82"
           >
             <code data-oid="vqoj6aa">{codeString}</code>
@@ -581,33 +575,32 @@ const STABLE_MARKDOWN_COMPONENTS = {
     const hasFlowchartElements = /\[.*\]\s*--+>\s*\[.*\]/.test(codeString);
 
     // Only treat as ASCII diagram if it has very specific diagram patterns AND no language is specified
-    const isSpecificAsciiDiagram = !language && (hasStateTransitions || hasBoxDrawing || hasFlowchartElements);
+    const isSpecificAsciiDiagram =
+      !language &&
+      (hasStateTransitions || hasBoxDrawing || hasFlowchartElements);
 
     // Render ASCII diagrams with preserved whitespace and monospace font
     if (isSpecificAsciiDiagram) {
       return (
-        <div className="relative group my-6" data-oid="6b4n4bt">
+        <div className="group relative my-6" data-oid="6b4n4bt">
           <div
-            className="px-3 py-1.5 bg-gray-800 text-xs text-gray-300 rounded-t-md border-b border-gray-700 flex justify-between items-center"
+            className="flex items-center justify-between rounded-t-md border-gray-700 border-b bg-gray-800 px-3 py-1.5 text-gray-300 text-xs"
             data-oid="35l5yv6"
           >
             <span data-oid="1ejpw7n">ASCII Diagram</span>
             <button
+              aria-label="Copy diagram"
+              className="rounded p-1 transition-colors hover:bg-gray-700"
+              data-oid="o3uy1i1"
               onClick={() => {
                 navigator.clipboard.writeText(codeString);
               }}
-              className="p-1 rounded hover:bg-gray-700 transition-colors"
-              aria-label="Copy diagram"
-              data-oid="o3uy1i1"
             >
-              <Copy
-                className="h-3.5 w-3.5 text-gray-400"
-                data-oid=":w1wdeg"
-              />
+              <Copy className="h-3.5 w-3.5 text-gray-400" data-oid=":w1wdeg" />
             </button>
           </div>
           <pre
-            className="p-4 bg-gray-900 font-mono text-sm overflow-x-auto rounded-b-md whitespace-pre leading-snug text-gray-200 border border-gray-700"
+            className="overflow-x-auto whitespace-pre rounded-b-md border border-gray-700 bg-gray-900 p-4 font-mono text-gray-200 text-sm leading-snug"
             data-oid="d.yfjpc"
           >
             <code data-oid="qn-uqv4">{codeString}</code>
@@ -618,46 +611,43 @@ const STABLE_MARKDOWN_COMPONENTS = {
 
     if (match) {
       return (
-        <div className="relative group my-6" data-oid="ysa:q4e">
+        <div className="group relative my-6" data-oid="ysa:q4e">
           <div
-            className="px-3 py-1.5 bg-[#42595D] text-xs text-gray-300 rounded-t-md border-2 border-[#42595D] flex justify-between items-center"
+            className="flex items-center justify-between rounded-t-md border-2 border-[#42595D] bg-[#42595D] px-3 py-1.5 text-gray-300 text-xs"
             data-oid="xgm02at"
           >
             <span data-oid="s0xzq2k">
               {language
                 ? language.charAt(0).toUpperCase() +
                   language.slice(1) +
-                  (language.toLowerCase() === "typescript"
-                    ? " (TS)"
-                    : language.toLowerCase() === "javascript"
-                    ? " (JS)"
-                    : "")
-                : "Code"}
+                  (language.toLowerCase() === 'typescript'
+                    ? ' (TS)'
+                    : language.toLowerCase() === 'javascript'
+                      ? ' (JS)'
+                      : '')
+                : 'Code'}
             </span>
             <button
+              aria-label="Copy code"
+              className="rounded p-1 transition-colors hover:bg-gray-700"
+              data-oid="qjn7tun"
               onClick={() => {
                 navigator.clipboard.writeText(codeString);
               }}
-              className="p-1 rounded hover:bg-gray-700 transition-colors"
-              aria-label="Copy code"
-              data-oid="qjn7tun"
             >
-              <Copy
-                className="h-3.5 w-3.5 text-gray-400"
-                data-oid="3qe5x-0"
-              />
+              <Copy className="h-3.5 w-3.5 text-gray-400" data-oid="3qe5x-0" />
             </button>
           </div>
           <SyntaxHighlighter
-            language={language || "text"}
-            style={vscDarkPlus}
-            className="rounded-t-none !mt-0 !bg-[#252D31] rounded-b-md"
+            className="!mt-0 !bg-[#252D31] rounded-t-none rounded-b-md"
             customStyle={{
               marginTop: 0,
-              border: "2px solid rgb(66, 89, 93)",
-              borderTop: "none",
+              border: '2px solid rgb(66, 89, 93)',
+              borderTop: 'none',
             }}
             data-oid="9.6yjrk"
+            language={language || 'text'}
+            style={vscDarkPlus}
           >
             {codeString}
           </SyntaxHighlighter>
@@ -675,8 +665,8 @@ const STABLE_MARKDOWN_COMPONENTS = {
   },
   table({ children }: any) {
     return (
-      <div className="overflow-x-auto my-4" data-oid="f1d:qqk">
-        <table className="border-collapse w-full" data-oid="2tl4x:d">
+      <div className="my-4 overflow-x-auto" data-oid="f1d:qqk">
+        <table className="w-full border-collapse" data-oid="2tl4x:d">
           {children}
         </table>
       </div>
@@ -684,21 +674,21 @@ const STABLE_MARKDOWN_COMPONENTS = {
   },
   th({ children }: any) {
     return (
-      <th className="border border-gray-300 dark:border-[#919191] px-4 py-2 text-left bg-gray-100 dark:bg-[#202020] ">
+      <th className="border border-gray-300 bg-gray-100 px-4 py-2 text-left dark:border-[#919191] dark:bg-[#202020] ">
         {children}
       </th>
     );
   },
   td({ children }: any) {
     return (
-      <td className="border border-gray-300 dark:border-[#919191] px-4 py-2">
+      <td className="border border-gray-300 px-4 py-2 dark:border-[#919191]">
         {children}
       </td>
     );
   },
   blockquote({ children }: any) {
     return (
-      <blockquote className="border-l-4  bg-yellow-500 pl-4  my-4">
+      <blockquote className="my-4 border-l-4 bg-yellow-500 pl-4">
         {children}
       </blockquote>
     );
@@ -706,7 +696,7 @@ const STABLE_MARKDOWN_COMPONENTS = {
   h1({ children }: any) {
     return (
       <h1
-        className="text-3xl font-bold mt-6 mb-4 pb-2 border-b border-gray-200 dark:border-gray-800"
+        className="mt-6 mb-4 border-gray-200 border-b pb-2 font-bold text-3xl dark:border-gray-800"
         data-oid="5mw00sa"
       >
         {children}
@@ -716,7 +706,7 @@ const STABLE_MARKDOWN_COMPONENTS = {
   h2({ children }: any) {
     return (
       <h2
-        className="text-2xl font-bold text-[#99C5CB] border-t border-[#23545D] my-3 py-3"
+        className="my-3 border-[#23545D] border-t py-3 font-bold text-2xl text-[#99C5CB]"
         data-oid="19rjxuk"
       >
         {children}
@@ -725,7 +715,10 @@ const STABLE_MARKDOWN_COMPONENTS = {
   },
   h3({ children }: any) {
     return (
-      <h3 className="text-xl font-semibold text-[#99C5CB] mt-4 mb-2" data-oid="k2n:wqm">
+      <h3
+        className="mt-4 mb-2 font-semibold text-[#99C5CB] text-xl"
+        data-oid="k2n:wqm"
+      >
         {children}
       </h3>
     );
@@ -753,14 +746,18 @@ const STABLE_MARKDOWN_COMPONENTS = {
   },
   p({ children }: any) {
     return (
-      <p className="my-4  " data-oid="v06:sbi">
+      <p className="my-4 " data-oid="v06:sbi">
         {children}
       </p>
     );
   },
   strong({ children }: any) {
     return (
-      <strong className="font-bold" style={{ fontWeight: 'bold' }} data-oid="bold-text">
+      <strong
+        className="font-bold"
+        data-oid="bold-text"
+        style={{ fontWeight: 'bold' }}
+      >
         {children}
       </strong>
     );
@@ -793,166 +790,166 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   // First, handle horizontal rules separately
   processedContent = processedContent.replace(
     /^ {0,3}([-*_]){3,}\s*$/gm,
-    "\n\n<hr />\n\n",
+    '\n\n<hr />\n\n'
   );
   // Use the new parser for improved sanitization (code blocks are preserved)
   processedContent = parseAndFormatContent(processedContent);
 
   // Additional replacements for spacing in lists and headings
   processedContent = processedContent
-    .replace(/\n(#{1,6}\s)/g, "\n\n$1")
-    .replace(/\n([*-]\s)/g, "\n$1")
-    .replace(/\n(\d+\.\s)/g, "\n$1")
-    .replace(/(\n\s*\n)/g, "$1\n");
+    .replace(/\n(#{1,6}\s)/g, '\n\n$1')
+    .replace(/\n([*-]\s)/g, '\n$1')
+    .replace(/\n(\d+\.\s)/g, '\n$1')
+    .replace(/(\n\s*\n)/g, '$1\n');
 
   // Enhanced mathematical expression processing
   processedContent = processedContent
     // First, handle display math blocks
     .replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => `\n\n$$${math.trim()}$$\n\n`)
     // Handle LaTeX-style delimiters
-    .replace(/\\\(/g, "$$")
-    .replace(/\\\)/g, "$$")
+    .replace(/\\\(/g, '$$')
+    .replace(/\\\)/g, '$$')
     // Handle inline math with better spacing and cleanup
     .replace(
       /\$\$([^$]+?)\$\$/g,
-      (_, math) => `$${math.trim().replace(/\s+/g, " ")}$`,
+      (_, math) => `$${math.trim().replace(/\s+/g, ' ')}$`
     )
     .replace(
       /\$([^$\n]+?)\$/g,
-      (_, math) => `$${math.trim().replace(/\s+/g, " ")}$`,
+      (_, math) => `$${math.trim().replace(/\s+/g, ' ')}$`
     )
 
     // Enhanced superscript and subscript handling
-    .replace(/([a-zA-Z0-9])\^([a-zA-Z0-9]+)/g, "$1^{$2}") // a^n -> a^{n}
-    .replace(/([a-zA-Z0-9])\^(\([^)]+\))/g, "$1^{$2}") // a^(n+1) -> a^{(n+1)}
-    .replace(/([a-zA-Z0-9])_([a-zA-Z0-9]+)/g, "$1_{$2}") // x_i -> x_{i}
-    .replace(/([a-zA-Z0-9])_(\([^)]+\))/g, "$1_{$2}") // x_(i+1) -> x_{(i+1)}
+    .replace(/([a-zA-Z0-9])\^([a-zA-Z0-9]+)/g, '$1^{$2}') // a^n -> a^{n}
+    .replace(/([a-zA-Z0-9])\^(\([^)]+\))/g, '$1^{$2}') // a^(n+1) -> a^{(n+1)}
+    .replace(/([a-zA-Z0-9])_([a-zA-Z0-9]+)/g, '$1_{$2}') // x_i -> x_{i}
+    .replace(/([a-zA-Z0-9])_(\([^)]+\))/g, '$1_{$2}') // x_(i+1) -> x_{(i+1)}
 
     // Complex superscript/subscript combinations
-    .replace(/([a-zA-Z0-9])\^([a-zA-Z0-9]+)_([a-zA-Z0-9]+)/g, "$1^{$2}_{$3}")
-    .replace(/([a-zA-Z0-9])_([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)/g, "$1_{$2}^{$3}")
+    .replace(/([a-zA-Z0-9])\^([a-zA-Z0-9]+)_([a-zA-Z0-9]+)/g, '$1^{$2}_{$3}')
+    .replace(/([a-zA-Z0-9])_([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)/g, '$1_{$2}^{$3}')
 
     // Mathematical operators and functions
-    .replace(/\\vec\{([^}]*)\}/g, "\\vec{$1}")
-    .replace(/\\sum_\{([^}]*)\}\^\{([^}]*)\}/g, "\\sum_{$1}^{$2}")
-    .replace(/\\prod_\{([^}]*)\}\^\{([^}]*)\}/g, "\\prod_{$1}^{$2}")
-    .replace(/\\int_\{([^}]*)\}\^\{([^}]*)\}/g, "\\int_{$1}^{$2}")
-    .replace(/\\lim_\{([^}]*)\}/g, "\\lim_{$1}")
+    .replace(/\\vec\{([^}]*)\}/g, '\\vec{$1}')
+    .replace(/\\sum_\{([^}]*)\}\^\{([^}]*)\}/g, '\\sum_{$1}^{$2}')
+    .replace(/\\prod_\{([^}]*)\}\^\{([^}]*)\}/g, '\\prod_{$1}^{$2}')
+    .replace(/\\int_\{([^}]*)\}\^\{([^}]*)\}/g, '\\int_{$1}^{$2}')
+    .replace(/\\lim_\{([^}]*)\}/g, '\\lim_{$1}')
 
     // Fractions and derivatives
-    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "\\frac{$1}{$2}")
-    .replace(/\\frac\{d\}\{d([a-zA-Z])\}/g, "\\frac{d}{d$1}")
-    .replace(/\\frac\{d([^}]*)\}\{d([a-zA-Z])\}/g, "\\frac{d$1}{d$2}")
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '\\frac{$1}{$2}')
+    .replace(/\\frac\{d\}\{d([a-zA-Z])\}/g, '\\frac{d}{d$1}')
+    .replace(/\\frac\{d([^}]*)\}\{d([a-zA-Z])\}/g, '\\frac{d$1}{d$2}')
     .replace(
       /\\frac\{\\partial\}\{\\partial ([a-zA-Z])\}/g,
-      "\\frac{\\partial}{\\partial $1}",
+      '\\frac{\\partial}{\\partial $1}'
     )
     .replace(
       /\\frac\{\\partial([^}]*)\}\{\\partial ([a-zA-Z])\}/g,
-      "\\frac{\\partial$1}{\\partial $2}",
+      '\\frac{\\partial$1}{\\partial $2}'
     )
 
     // Roots and powers
-    .replace(/\\sqrt\{([^}]*)\}/g, "\\sqrt{$1}")
-    .replace(/\\sqrt\[([^\]]*)\]\{([^}]*)\}/g, "\\sqrt[$1]{$2}")
+    .replace(/\\sqrt\{([^}]*)\}/g, '\\sqrt{$1}')
+    .replace(/\\sqrt\[([^\]]*)\]\{([^}]*)\}/g, '\\sqrt[$1]{$2}')
 
     // Matrix environments
     .replace(
       /\\begin\{matrix\}([\s\S]*?)\\end\{matrix\}/g,
-      "\\begin{matrix}$1\\end{matrix}",
+      '\\begin{matrix}$1\\end{matrix}'
     )
     .replace(
       /\\begin\{pmatrix\}([\s\S]*?)\\end\{pmatrix\}/g,
-      "\\begin{pmatrix}$1\\end{pmatrix}",
+      '\\begin{pmatrix}$1\\end{pmatrix}'
     )
     .replace(
       /\\begin\{bmatrix\}([\s\S]*?)\\end\{bmatrix\}/g,
-      "\\begin{bmatrix}$1\\end{bmatrix}",
+      '\\begin{bmatrix}$1\\end{bmatrix}'
     )
     .replace(
       /\\begin\{vmatrix\}([\s\S]*?)\\end\{vmatrix\}/g,
-      "\\begin{vmatrix}$1\\end{vmatrix}",
+      '\\begin{vmatrix}$1\\end{vmatrix}'
     )
 
     // Trigonometric and logarithmic functions
     .replace(
       /\\(sin|cos|tan|sec|csc|cot|sinh|cosh|tanh|arcsin|arccos|arctan)\{([^}]*)\}/g,
-      "\\$1($2)",
+      '\\$1($2)'
     )
-    .replace(/\\(log|ln|exp)\{([^}]*)\}/g, "\\$1($2)")
+    .replace(/\\(log|ln|exp)\{([^}]*)\}/g, '\\$1($2)')
 
     // Set notation and logic
-    .replace(/\\in\b/g, "\\in")
-    .replace(/\\subset\b/g, "\\subset")
-    .replace(/\\supset\b/g, "\\supset")
-    .replace(/\\cup\b/g, "\\cup")
-    .replace(/\\cap\b/g, "\\cap")
-    .replace(/\\emptyset\b/g, "\\emptyset")
-    .replace(/\\forall\b/g, "\\forall")
-    .replace(/\\exists\b/g, "\\exists")
-    .replace(/\\implies\b/g, "\\implies")
-    .replace(/\\iff\b/g, "\\iff")
+    .replace(/\\in\b/g, '\\in')
+    .replace(/\\subset\b/g, '\\subset')
+    .replace(/\\supset\b/g, '\\supset')
+    .replace(/\\cup\b/g, '\\cup')
+    .replace(/\\cap\b/g, '\\cap')
+    .replace(/\\emptyset\b/g, '\\emptyset')
+    .replace(/\\forall\b/g, '\\forall')
+    .replace(/\\exists\b/g, '\\exists')
+    .replace(/\\implies\b/g, '\\implies')
+    .replace(/\\iff\b/g, '\\iff')
 
     // Inequalities and relations
-    .replace(/\\leq\b/g, "\\leq")
-    .replace(/\\geq\b/g, "\\geq")
-    .replace(/\\neq\b/g, "\\neq")
-    .replace(/\\approx\b/g, "\\approx")
-    .replace(/\\equiv\b/g, "\\equiv")
+    .replace(/\\leq\b/g, '\\leq')
+    .replace(/\\geq\b/g, '\\geq')
+    .replace(/\\neq\b/g, '\\neq')
+    .replace(/\\approx\b/g, '\\approx')
+    .replace(/\\equiv\b/g, '\\equiv')
 
     // Special formatting
-    .replace(/\\boxed\{([\s\S]*?)\}/g, "\\boxed{$1}")
-    .replace(/\\text\{([^}]*)\}/g, "\\text{$1}")
-    .replace(/\\mathbf\{([^}]*)\}/g, "\\mathbf{$1}")
-    .replace(/\\mathit\{([^}]*)\}/g, "\\mathit{$1}")
-    .replace(/\\mathcal\{([^}]*)\}/g, "\\mathcal{$1}")
+    .replace(/\\boxed\{([\s\S]*?)\}/g, '\\boxed{$1}')
+    .replace(/\\text\{([^}]*)\}/g, '\\text{$1}')
+    .replace(/\\mathbf\{([^}]*)\}/g, '\\mathbf{$1}')
+    .replace(/\\mathit\{([^}]*)\}/g, '\\mathit{$1}')
+    .replace(/\\mathcal\{([^}]*)\}/g, '\\mathcal{$1}')
 
     // Function notation improvements
-    .replace(/([a-zA-Z])\s*\(\s*([a-zA-Z0-9+\-*/^_]+)\s*\)/g, "$1($2)")
+    .replace(/([a-zA-Z])\s*\(\s*([a-zA-Z0-9+\-*/^_]+)\s*\)/g, '$1($2)')
 
     // Greek letters (keeping existing ones and adding more)
-    .replace(/\\alpha\b/g, "\\alpha")
-    .replace(/\\beta\b/g, "\\beta")
-    .replace(/\\gamma\b/g, "\\gamma")
-    .replace(/\\delta\b/g, "\\delta")
-    .replace(/\\epsilon\b/g, "\\epsilon")
-    .replace(/\\varepsilon\b/g, "\\varepsilon")
-    .replace(/\\zeta\b/g, "\\zeta")
-    .replace(/\\eta\b/g, "\\eta")
-    .replace(/\\theta\b/g, "\\theta")
-    .replace(/\\vartheta\b/g, "\\vartheta")
-    .replace(/\\iota\b/g, "\\iota")
-    .replace(/\\kappa\b/g, "\\kappa")
-    .replace(/\\lambda\b/g, "\\lambda")
-    .replace(/\\mu\b/g, "\\mu")
-    .replace(/\\nu\b/g, "\\nu")
-    .replace(/\\xi\b/g, "\\xi")
-    .replace(/\\pi\b/g, "\\pi")
-    .replace(/\\varpi\b/g, "\\varpi")
-    .replace(/\\rho\b/g, "\\rho")
-    .replace(/\\varrho\b/g, "\\varrho")
-    .replace(/\\sigma\b/g, "\\sigma")
-    .replace(/\\varsigma\b/g, "\\varsigma")
-    .replace(/\\tau\b/g, "\\tau")
-    .replace(/\\upsilon\b/g, "\\upsilon")
-    .replace(/\\phi\b/g, "\\phi")
-    .replace(/\\varphi\b/g, "\\varphi")
-    .replace(/\\chi\b/g, "\\chi")
-    .replace(/\\psi\b/g, "\\psi")
-    .replace(/\\omega\b/g, "\\omega")
+    .replace(/\\alpha\b/g, '\\alpha')
+    .replace(/\\beta\b/g, '\\beta')
+    .replace(/\\gamma\b/g, '\\gamma')
+    .replace(/\\delta\b/g, '\\delta')
+    .replace(/\\epsilon\b/g, '\\epsilon')
+    .replace(/\\varepsilon\b/g, '\\varepsilon')
+    .replace(/\\zeta\b/g, '\\zeta')
+    .replace(/\\eta\b/g, '\\eta')
+    .replace(/\\theta\b/g, '\\theta')
+    .replace(/\\vartheta\b/g, '\\vartheta')
+    .replace(/\\iota\b/g, '\\iota')
+    .replace(/\\kappa\b/g, '\\kappa')
+    .replace(/\\lambda\b/g, '\\lambda')
+    .replace(/\\mu\b/g, '\\mu')
+    .replace(/\\nu\b/g, '\\nu')
+    .replace(/\\xi\b/g, '\\xi')
+    .replace(/\\pi\b/g, '\\pi')
+    .replace(/\\varpi\b/g, '\\varpi')
+    .replace(/\\rho\b/g, '\\rho')
+    .replace(/\\varrho\b/g, '\\varrho')
+    .replace(/\\sigma\b/g, '\\sigma')
+    .replace(/\\varsigma\b/g, '\\varsigma')
+    .replace(/\\tau\b/g, '\\tau')
+    .replace(/\\upsilon\b/g, '\\upsilon')
+    .replace(/\\phi\b/g, '\\phi')
+    .replace(/\\varphi\b/g, '\\varphi')
+    .replace(/\\chi\b/g, '\\chi')
+    .replace(/\\psi\b/g, '\\psi')
+    .replace(/\\omega\b/g, '\\omega')
 
     // Capital Greek letters
-    .replace(/\\Gamma\b/g, "\\Gamma")
-    .replace(/\\Delta\b/g, "\\Delta")
-    .replace(/\\Theta\b/g, "\\Theta")
-    .replace(/\\Lambda\b/g, "\\Lambda")
-    .replace(/\\Xi\b/g, "\\Xi")
-    .replace(/\\Pi\b/g, "\\Pi")
-    .replace(/\\Sigma\b/g, "\\Sigma")
-    .replace(/\\Upsilon\b/g, "\\Upsilon")
-    .replace(/\\Phi\b/g, "\\Phi")
-    .replace(/\\Psi\b/g, "\\Psi")
-    .replace(/\\Omega\b/g, "\\Omega");
+    .replace(/\\Gamma\b/g, '\\Gamma')
+    .replace(/\\Delta\b/g, '\\Delta')
+    .replace(/\\Theta\b/g, '\\Theta')
+    .replace(/\\Lambda\b/g, '\\Lambda')
+    .replace(/\\Xi\b/g, '\\Xi')
+    .replace(/\\Pi\b/g, '\\Pi')
+    .replace(/\\Sigma\b/g, '\\Sigma')
+    .replace(/\\Upsilon\b/g, '\\Upsilon')
+    .replace(/\\Phi\b/g, '\\Phi')
+    .replace(/\\Psi\b/g, '\\Psi')
+    .replace(/\\Omega\b/g, '\\Omega');
 
   return (
     <>
@@ -1049,16 +1046,16 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         data-oid="e3n597w"
       >
         <ReactMarkdown
-          remarkPlugins={REMARK_PLUGINS as any}
-          rehypePlugins={REHYPE_PLUGINS as any}
           components={STABLE_MARKDOWN_COMPONENTS}
           data-oid=".54vk3j"
+          rehypePlugins={REHYPE_PLUGINS as any}
+          remarkPlugins={REMARK_PLUGINS as any}
         >
           {processedContent}
         </ReactMarkdown>
 
         {/* Render citations at the bottom if they exist and we're not filtering content */}
-        {!onlyText && !onlyDiagrams && !excludeCitations && citations && (
+        {!(onlyText || onlyDiagrams || excludeCitations) && citations && (
           <CitationRenderer citations={citations} />
         )}
       </div>

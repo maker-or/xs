@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 export default async function RedirectPage(props: any) {
   const params = await props.params;
   const folderId = params?.folderId;
-  
+
   if (typeof folderId === 'string') {
     redirect(`/student/folder/${folderId}`);
   } else {

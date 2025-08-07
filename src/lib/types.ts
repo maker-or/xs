@@ -7,14 +7,11 @@ export type gallery_tasks = {
   date: string;
   createdAt: Date;
   updatedAt: Date;
-
 };
-
 
 export type Result = Record<string, string | number>;
 
 export type Config = unknown;
-
 
 export const explanationSchema = z.object({
   section: z.string(),

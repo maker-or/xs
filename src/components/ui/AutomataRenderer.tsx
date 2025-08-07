@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import type React from 'react';
+import { useEffect, useRef } from 'react';
 
 interface AutomataRendererProps {
   automata: string;
@@ -24,41 +25,41 @@ const AutomataRenderer: React.FC<AutomataRendererProps> = ({ automata }) => {
 
   // Parse automata description
   const parseAutomata = (
-    input: string,
+    input: string
   ): { states: State[]; transitions: Transition[] } => {
     const states: State[] = [];
     const transitions: Transition[] = [];
-    const lines = input.trim().split("\n");
+    const lines = input.trim().split('\n');
 
     // This is a simple parser - for production use you would want more robust parsing
     lines.forEach((line) => {
       line = line.trim();
 
       // Parse state definitions
-      if (line.startsWith("state")) {
+      if (line.startsWith('state')) {
         // Format: state <id> <label> <x> <y> [initial] [final]
         const parts = line.split(/\s+/);
         if (parts.length >= 5 && parts[1] && parts[2] && parts[3] && parts[4]) {
           const state: State = {
             id: parts[1],
             label: parts[2],
-            x: parseInt(parts[3] || "0"),
-            y: parseInt(parts[4] || "0"),
-            isInitial: parts.includes("initial"),
-            isFinal: parts.includes("final"),
+            x: Number.parseInt(parts[3] || '0'),
+            y: Number.parseInt(parts[4] || '0'),
+            isInitial: parts.includes('initial'),
+            isFinal: parts.includes('final'),
           };
           states.push(state);
         }
       }
       // Parse transition definitions
-      else if (line.startsWith("transition")) {
+      else if (line.startsWith('transition')) {
         // Format: transition <from> <to> <label>
         const parts = line.split(/\s+/);
         if (parts.length >= 4 && parts[1] && parts[2]) {
           transitions.push({
             from: parts[1],
             to: parts[2],
-            label: parts.slice(3).join(" "),
+            label: parts.slice(3).join(' '),
           });
         }
       }
@@ -71,17 +72,17 @@ const AutomataRenderer: React.FC<AutomataRendererProps> = ({ automata }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Set some styling
-    ctx.font = "14px Arial";
+    ctx.font = '14px Arial';
     ctx.lineWidth = 2;
-    ctx.strokeStyle = "#333";
-    ctx.fillStyle = "#333";
+    ctx.strokeStyle = '#333';
+    ctx.fillStyle = '#333';
 
     // Parse automata description
     const { states, transitions } = parseAutomata(automata);
@@ -118,8 +119,8 @@ const AutomataRenderer: React.FC<AutomataRendererProps> = ({ automata }) => {
       }
 
       // Draw state label
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       ctx.fillText(state.label, state.x, state.y);
     });
 
@@ -128,7 +129,7 @@ const AutomataRenderer: React.FC<AutomataRendererProps> = ({ automata }) => {
       const fromState = states.find((s) => s.id === transition.from);
       const toState = states.find((s) => s.id === transition.to);
 
-      if (!fromState || !toState) return;
+      if (!(fromState && toState)) return;
 
       // Self-transition (loop)
       if (fromState.id === toState.id) {
@@ -138,7 +139,7 @@ const AutomataRenderer: React.FC<AutomataRendererProps> = ({ automata }) => {
         ctx.stroke();
 
         // Draw label above the loop
-        ctx.textAlign = "center";
+        ctx.textAlign = 'center';
         ctx.fillText(transition.label, fromState.x, fromState.y - radius - 35);
 
         // Draw arrowhead
@@ -183,11 +184,11 @@ const AutomataRenderer: React.FC<AutomataRendererProps> = ({ automata }) => {
         ctx.moveTo(endX, endY);
         ctx.lineTo(
           endX - arrowSize * Math.cos(arrowAngle - Math.PI / 6),
-          endY - arrowSize * Math.sin(arrowAngle - Math.PI / 6),
+          endY - arrowSize * Math.sin(arrowAngle - Math.PI / 6)
         );
         ctx.lineTo(
           endX - arrowSize * Math.cos(arrowAngle + Math.PI / 6),
-          endY - arrowSize * Math.sin(arrowAngle + Math.PI / 6),
+          endY - arrowSize * Math.sin(arrowAngle + Math.PI / 6)
         );
         ctx.fill();
 
@@ -199,7 +200,7 @@ const AutomataRenderer: React.FC<AutomataRendererProps> = ({ automata }) => {
         const perpX = -ny * 15; // Perpendicular to the line direction
         const perpY = nx * 15;
 
-        ctx.textAlign = "center";
+        ctx.textAlign = 'center';
         ctx.fillText(transition.label, midX + perpX, midY + perpY);
       }
     });
@@ -209,14 +210,14 @@ const AutomataRenderer: React.FC<AutomataRendererProps> = ({ automata }) => {
   return (
     <div className="automata-diagram-container my-4" data-oid="59aifxk">
       <canvas
+        className="rounded border bg-white dark:bg-gray-900"
+        data-oid="5zqabq5"
+        height={400}
         ref={canvasRef}
         width={600}
-        height={400}
-        className="border rounded bg-white dark:bg-gray-900"
-        data-oid="5zqabq5"
       />
 
-      <div className="text-sm text-gray-500 mt-2" data-oid="z.fucwx">
+      <div className="mt-2 text-gray-500 text-sm" data-oid="z.fucwx">
         Finite State Machine / Automaton Diagram
       </div>
     </div>

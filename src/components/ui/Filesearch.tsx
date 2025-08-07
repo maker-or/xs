@@ -1,8 +1,9 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, X } from 'lucide-react';
-import PdfViewer from "~/components/ui/PDFViewer";
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
+import PdfViewer from '~/components/ui/PDFViewer';
 
 interface SearchResult {
   name: string;
@@ -14,8 +15,10 @@ interface SearchResponse {
 }
 
 const fetchSearchResults = async (query: string) => {
-  const response = await fetch(`/api/fsearch?query=${encodeURIComponent(query)}`);
-  if (!response.ok) throw new Error("Failed to fetch search results");
+  const response = await fetch(
+    `/api/fsearch?query=${encodeURIComponent(query)}`
+  );
+  if (!response.ok) throw new Error('Failed to fetch search results');
   return (await response.json()) as SearchResponse;
 };
 
@@ -28,13 +31,13 @@ const Filesearch = ({ onClose }: { onClose: () => void }) => {
     inputRef.current?.focus();
   }, []);
 
-// Use SWR to fetch search results based on input
-const { data: searchResults = null, error } = useSWR<SearchResponse>(
-input.trim() ? `search-${input}` : null,
-() => fetchSearchResults(input)
-) as { data: SearchResponse | null; error: Error | null };
+  // Use SWR to fetch search results based on input
+  const { data: searchResults = null, error } = useSWR<SearchResponse>(
+    input.trim() ? `search-${input}` : null,
+    () => fetchSearchResults(input)
+  ) as { data: SearchResponse | null; error: Error | null };
 
-  const isLoading = !searchResults && !error;
+  const isLoading = !(searchResults || error);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInput(event.target.value);
@@ -43,64 +46,65 @@ input.trim() ? `search-${input}` : null,
   return (
     <>
       {/* Command Palette View */}
-      <div className="bg-[#121212] rounded-3xl p-1 pb-12  border-[#5858583d] border-2">
-        <div className="bg-[#2a2a2a] text-[#a0a0a0] rounded-2xl w-[600px] max-w-[90vw] shadow-2xl  overflow-y-auto p-3">
-
-        <div className="flex gap-3 items-center mb-6">
-          <div className="mt-4 w-full flex gap-2">
-            <div className="relative mb-6 flex gap-2 w-full text-[#000000]">
-              <button
-                onClick={onClose}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#f7eee3] p-2 bg-[#181717] z-10 rounded-md"
-              >
-                <ChevronLeft size={24} />
-              </button>
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={handleInputChange}
-                placeholder="Search File..."
-                className="w-full pl-16 p-4 border-b-2 bg-[#292828] backdrop-blur-md text-[#e6e6e6]  font-sans border-[#f7eee3]/20 focus:outline-none placeholder:text-[#919191]"
-              />
+      <div className="rounded-3xl border-2 border-[#5858583d] bg-[#121212] p-1 pb-12">
+        <div className="w-[600px] max-w-[90vw] overflow-y-auto rounded-2xl bg-[#2a2a2a] p-3 text-[#a0a0a0] shadow-2xl">
+          <div className="mb-6 flex items-center gap-3">
+            <div className="mt-4 flex w-full gap-2">
+              <div className="relative mb-6 flex w-full gap-2 text-[#000000]">
+                <button
+                  className="-translate-y-1/2 absolute top-1/2 left-3 z-10 rounded-md bg-[#181717] p-2 text-[#f7eee3]"
+                  onClick={onClose}
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <input
+                  className="w-full border-[#f7eee3]/20 border-b-2 bg-[#292828] p-4 pl-16 font-sans text-[#e6e6e6] backdrop-blur-md placeholder:text-[#919191] focus:outline-none"
+                  onChange={handleInputChange}
+                  placeholder="Search File..."
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex-grow overflow-y-auto space-y-4 mb-4 pr-2">
-          {isLoading ? (
-            <div className="text-[#f7eee3]/50 italic"> </div>
-        ) : error ? (
-        <div className="text-[#f7eee3]/50 italic">{error instanceof Error ? error.message : 'An error occurred'}</div>
-        ) : searchResults?.results?.length ?? 0 > 0 ? (
-            searchResults?.results.map((result, index) => (
-              <div
-                key={index}
-                onClick={() => setSelectedPdfUrl(result.url)}
-                className="px-3 py-2 text-[#f7eee3] border-b-[1px] border-[#f7eee388] text-[1.2rem] cursor-pointer hover:bg-[#f7eee3]/20 transition-colors duration-200"
-              >
-                {result.name}
+          <div className="mb-4 flex-grow space-y-4 overflow-y-auto pr-2">
+            {isLoading ? (
+              <div className="text-[#f7eee3]/50 italic"> </div>
+            ) : error ? (
+              <div className="text-[#f7eee3]/50 italic">
+                {error instanceof Error ? error.message : 'An error occurred'}
               </div>
-            ))
-          ) : (
-            <div className="text-[#f7eee3]/50 italic">No results found.</div>
-          )}
-        </div>
+            ) : (searchResults?.results?.length ?? 0 > 0) ? (
+              searchResults?.results.map((result, index) => (
+                <div
+                  className="cursor-pointer border-[#f7eee388] border-b-[1px] px-3 py-2 text-[#f7eee3] text-[1.2rem] transition-colors duration-200 hover:bg-[#f7eee3]/20"
+                  key={index}
+                  onClick={() => setSelectedPdfUrl(result.url)}
+                >
+                  {result.name}
+                </div>
+              ))
+            ) : (
+              <div className="text-[#f7eee3]/50 italic">No results found.</div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Full Screen PDF Viewer */}
       {selectedPdfUrl && (
-        <div className="fixed inset-0 w-screen h-screen bg-[#000000] z-50">
-          <div className="relative w-full h-full">
+        <div className="fixed inset-0 z-50 h-screen w-screen bg-[#000000]">
+          <div className="relative h-full w-full">
             <button
-              onClick={() => setSelectedPdfUrl(null)}
-              className="absolute right-4 top-4 z-10 rounded-full bg-[#f7eee3] p-2 hover:bg-[#f7eee3]/80 transition-colors duration-200"
               aria-label="Close PDF Viewer"
+              className="absolute top-4 right-4 z-10 rounded-full bg-[#f7eee3] p-2 transition-colors duration-200 hover:bg-[#f7eee3]/80"
+              onClick={() => setSelectedPdfUrl(null)}
             >
               <X className="text-[#ff5e00]" size={24} />
             </button>
-            <div className="w-full h-full">
+            <div className="h-full w-full">
               <PdfViewer fileUrl={selectedPdfUrl} />
             </div>
           </div>

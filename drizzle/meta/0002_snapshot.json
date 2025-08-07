@@ -284,12 +284,8 @@
           "name": "gallery_post_folderId_gallery_folders_folderId_fk",
           "tableFrom": "gallery_post",
           "tableTo": "gallery_folders",
-          "columnsFrom": [
-            "folderId"
-          ],
-          "columnsTo": [
-            "folderId"
-          ],
+          "columnsFrom": ["folderId"],
+          "columnsTo": ["folderId"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

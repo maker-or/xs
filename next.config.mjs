@@ -1,4 +1,4 @@
-await import("./src/env.js");
+await import('./src/env.js');
 
 // import { withSentryConfig } from "@sentry/nextjs";
 
@@ -10,64 +10,64 @@ const config = {
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "utfs.io",
-        port: "",
-        pathname: "/**", // This allows all paths under utfs.io
+        protocol: 'https',
+        hostname: 'utfs.io',
+        port: '',
+        pathname: '/**', // This allows all paths under utfs.io
       },
       {
-        protocol: "https",
-        hostname: "img.freepik.com",
-        port: "",
-        pathname: "/**", // This allows all paths under img.freepik.com
+        protocol: 'https',
+        hostname: 'img.freepik.com',
+        port: '',
+        pathname: '/**', // This allows all paths under img.freepik.com
       },
       {
-        protocol: "https",
-        hostname: "veterinaire-tour-hassan.com",
-        port: "",
-        pathname: "/**", // This allows all paths under veterinaire-tour-hassan.com
+        protocol: 'https',
+        hostname: 'veterinaire-tour-hassan.com',
+        port: '',
+        pathname: '/**', // This allows all paths under veterinaire-tour-hassan.com
       },
       {
-        protocol: "https",
-        hostname: "sf2jdmaodp.ufs.sh",
-        port: "",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'sf2jdmaodp.ufs.sh',
+        port: '',
+        pathname: '/**',
       },
       {
-        protocol: "https",
-        hostname: "images.synopsys.com",
-        port: "",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'images.synopsys.com',
+        port: '',
+        pathname: '/**',
       },
       {
-        protocol: "https",
-        hostname: "developer-blogs.nvidia.com",
-        port: "",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'developer-blogs.nvidia.com',
+        port: '',
+        pathname: '/**',
       },
       {
-        protocol: "https",
-        hostname: "www.tandfonline.com",
-        port: "",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'www.tandfonline.com',
+        port: '',
+        pathname: '/**',
       },
       {
-        protocol: "https",
-        hostname: "foothill.edu",
-        port: "",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'foothill.edu',
+        port: '',
+        pathname: '/**',
       },
       {
-        protocol: "https",
-        hostname: "i.ytimg.com",
-        port: "",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+        port: '',
+        pathname: '/**',
       },
       {
-        protocol: "https",
-        hostname: "cdn1.slideserve.com",
-        port: "",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'cdn1.slideserve.com',
+        port: '',
+        pathname: '/**',
       },
     ],
   },
@@ -75,16 +75,16 @@ const config = {
   async rewrites() {
     return [
       {
-        source: "/posthog/static/:path*",
-        destination: "https://us-assets.i.posthog.com/static/:path*",
+        source: '/posthog/static/:path*',
+        destination: 'https://us-assets.i.posthog.com/static/:path*',
       },
       {
-        source: "/posthog/:path*",
-        destination: "https://us.i.posthog.com/:path*",
+        source: '/posthog/:path*',
+        destination: 'https://us.i.posthog.com/:path*',
       },
       {
-        source: "/posthog/decide",
-        destination: "https://us.i.posthog.com/decide",
+        source: '/posthog/decide',
+        destination: 'https://us.i.posthog.com/decide',
       },
     ];
   },

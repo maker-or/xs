@@ -1,14 +1,12 @@
-"use client";
-import CalendarTimeline from "~/components/ui/CalendarTimeline";
-import Fold from "~/components/ui/Fold";
-import Greeting from "~/components/ui/Greeting";
-import Navbar from "~/components/ui/Navbar";
-
-
+'use client';
+import CalendarTimeline from '~/components/ui/CalendarTimeline';
+import Fold from '~/components/ui/Fold';
+import Greeting from '~/components/ui/Greeting';
+import Navbar from '~/components/ui/Navbar';
 
 export default function HomePage() {
   return (
-    <main className="flex min-h-[100svh] p-5 flex-col items-center justify-center bg-[#000000]  ">
+    <main className="flex min-h-[100svh] flex-col items-center justify-center bg-[#000000] p-5 ">
       <Greeting />
       <Navbar />
       <Fold />

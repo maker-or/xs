@@ -2057,7 +2057,7 @@
 //           }
 
 //           const data = await res.json();
-          
+
 //           // Filter and validate images
 //           const images = (data.items || [])
 //             .map((item: any) => ({
@@ -2071,11 +2071,11 @@
 //             }))
 //             .filter((img: any) => {
 //               // Filter out invalid or problematic images
-//               return img.link && 
+//               return img.link &&
 //                      (img.link.startsWith('http://') || img.link.startsWith('https://')) &&
 //                      !img.link.includes('x-raw-image') &&
 //                      !img.link.includes('data:image') &&
-//                      img.mime && 
+//                      img.mime &&
 //                      (img.mime.startsWith('image/') || img.mime.includes('image')) &&
 //                      img.width && img.height &&
 //                      parseInt(img.width) > 100 && parseInt(img.height) > 100;
@@ -2300,7 +2300,7 @@
 
 // IMPORTANT: You must use the results from your tool calls to populate the JSON fields:
 // - Use image URLs from getImagesTools results for the "picture" field
-// - Use flashcard data from flashcardsTools results for the "flashcardData" field  
+// - Use flashcard data from flashcardsTools results for the "flashcardData" field
 // - Use test questions from testTools results for the "testQuestions" field
 // - Use code examples from getCodeTools results for the "code" field
 // - for image or picture don't use any book cover or the images of text book
@@ -2327,7 +2327,7 @@
 
 //       console.log("the final result is", result);
 //       console.log("tool results:", result.toolResults);
-      
+
 //       // Log tool results for debugging
 //       if (result.toolResults) {
 //         result.toolResults.forEach((toolResult, index) => {
@@ -2426,8 +2426,8 @@
 //                 case "getImagesTools":
 //                   if (parsedResult.images && parsedResult.images.length > 0) {
 //                     // Find the first valid image URL
-//                     const validImage = parsedResult.images.find((img: any) => 
-//                       img.link && 
+//                     const validImage = parsedResult.images.find((img: any) =>
+//                       img.link &&
 //                       (img.link.startsWith('http://') || img.link.startsWith('https://')) &&
 //                       !img.link.includes('x-raw-image')
 //                     );
@@ -2477,7 +2477,7 @@
 
 //       // Debug: log the structured output before validation
 //       console.log("Final structured output before validation:", JSON.stringify(structuredOutput, null, 2));
-      
+
 //       // Validate against schema
 //       const parsed = AgentOutputSchema.safeParse(structuredOutput);
 //       if (!parsed.success) {
@@ -2535,11 +2535,4 @@
 //     }
 //   },
 // });
-
-
-
-
-
-
-
 

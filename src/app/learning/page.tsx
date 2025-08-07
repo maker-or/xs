@@ -1,4 +1,4 @@
-import AiHome from "~/components/AiHome";
+import AiHome from '~/components/AiHome';
 
 const Page = () => {
   return (

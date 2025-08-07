@@ -35,6 +35,7 @@ export default function RoleRedirect() {
       '/accept-invitation/',
       '/sign-in',
       '/sign-up',
+          '/better',
       '/waitlist',
     ];
 

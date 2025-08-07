@@ -1,26 +1,29 @@
-// import { convexAdapter } from "@convex-dev/better-auth";
-// import { convex } from "@convex-dev/better-auth/plugins";
-// import { betterAuth } from "better-auth";
-// import { betterAuthComponent } from "../convex/auth";
-// import { type GenericCtx } from "../convex/_generated/server";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from "../src/server/db";
+import { emailOTP } from "better-auth/plugins";
+import { Resend } from "resend";
+import { schema } from "../src/server/db/schema";
 
-// // You'll want to replace this with an environment variable
-// const siteUrl = "http://localhost:3000";
+// Initialize Resend instance
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// export const createAuth = (ctx: GenericCtx) =>
-//   // Configure your Better Auth instance here
-//   betterAuth({
-//     // All auth requests will be proxied through your next.js server
-//     baseURL: siteUrl,
-//     database: convexAdapter(ctx, betterAuthComponent),
-
-//     // Simple non-verified email/password to get started
-//     emailAndPassword: {
-//       enabled: true,
-//       requireEmailVerification: false,
-//     },
-//     plugins: [
-//       // The Convex plugin is required
-//       convex(),
-//     ],
-//   });
+export const auth = betterAuth({
+  database: drizzleAdapter(db, { provider: "pg",schema }), // Use "pg" for PostgreSQL.
+  plugins: [
+    emailOTP({
+      // Important: This function sends the OTP using Resend
+      async sendVerificationOTP({ email, otp, type }) {
+        console.log("the mail will be sent to :",email)
+        await resend.emails.send({
+          from: "harshith10295032@gmail.com", // Use your verified sender
+          to: email,
+          subject: "Your Verification Code",
+          html: `<p>Your verification code is: <b>${otp}</b></p>`,
+        });
+      },
+      otpLength: 8,
+      expiresIn: 600, // 10 minutes
+    }),
+  ],
+});

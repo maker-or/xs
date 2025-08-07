@@ -10,6 +10,7 @@ import {
   timestamp,
   unique,
   uuid,
+  boolean,
   varchar,
 } from 'drizzle-orm/pg-core';
 
@@ -143,19 +144,28 @@ export const chats = createTable(
   })
 );
 
-export const users = pgTable(
-  'users',
-  {
-    userid: varchar('id', { length: 128 }).primaryKey(),
-    email: varchar('email', { length: 256 }).notNull(),
-    role: varchar('role', { length: 50 }).notNull(), // "student", "teacher", etc.
-    organisation_id: varchar('organisation_id', { length: 128 }).notNull(),
-    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
-  },
-  (users) => ({
-    emailIndex: index('users_idx').on(users.userid), // Index on email for faster lookups
+
+export const users = pgTable("users", {
+  userid: varchar("id", { length: 128 }).primaryKey(),
+  email: varchar("email", { length: 256 }).notNull(),
+  role: varchar("role", { length: 50 }).notNull(), // "student", "teacher", etc.
+  organisation_id: varchar("organisation_id", { length: 128 }).notNull(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+}
+  , (users) => ({
+    emailIndex: index("users_idx").on(users.userid), // Index on email for faster lookups
   })
 );
+
+export const verification = pgTable('verification', {
+  id: text("id").primaryKey(),
+  identifier: text('identifier').notNull(), // REQUIRED by Better Auth
+  value: text('value').notNull(),           // REQUIRED by Better Auth
+  type: text('type').notNull(),             // e.g., 'email-otp'
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(), // optional but good practice
+});
 
 // Exam difficulty enum
 export const difficultyEnum = pgEnum('difficulty', ['easy', 'medium', 'hard']);
@@ -230,3 +240,4 @@ export const results = createTable(
     ),
   })
 );
+export * as schema from './schema'

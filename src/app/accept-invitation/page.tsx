@@ -29,7 +29,7 @@ export default function AcceptInvitationPage() {
 
   // Handle sign-in with ticket
   React.useEffect(() => {
-    if (!(signIn && setActiveSignIn && token) || status !== 'sign_in') {
+    if (!(signIn  && token) || status !== 'sign_in') {
       return;
     }
 

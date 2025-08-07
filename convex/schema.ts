@@ -88,19 +88,51 @@ const applicationTables = {
       searchField: 'title',
       filterFields: ['userId'],
     }),
-
+  // this for the user table that we are implementing via better-auth
   users: defineTable({
-    email: v.optional(v.string()),
-    userId: v.string(), // from clrek
-    emailVerificationTime: v.optional(v.float64()),
-    image: v.optional(v.string()),
+    email: v.string(),
+    type: v.union(v.literal("individual"), v.literal("enterprise")),
     name: v.optional(v.string()),
-    prompt: v.optional(v.string()),
-    encryptedApiKey: v.optional(v.string()),
-    onboardingComplete: v.optional(v.boolean()),
+    organization_id: v.optional(v.id("organizations")),
+    created_at: v.number(),
+    updated_at: v.number(),
+  }) .index("by_email", ["email"]),
+
+  // new tabe for the organisations collages
+  organizations: defineTable({
+    name: v.string(),
+    domain: v.string(), // email domain like "university.edu"
+    invitationToken: v.optional(v.string()),
+    createdAt: v.number(),
   })
-    .index('email', ['email'])
-    .index('userId', ['userId']),
+    .index("by_domain", ["domain"]),
+  // new table for the mapping between users and organisation
+    user_organizations: defineTable({
+    userId:v.id("users"),
+    organizationId: v.id("organizations"),
+    role: v.union(
+      v.literal("admin"),
+      v.literal("student"),
+      v.literal("teacher")
+    ),
+    joinedAt: v.number(),
+  })
+    .index("by_organizationId", ["organizationId"]),
+
+  // to store and verify the OTPs Via Emails
+  emailOtps: defineTable({
+    email: v.string(),
+    otp: v.string(), // encrypted
+    expiresAt: v.number(),
+    attempts: v.number(),
+    type: v.union(v.literal("signin"), v.literal("signup")),
+    used: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_expiry", ["expiresAt"]),
+
+
 
   messages: defineTable({
     chatId: v.id('chats'),

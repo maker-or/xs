@@ -17,6 +17,7 @@ const isPublicRoute = createRouteMatcher([
   '/terms-of-service',
   '/pricing',
   '/waitlist',
+    '/better',
   '/api/auth/validate_domain',
 ]);
 

@@ -180,6 +180,13 @@ const AiHome = () => {
             {' '}
             Learn
           </button>
+          <button
+            className="font-medium text-3xl text-gray-400 hover:text-white transition-colors"
+            onClick={() => navigate.push('/learning/library')}
+          >
+            {' '}
+            Library
+          </button>
         </div>
 
         {/* Command palette hint */}
@@ -227,7 +234,7 @@ const AiHome = () => {
                           void form.handleSubmit();
                         }
                       }}
-                      placeholder="start here......"
+                      placeholder={apptype === 'learn' ? 'what do you want to learn today?' : 'start here......'}
                       value={state.value}
                     />
 

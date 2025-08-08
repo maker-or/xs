@@ -1,5 +1,5 @@
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import React, { useEffect, useRef } from 'react';
 
 // Register ScrollTrigger plugin
@@ -167,24 +167,25 @@ function StackedLayers3D() {
   return (
     <div
       aria-hidden="true"
-      className="flex h-[100svh] w-[100svw] items-center justify-center overflow-hidden bg-[#0c0c0c]"
+      className="flex min-h-[80vh] w-full items-center justify-center overflow-hidden bg-[#0c0c0c] px-4 py-12"
       ref={containerRef}
     >
       <div
-        className="flex-col items-center justify-center gap-6"
+        className="flex flex-col items-center justify-center gap-6 w-full"
         style={{ perspective: '400px', transformStyle: 'preserve-3d' }}
       >
-        <h1 className="text-[4em]" ref={titleRef}>
+        <h1 className="text-3xl font-semibold text-center sm:text-4xl md:text-5xl lg:text-6xl" ref={titleRef}>
           <span className="font-serif text-[#FF5E00] italic"> sphaereai </span>
           architecture
         </h1>
         <svg
           fill="none"
-          height="297"
+          height="100%"
           ref={svgRef}
           viewBox="0 0 581 297"
-          width="581"
+          width="100%"
           xmlns="http://www.w3.org/2000/svg"
+          className="w-full max-w-[580px] h-auto"
         >
           {/* Layer 1 - Bottom layer with longest arrows */}
           <g ref={layer1Ref}>

@@ -4,59 +4,94 @@ import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 import { api } from '../../../convex/_generated/api';
+import type { Id } from '../../../convex/_generated/dataModel';
 
 interface ChatCommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+type Mode = 'chat' | 'learn';
+
+// Type guards to safely check item types
+const isChat = (item: any): item is { _id: Id<'chats'>; title: string; model: string; updatedAt: number; pinned: boolean } => {
+  return 'title' in item && 'model' in item && 'updatedAt' in item && 'pinned' in item;
+};
+
+const isCourse = (item: any): item is { _id: Id<'Course'>; prompt: string; stages: any[]; createdAt: number } => {
+  return 'prompt' in item && 'stages' in item && 'createdAt' in item;
+};
+
 const ChatCommandPalette = ({ isOpen, onClose }: ChatCommandPaletteProps) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [currentMode, setCurrentMode] = useState<Mode>('chat');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch chats from Convex
+  // Fetch chats and courses from Convex
   const chats = useQuery(api.chats.listChats);
-  const searchResults = useQuery(
+  const courses = useQuery(api.course.listCourse);
+  
+  const searchChatResults = useQuery(
     api.chats.searchChats,
-    searchQuery.trim() ? { query: searchQuery } : 'skip'
+    searchQuery.trim() && currentMode === 'chat' ? { query: searchQuery } : 'skip'
+  );
+  
+  const searchCourseResults = useQuery(
+    api.course.searchChats,
+    searchQuery.trim() && currentMode === 'learn' ? { query: searchQuery } : 'skip'
   );
 
   // Focus management
   useEffect(() => {
     if (isOpen) {
       searchInputRef.current?.focus();
+      setSelectedIndex(0);
     }
   }, [isOpen]);
 
-  // Filter chats based on search query
-  const filteredChats = searchQuery.trim()
-    ? searchResults || []
-    : (chats || []).slice(0, 10); // Show recent 10 chats when no search
+  // Get filtered items based on current mode
+  const getFilteredItems = () => {
+    if (currentMode === 'chat') {
+      const items = searchQuery.trim() ? searchChatResults || [] : (chats || []).slice(0, 10);
+      return items;
+    } else {
+      const items = searchQuery.trim() ? searchCourseResults || [] : (courses || []).slice(0, 10);
+      return items;
+    }
+  };
+
+  const filteredItems = getFilteredItems();
 
   const handleArrowNavigation = (direction: 'up' | 'down') => {
     if (direction === 'down') {
-      setSelectedIndex((prevIndex) => (prevIndex + 1) % filteredChats.length);
+      setSelectedIndex((prevIndex) => (prevIndex + 1) % filteredItems.length);
     } else {
       setSelectedIndex(
         (prevIndex) =>
-          (prevIndex - 1 + filteredChats.length) % filteredChats.length
+          (prevIndex - 1 + filteredItems.length) % filteredItems.length
       );
     }
   };
 
-  const handleChatSelection = (chatId?: string) => {
-    const selectedChat = chatId
-      ? filteredChats.find((chat) => chat._id === chatId)
-      : filteredChats[selectedIndex];
-    if (selectedChat) {
-      router.push(`/learning/${selectedChat._id}`);
+  const handleItemSelection = (itemId?: string) => {
+    const selectedItem = itemId
+      ? filteredItems.find((item) => item._id === itemId)
+      : filteredItems[selectedIndex];
+      
+    if (selectedItem) {
+      if (currentMode === 'chat') {
+        router.push(`/learning/chat/${selectedItem._id}`);
+      } else {
+        // Navigate to course canvas
+        router.push(`/learning/learn/${selectedItem._id}`);
+      }
       onClose();
     }
   };
 
-  const formatChatDate = (timestamp: number) => {
+  const formatDate = (timestamp: number) => {
     try {
       return formatDistanceToNow(timestamp, { addSuffix: true });
     } catch {
@@ -68,6 +103,18 @@ const ChatCommandPalette = ({ isOpen, onClose }: ChatCommandPaletteProps) => {
     return text.length > maxLength
       ? text.substring(0, maxLength) + '...'
       : text;
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') handleArrowNavigation('down');
+    if (e.key === 'ArrowUp') handleArrowNavigation('up');
+    if (e.key === 'Enter') handleItemSelection();
+    if (e.key === 'Escape') onClose();
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      setCurrentMode(currentMode === 'chat' ? 'learn' : 'chat');
+      setSelectedIndex(0);
+    }
   };
 
   if (!isOpen) return null;
@@ -93,61 +140,111 @@ const ChatCommandPalette = ({ isOpen, onClose }: ChatCommandPaletteProps) => {
           }}
         />
 
-        <div className="relative z-10 max-h-[80vh] w-[600px] max-w-[90vw] overflow-hidden">
-          {/* Header */}
-          <div className="border-white/20 border-b p-1">
-            <input
-              className="w-full bg-transparent p-3 px-4 py-3 text-white outline-none backdrop-blur-sm placeholder:text-white/50"
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowDown') handleArrowNavigation('down');
-                if (e.key === 'ArrowUp') handleArrowNavigation('up');
-                if (e.key === 'Enter') handleChatSelection();
-                if (e.key === 'Escape') onClose();
-              }}
-              placeholder="search chats..."
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-            />
+        <div className="relative z-10 max-h-[80vh] w-[700px] max-w-[90vw] overflow-hidden">
+          {/* Header with mode tabs */}
+          <div className="border-white/20 border-b">
+            {/* Mode tabs */}
+            <div className="flex border-white/20 border-b">
+              <button
+                className={`flex-1 px-6 py-3 text-center transition-all duration-200 ${
+                  currentMode === 'chat'
+                    ? 'bg-white/20 text-white'
+                    : 'text-white/60 hover:text-white/80'
+                }`}
+                onClick={() => {
+                  setCurrentMode('chat');
+                  setSelectedIndex(0);
+                }}
+              >
+                Chat History
+              </button>
+              <button
+                className={`flex-1 px-6 py-3 text-center transition-all duration-200 ${
+                  currentMode === 'learn'
+                    ? 'bg-white/20 text-white'
+                    : 'text-white/60 hover:text-white/80'
+                }`}
+                onClick={() => {
+                  setCurrentMode('learn');
+                  setSelectedIndex(0);
+                }}
+              >
+                Learn History
+              </button>
+            </div>
+            
+            {/* Search input */}
+            <div className="p-4">
+              <input
+                className="w-full bg-transparent p-3 px-4 py-3 text-white outline-none backdrop-blur-sm placeholder:text-white/50"
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={`Search ${currentMode === 'chat' ? 'chats' : 'courses'}...`}
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+              />
+            </div>
           </div>
 
-          {/* Chat list */}
+          {/* Items list */}
           <div className="max-h-96 overflow-y-auto">
-            {filteredChats.length === 0 ? (
+            {filteredItems.length === 0 ? (
               <div className="py-8 text-center text-white/50">
-                {searchQuery.trim() ? 'No chats found' : 'No chats available'}
+                {searchQuery.trim() 
+                  ? `No ${currentMode === 'chat' ? 'chats' : 'courses'} found` 
+                  : `No ${currentMode === 'chat' ? 'chats' : 'courses'} available`
+                }
               </div>
             ) : (
               <ul className="divide-y divide-white/10">
-                {filteredChats.map((chat, index) => (
+                {filteredItems.map((item, index) => (
                   <li
                     className={`cursor-pointer px-6 py-4 transition-all duration-150 ${
                       index === selectedIndex
                         ? 'bg-white/20 text-white'
                         : 'text-white/80 hover:bg-white/10'
                     } `}
-                    key={chat._id}
-                    onClick={() => handleChatSelection(chat._id)}
+                    key={item._id}
+                    onClick={() => handleItemSelection(item._id)}
                     onMouseEnter={() => setSelectedIndex(index)}
                   >
                     <div className="flex flex-col space-y-1">
                       <div className="flex items-center justify-between">
-                        <p className="font-light text-lg">
-                          {truncateText(chat.title, 50)}
-                        </p>
-                        {chat.pinned && (
+                        <div className="flex items-center space-x-3">
+                          {/* Icon based on mode */}
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
+                            {currentMode === 'chat' ? (
+                              <span className="text-sm">💬</span>
+                            ) : (
+                              <span className="text-sm">📚</span>
+                            )}
+                          </div>
+                          
+                          <div className="flex-1">
+                            <p className="font-light text-lg">
+                              {currentMode === 'chat' && isChat(item)
+                                ? truncateText(item.title, 50)
+                                : currentMode === 'learn' && isCourse(item)
+                                ? truncateText(item.prompt, 50)
+                                : 'Unknown item'
+                              }
+                            </p>
+                            <p className="text-sm text-white/60">
+                              {currentMode === 'chat' && isChat(item)
+                                ? `${item.model?.split("/").pop() || "Unknown model"} • ${formatDate(item.updatedAt)}`
+                                : currentMode === 'learn' && isCourse(item)
+                                ? `${item.stages?.length || 0} stages • ${formatDate(item.createdAt)}`
+                                : 'Unknown details'
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {currentMode === 'chat' && isChat(item) && item.pinned && (
                           <span className="text-sm text-yellow-400">📌</span>
                         )}
                       </div>
-                      {/* <div className="flex items-center justify-between text-sm">
-                        <span className="text-white/60">
-                          {chat.model.split("/").pop() || "Unknown model"}
-                        </span>
-                        <span className="text-white/40">
-                          {formatChatDate(chat.updatedAt)}
-                        </span>
-                      </div> */}
                     </div>
                   </li>
                 ))}
@@ -159,16 +256,10 @@ const ChatCommandPalette = ({ isOpen, onClose }: ChatCommandPaletteProps) => {
           <div className="border-white/20 border-t p-4 text-center">
             <p className="text-sm text-white/40">
               Press{' '}
-              <kbd className="rounded bg-white/10 px-2 py-1 text-xs">↑↓</kbd> to
-              navigate,
-              <kbd className="ml-1 rounded bg-white/10 px-2 py-1 text-xs">
-                Enter
-              </kbd>{' '}
-              to select,
-              <kbd className="ml-1 rounded bg-white/10 px-2 py-1 text-xs">
-                Esc
-              </kbd>{' '}
-              to close
+              <kbd className="rounded bg-white/10 px-2 py-1 text-xs">Tab</kbd> to switch modes,
+              <kbd className="ml-1 rounded bg-white/10 px-2 py-1 text-xs">↑↓</kbd> to navigate,
+              <kbd className="ml-1 rounded bg-white/10 px-2 py-1 text-xs">Enter</kbd> to select,
+              <kbd className="ml-1 rounded bg-white/10 px-2 py-1 text-xs">Esc</kbd> to close
             </p>
           </div>
         </div>

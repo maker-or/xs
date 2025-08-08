@@ -66,6 +66,75 @@ export const searchChats = query({
   },
 });
 
+export const getAllCourses = query({
+  args: {
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number())
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Not authenticated');
+
+    const limit = args.limit ?? 20;
+    const offset = args.offset ?? 0;
+
+    const courses = await ctx.db
+      .query('Course')
+      .order('desc')
+      .collect();
+
+    // Manual pagination since Convex doesn't have built-in skip/limit
+    const paginatedCourses = courses.slice(offset, offset + limit);
+
+    return {
+      courses: paginatedCourses,
+      total: courses.length,
+      hasMore: offset + limit < courses.length
+    };
+  },
+});
+
+export const searchAllCourses = query({
+  args: {
+    query: v.string(),
+    limit: v.optional(v.number())
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Not authenticated');
+
+    const limit = args.limit ?? 20;
+
+    const courses = await ctx.db
+      .query('Course')
+      .withSearchIndex('search_title', (q) =>
+        q.search('prompt', args.query)
+      )
+      .take(limit);
+
+    return courses;
+  },
+});
+
+export const getPublicCourse = query({
+  args: { courseId: v.id('Course') },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return { error: 'Authentication required', course: null };
+    }
+
+    const course = await ctx.db.get(args.courseId);
+
+    if (!course) {
+      return { error: 'Course not found', course: null };
+    }
+
+    // No ownership check - allow viewing any public course
+    return { error: null, course };
+  },
+});
+
 export const getCourse = query({
   args: { courseId: v.id('Course') },
   handler: async (ctx, args) => {

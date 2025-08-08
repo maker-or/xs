@@ -8,9 +8,10 @@ import type { Id } from '../../../convex/_generated/dataModel';
 
 interface CourseProps {
   courseId: string;
+  isPublic?: boolean;
 }
 
-const Course = ({ courseId }: CourseProps) => {
+const Course = ({ courseId, isPublic = false }: CourseProps) => {
   const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
   const courseIdTyped = courseId as Id<'Course'>;
@@ -25,7 +26,7 @@ const Course = ({ courseId }: CourseProps) => {
 
   // use to get the current course based on the courseId from the url
   const course = useQuery(
-    api.course.getCourse,
+    isPublic ? api.course.getPublicCourse : api.course.getCourse,
     courseIdTyped ? { courseId: courseIdTyped } : 'skip'
   );
   console.log('course query result:', course);
@@ -105,9 +106,14 @@ const Course = ({ courseId }: CourseProps) => {
               Please sign in to view this course
             </p>
           )}
-          {course.error === 'You are not authorized to view this course' && (
+          {course.error === 'You are not authorized to view this course' && !isPublic && (
             <p className="mt-2 text-white/60">
               This course belongs to another user
+            </p>
+          )}
+          {course.error === 'Course not found' && (
+            <p className="mt-2 text-white/60">
+              The course you're looking for doesn't exist
             </p>
           )}
         </div>

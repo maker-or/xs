@@ -28,6 +28,18 @@ export default {
       animation: {
         'caret-blink': 'caret-blink 1.25s ease-out infinite',
       },
+      perspective: {
+        '1000': '1000px',
+      },
+      transformStyle: {
+        'preserve-3d': 'preserve-3d',
+      },
+      backfaceVisibility: {
+        'hidden': 'hidden',
+      },
+      rotate: {
+        'y-180': 'rotateY(180deg)',
+      },
     },
   },
   plugins: [require('tailwindcss-motion')],

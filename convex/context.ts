@@ -6,13 +6,14 @@ import { v } from 'convex/values';
 import { z } from 'zod';
 import { api } from './_generated/api';
 import { action } from './_generated/server';
+import { PostHog } from 'posthog-node';
+import { withTracing } from '@posthog/ai';
+import crypto from 'node:crypto'; // ensure available in your runtime
 
 export const StageSchema = z.object({
   title: z.string().min(2, 'Stage title is required'),
   purpose: z.string().min(2, 'Stage purpose is required'),
-  include: z
-    .array(z.string())
-    .min(1, 'At least one topic/activity must be included'),
+  include: z.array(z.string()).min(1, 'At least one topic/activity must be included'),
   outcome: z.string().min(2, 'Learning outcome is required'),
   discussion_prompt: z.string(),
 });
@@ -20,90 +21,126 @@ export const StageSchema = z.object({
 export const CourseSchema = z.object({
   stages: z.array(StageSchema).min(2, 'A course must have at least 2 stages.'),
 });
+
 export const contextgather = action({
   args: {
-    messages: v.string(), // Current message content
+    messages: v.string(),
   },
   handler: async (ctx, args): Promise<any> => {
-    console.log('📝 Full args received:', JSON.stringify(args, null, 2));
+    const userIdentity = await ctx.auth.getUserIdentity();
+    if (!userIdentity) throw new Error('Not authenticated');
 
-    const userId = await ctx.auth.getUserIdentity();
-    if (!userId) throw new Error('Not authenticated');
-
+    const userId = userIdentity.subject;
     const openRouterKey = process.env.OPENROUTER_API_KEY || '';
-
     if (!openRouterKey) {
-      throw new Error(
-        'OpenRouter API key is required. Please add your API key in settings.'
-      );
+      throw new Error('OpenRouter API key is required. Please add your API key in settings.');
     }
-
-    // Validate API key format
     if (!openRouterKey.startsWith('sk-')) {
-      throw new Error(
-        "Invalid OpenRouter API key format. Key should start with 'sk-'"
-      );
+      throw new Error("Invalid OpenRouter API key format. Key should start with 'sk-'");
     }
 
+    // Initialize PostHog for this request
+    const phClient = new PostHog(process.env.POSTHOG_KEY!, {
+      host: process.env.POSTHOG_HOST ?? 'https://us.i.posthog.com',
+    });
+
+    // Generate a run_id to correlate with the later agent pipeline
+    const runId = crypto.randomUUID();
+
+    // OpenRouter client
     const openrouter = createOpenAI({
       baseURL: 'https://openrouter.ai/api/v1',
       apiKey: openRouterKey,
     });
 
+    // Traced model for LLM observability
+    const tracedModel = withTracing(openrouter('google/gemini-2.5-flash-lite'), phClient, {
+      posthogDistinctId: userId,
+      posthogProperties: {
+        run_id: runId,
+        phase: 'contextgather',
+        source: 'sphereai-agent',
+      },
+      // redactInput: true,
+      // redactOutput: true,
+    });
+
+    // Mark run start for the context-gathering phase
+    phClient.capture({
+      distinctId: userId,
+      event: '$ai_run_start',
+      properties: {
+        run_id: runId,
+        phase: 'contextgather',
+        prompt_length: args.messages?.length ?? 0,
+      },
+    });
+
     try {
       const result = await generateObject({
-        model: openrouter('google/gemini-2.5-flash-lite'),
-        system: `You are an expert AI curriculum designer.
-        When a student provides a learning topic or question, you will instantly design a multi-stage educational plan. Each stage must correspond to a key phase in an effective learning sequence, such as:
-        ->Prerequisites: Knowledge or skills the student should ideally have mastered before the main topic.
-        ->Foundations/Basic Concepts: The essential building blocks and terminology that underpin the topic.
-        ->Principles/Objectives: The main goals, guiding ideas, or key objectives for mastering the subject.
-        ->Theoretical Foundation/Derivation: The theory, formal derivations, and mathematical framework beneath the topic.
-        ->Implementation: Concrete steps, algorithms, or code/procedures to realize the theory in practice.
-        ->Practical Application: Real-world uses, best practices, and application contexts.
-        ->Specialization/Extensions: Further avenues for advanced study, ongoing research, or related fields.
-        ->For each student query, decide what stages are needed for a logical and comprehensive learning journey, following (where appropriate) an effective order: Prerequisites → Foundations → Principles/Objectives → Theoretical Foundations/Derivations → Implementation → Practical Application → Specialization.
-        ->If a Prerequisite stage is included, list what prior topics are needed and be explicit about knowledge assumed.
-        make sure all the stages are connected they togther form one complete course
-        ->The course can have multiple stages, in minum we need to have two stages
-        -> Always resume relavent name as the stage title not like Prerequisites,Foundations
-
-
-        For every output, return a stages array, where each object has all the following fields:
-        ->title (string): Stage name (e.g., "Basic Concepts of Transformers").
-        ->purpose (string): The rationale for including this stage—a brief explanation of how it fits into the overall learning path.
-        ->include (array of strings): 3–7 bullet points listing key topics, skills, ideas, or activities.
-        ->outcome (string): What a student will be able to do/understand after completing this stage.
-        ->discussion_prompt (string, optional): Socratic or open-ended prompt for class/chatbot discussion.`,
+        model: tracedModel, // observed generation
+        system: `You are an expert AI curriculum designer...`,
         prompt: args.messages,
         schema: CourseSchema,
       });
-      console.log('AI response created successfully');
 
-      // Access the generated object directly
       const generatedResponse = result.object;
-      const fullContent = generatedResponse.stages;
+      const stages = generatedResponse?.stages;
 
-      console.log('Generated response:', generatedResponse);
-
-      // Create a message
-      if (fullContent) {
-        const CourseId = await ctx.runMutation(api.course.createCourse, {
-          prompt: args.messages,
-          stages: fullContent,
+      if (!stages || !Array.isArray(stages) || stages.length < 2) {
+        // Emit validation failure for visibility
+        phClient.capture({
+          distinctId: userId,
+          event: '$ai_context_validation_error',
+          properties: {
+            run_id: runId,
+            phase: 'contextgather',
+            reason: 'Missing or insufficient stages',
+          },
         });
-        return {
-          CourseId,
-        };
+        throw new Error('Generated syllabus is invalid: missing or insufficient stages.');
       }
-    } catch (error) {
-      console.error('AI generation error:', error);
 
-      // Provide more detailed error information
+      // Persist the course with run_id so the next pipeline step can correlate
+      const CourseId = await ctx.runMutation(api.course.createCourse, {
+        prompt: args.messages,
+        stages,
+        // Add run_id to the Course if your schema allows it
+        // runId,
+      });
+
+      // Mark successful end
+      phClient.capture({
+        distinctId: userId,
+        event: '$ai_run_end',
+        properties: {
+          run_id: runId,
+          phase: 'contextgather',
+          success: true,
+          stages_count: stages.length,
+          course_id: CourseId,
+        },
+      });
+
+      return { CourseId, runId };
+    } catch (error) {
+      phClient.capture({
+        distinctId: userId,
+        event: '$ai_context_error',
+        properties: {
+          run_id: runId,
+          phase: 'contextgather',
+          error_message: error instanceof Error ? error.message : String(error),
+          error_name: error instanceof Error ? error.name : 'UnknownError',
+        },
+      });
+
       if (error instanceof Error) {
         throw new Error(`Chat completion failed: ${error.message}`);
       }
       throw new Error('Chat completion failed with unknown error');
+    } finally {
+      await phClient.shutdown();
     }
   },
 });

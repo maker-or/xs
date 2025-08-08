@@ -70,7 +70,7 @@ const TestComponent = ({ testQuestions }: TestComponentProps) => {
     const normalizedUserAnswer = userAnswer.toString().trim();
     const normalizedCorrectAnswer = correctAnswer.toString().trim();
 
-    // Case 1: The answer is the full text of the option
+    // Case 1: Direct text match (user selected the exact text answer)
     if (
       normalizedUserAnswer.toLowerCase() ===
       normalizedCorrectAnswer.toLowerCase()
@@ -78,26 +78,42 @@ const TestComponent = ({ testQuestions }: TestComponentProps) => {
       return true;
     }
 
-    // Case 2: The answer is a letter key (e.g., "B")
+    // Case 2: The correct answer is a letter key (e.g., "A", "B", "C", "D")
     if (
       normalizedCorrectAnswer.length === 1 &&
       /^[A-Z]$/i.test(normalizedCorrectAnswer)
     ) {
+      const letterIndex = normalizedCorrectAnswer.toUpperCase().charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+      const expectedOption = options[letterIndex];
+      
+      if (expectedOption && normalizedUserAnswer === expectedOption) {
+        return true;
+      }
+      
+      // Also check if user selected the letter prefix (e.g., "A.", "B.")
       const expectedPrefix = `${normalizedCorrectAnswer.toUpperCase()}.`;
       if (normalizedUserAnswer.toUpperCase().startsWith(expectedPrefix)) {
         return true;
       }
     }
 
-    // Case 3: The answer is an index
+    // Case 3: The correct answer is a numeric index
     if (!isNaN(Number(normalizedCorrectAnswer))) {
       const correctIndex = Number(normalizedCorrectAnswer);
       if (
         options[correctIndex] &&
-        options[correctIndex] === normalizedUserAnswer
+        normalizedUserAnswer === options[correctIndex]
       ) {
         return true;
       }
+    }
+
+    // Case 4: The correct answer is the full text of an option
+    const matchingOption = options.find(
+      option => option.toLowerCase() === normalizedCorrectAnswer.toLowerCase()
+    );
+    if (matchingOption && normalizedUserAnswer === matchingOption) {
+      return true;
     }
 
     return false;
@@ -112,26 +128,31 @@ const TestComponent = ({ testQuestions }: TestComponentProps) => {
 
     const normalizedCorrectAnswer = String(correctAnswer).trim();
 
-    // Case 1: The answer is a letter key
+    // Case 1: The answer is a letter key (e.g., "A", "B", "C", "D")
     if (
       normalizedCorrectAnswer.length === 1 &&
       /^[A-Z]$/i.test(normalizedCorrectAnswer)
     ) {
-      const expectedPrefix = `${normalizedCorrectAnswer.toUpperCase()}.`;
-      const foundOption = options.find((opt) =>
-        opt.trim().toUpperCase().startsWith(expectedPrefix)
-      );
-      if (foundOption) {
-        return foundOption;
+      const letterIndex = normalizedCorrectAnswer.toUpperCase().charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+      if (options[letterIndex]) {
+        return options[letterIndex];
       }
     }
 
-    // Case 2: The answer is an index
+    // Case 2: The answer is a numeric index
     if (!isNaN(Number(normalizedCorrectAnswer))) {
       const correctIndex = Number(normalizedCorrectAnswer);
       if (options[correctIndex]) {
         return options[correctIndex];
       }
+    }
+
+    // Case 3: The answer is the full text of an option
+    const matchingOption = options.find(
+      option => option.toLowerCase() === normalizedCorrectAnswer.toLowerCase()
+    );
+    if (matchingOption) {
+      return matchingOption;
     }
 
     return String(correctAnswer);
@@ -371,21 +392,32 @@ const FlashcardComponent = ({ flashcardsContent }: FlashComponentProps) => {
 
   return (
     <div className="mx-auto w-full max-w-xl">
-      <div className="mb-4 [perspective:1000px]">
+      <div className="mb-4" style={{ perspective: '1000px' }}>
         <div
-          className={`relative h-80 cursor-pointer transition-transform duration-500 [transform-style:preserve-3d] ${
-            isFlipped ? 'rotate-y-180' : ''
-          }`}
+          className="relative h-80 cursor-pointer transition-all duration-500 ease-in-out"
           onClick={flipCard}
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          }}
         >
-          <div className="absolute inset-0 h-full w-full [backface-visibility:hidden]">
+          <div 
+            className="absolute inset-0 h-full w-full"
+            style={{ backfaceVisibility: 'hidden' }}
+          >
             <div className="flex h-full w-full items-center justify-center rounded-xl border border-slate-700 bg-[#F7EEE3] p-8">
               <p className="text-center font-medium text-2xl text-[#0c0c0c]">
                 {currentFlashcard?.question}
               </p>
             </div>
           </div>
-          <div className="absolute inset-0 h-full w-full rotate-y-180 [backface-visibility:hidden]">
+          <div 
+            className="absolute inset-0 h-full w-full"
+            style={{ 
+              backfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)'
+            }}
+          >
             <div className="flex h-full w-full items-center justify-center rounded-xl border border-slate-700 bg-[#F7EEE3] p-8">
               <p className="text-center text-[#0c0c0c] text-xl">
                 {currentFlashcard?.answer}

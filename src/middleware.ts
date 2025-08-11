@@ -1,8 +1,8 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 // Publicly accessible routes
-const isPublicRoute = createRouteMatcher([
+const publicRoutes = [
   '/',
   '/role-selection',
   '/onboarding',
@@ -12,49 +12,67 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up',
   '/select',
   '/indauth',
-  '/accept-invitation/',
+  '/accept-invitation',
   '/privacy-policy',
   '/terms-of-service',
   '/pricing',
   '/waitlist',
-    '/better',
-  '/api/auth/validate_domain',
-]);
+  '/better',
+  '/api/auth',
+];
 
-export default clerkMiddleware(async (auth, req) => {
-  const { userId, redirectToSignIn } = await auth();
-
-  // // Check for invitation link parameters (Clerk adds a __clerk_ticket param)
-  // const isInvitationLink = req.nextUrl.searchParams.has("__clerk_ticket");
-  // const isAcceptInvitationRoute = req.nextUrl.pathname === "/accept-invitation";
-
-  // // Special handling for invitation links - let Clerk handle these without interference
-  // if (isInvitationLink || isAcceptInvitationRoute) {
-  //   return NextResponse.next();
-  // }
-
-  // Unauthenticated user trying to access a protected route → redirect to sign-in
-  if (!(userId || isPublicRoute(req))) {
-    return redirectToSignIn({ returnBackUrl: req.url });
+export async function middleware(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+  
+  // Allow all API auth routes
+  if (pathname.startsWith('/api/auth/')) {
+    return NextResponse.next();
   }
-
-  // Authenticated user accessing the root - redirect to select for new flow
-  if (userId && req.nextUrl.pathname === '/') {
+  
+  // Check if the route is public
+  const isPublicRoute = publicRoutes.some(route => {
+    if (route.endsWith('*')) {
+      return pathname.startsWith(route.slice(0, -1));
+    }
+    return pathname === route || pathname.startsWith(route + '/');
+  });
+  
+  // Allow access to learning routes (handled by Better Auth)
+  if (pathname.startsWith('/learning')) {
+    return NextResponse.next();
+  }
+  
+  // For now, allow all requests to pass through
+  // The actual authentication check will be done by Better Auth in the components
+  // and Convex functions will handle auth on the backend
+  if (!isPublicRoute) {
+    // Check for session cookie from Better Auth
+    const sessionCookie = req.cookies.get('better-auth.session_token');
+    
+    if (!sessionCookie) {
+      const signInUrl = new URL('/indauth', req.url);
+      signInUrl.searchParams.set('from', pathname);
+      return NextResponse.redirect(signInUrl);
+    }
+  }
+  
+  // If authenticated and trying to access root, redirect to select
+  const sessionCookie = req.cookies.get('better-auth.session_token');
+  if (sessionCookie && pathname === '/') {
     return NextResponse.redirect(new URL('/select', req.url));
   }
-
+  
   // Handle legacy paths - redirect to new onboarding
   if (
-    req.nextUrl.pathname === '/onbording' ||
-    req.nextUrl.pathname === '/loading' ||
-    req.nextUrl.pathname === '/auth/redirect'
+    pathname === '/onbording' ||
+    pathname === '/loading' ||
+    pathname === '/auth/redirect'
   ) {
     return NextResponse.redirect(new URL('/onboarding', req.url), 301);
   }
-
-  // Allow access
+  
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [

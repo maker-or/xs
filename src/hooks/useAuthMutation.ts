@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/nextjs';
+import { useSession } from '../../lib/auth-client';
 import {
   useAction as useConvexAction,
   useMutation as useConvexMutation,
@@ -14,11 +14,11 @@ import { ConvexError } from 'convex/values';
 export const useAuthMutation = <T extends FunctionReference<'mutation'>>(
   mutation: T
 ) => {
-  const { isSignedIn } = useAuth();
+  const { data } = useSession();
   const convexMutation = useConvexMutation(mutation);
 
   return (args: FunctionArgs<T>) => {
-    if (!isSignedIn) {
+    if (!data?.user) {
       throw new ConvexError('Not authenticated');
     }
     return convexMutation(args);
@@ -29,11 +29,11 @@ export const useAuthMutation = <T extends FunctionReference<'mutation'>>(
 export const useAuthAction = <T extends FunctionReference<'action'>>(
   action: T
 ) => {
-  const { isSignedIn } = useAuth();
+  const { data } = useSession();
   const convexAction = useConvexAction(action);
 
   return (args: FunctionArgs<T>) => {
-    if (!isSignedIn) {
+    if (!data?.user) {
       throw new ConvexError('Not authenticated');
     }
     return convexAction(args);

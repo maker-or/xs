@@ -25,10 +25,10 @@ const LandingPage = () => {
 
         <div className="mt-8 flex w-full max-w-xl flex-col gap-4 p-4 text-base sm:flex-row sm:justify-center">
           <Link
-            href="/waitlist"
+            href="/select"
             className="inline-flex items-center justify-center rounded-xl bg-[#151715] px-8 py-4 font-medium shadow-[inset_2.71375px_2.71375px_12.6965px_rgba(227,194,194,0.25)] backdrop-blur-[27.3425px] transition-colors hover:bg-[#1f211f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5E00]"
           >
-            Join the waitlist
+            signin
           </Link>
           <Link
             href="/contact"

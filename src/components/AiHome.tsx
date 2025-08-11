@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@clerk/nextjs';
+import { useSession } from '../../lib/auth-client';
 import { ArrowClockwiseIcon, ArrowUpIcon } from '@phosphor-icons/react';
 import { useForm } from '@tanstack/react-form';
 import React, { useEffect, useState } from 'react';
@@ -28,7 +28,7 @@ import { useAuthAction, useAuthMutation } from '~/hooks/useAuthMutation';
 
 const AiHome = () => {
   const navigate = useRouter();
-  const { isSignedIn } = useAuth();
+  const { data: session, isPending: sessionPending } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +48,7 @@ const AiHome = () => {
       userPrompt: '',
     } as FormValues,
     onSubmit: async ({ value }) => {
-      if (!isSignedIn) {
+      if (sessionPending || !session?.user) {
         setError('You must be signed in to start a chat.');
         return;
       }

@@ -8,6 +8,12 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { authClient } from "../../../lib/auth-client";
 import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "../../components/ui/input-otp"
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp"
+import {
   Card,
   CardContent,
 } from "../../components/ui/card";
@@ -46,7 +52,7 @@ const Page = () => {
         otp,
       });
       if (result.data) {
-        router.push("/dashboard/client-only");
+        router.push("/learning");
       }
       setOtpLoading(false);
     } catch (error) {
@@ -61,6 +67,15 @@ const Page = () => {
       handleVerifyOtp();
     } else {
       handleSendOtp();
+    }
+  };
+
+  const handleSignInWithGoogle = async () => {
+    try {
+      setOtpLoading(true);
+      await authClient.signIn.social({ provider: "google" });
+    } finally {
+      setOtpLoading(false);
     }
   };
 
@@ -113,18 +128,55 @@ const Page = () => {
                 {otpSent && (
                   <div className="grid gap-2">
                     <Label htmlFor="otp" className="text-white">Verification Code</Label>
-                    <Input
-                      id="otp"
-                      type="text"
-                      placeholder="Enter verification code"
-                      required
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      pattern="[0-9]*"
-                      inputMode="numeric"
-                      maxLength={8}
-                      className="border-white/20 bg-white/10 text-white placeholder:text-white/40 focus:border-white/40 focus:bg-white/20"
-                    />
+                    <div className="flex justify-center">
+                      <InputOTP
+                        maxLength={8}
+                        pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                        value={otp}
+                        onChange={(value) => setOtp(value)}
+                        className="text-white"
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot
+                            index={0}
+                            className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                          />
+                          <InputOTPSlot
+                            index={1}
+                            className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                          />
+                          <InputOTPSlot
+                            index={2}
+                            className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                          />
+
+
+
+                          <InputOTPSlot
+                            index={3}
+                            className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                          />
+                          <InputOTPSlot
+                            index={4}
+                            className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                          />
+                          <InputOTPSlot
+                            index={5}
+                            className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                          />
+
+                          <InputOTPSlot
+                            index={6}
+                            className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                          />
+
+                          <InputOTPSlot
+                            index={7}
+                            className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                          />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
                   </div>
                 )}
 
@@ -135,6 +187,16 @@ const Page = () => {
                 >
                   {otpLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {otpSent ? "Verify Code" : "Send Verification Code"}
+                </Button>
+
+                <div className="text-center text-white/60">or</div>
+                <Button
+                  type="button"
+                  className="w-full bg-white text-black hover:bg-white/90"
+                  onClick={handleSignInWithGoogle}
+                  disabled={otpLoading}
+                >
+                  Continue with Google
                 </Button>
 
                 {otpSent && (

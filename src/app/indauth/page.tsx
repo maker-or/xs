@@ -1,104 +1,116 @@
 'use client';
 
-import { useAuth, useSignIn } from '@clerk/nextjs';
-// src/pages/Indauth.tsx
-import { useForm } from '@tanstack/react-form';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { z } from 'zod';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import { authClient } from '../../../lib/auth-client';
 
-const zschema = z.object({
-  userPrompt: z
-    .string()
-    .trim()
-    .email()
-    .min(2, { message: 'Input cannot be empty or just spaces' }),
-});
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from '../../components/ui/input-otp';
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from 'input-otp';
+import { Card, CardContent } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
 
-type FormValues = z.infer<typeof zschema>;
+
 
 const Indauth = () => {
   const router = useRouter();
-  const { isSignedIn } = useAuth();
-  const { signIn } = useSignIn();
+
+
+
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [phase, setPhase] = useState<'idle' | 'validating' | 'sending' | 'verifying'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isValidating, setIsValidating] = useState(false);
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-  const form = useForm({
-    defaultValues: {
-      userPrompt: '',
-    } as FormValues,
-    onSubmit: async ({ value }) => {
-      const email = value.userPrompt;
-      setIsValidating(true);
-      setErrorMessage(null);
+  const validateDomain = async (emailToValidate: string) => {
+    const res = await fetch('/api/auth/validate_domain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: emailToValidate }),
+    });
 
-      try {
-        // Validate domain with our API
-        console.log('Making request to validate domain for email:', email);
-        const response = await fetch('/api/auth/validate_domain', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
-        });
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-        console.log('Response headers:', response.headers);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Response data:', data);
-
-        if (data.isValid) {
-          // Domain is valid, proceed with Clerk authentication
-          await handleClerkAuth(email);
-        } else {
-          setErrorMessage(
-            data.message || "Your college doesn't have access to sphereai"
-          );
-        }
-      } catch (error) {
-        console.error('Domain validation error:', error);
-        setErrorMessage('Failed to validate college domain. Please try again.');
-      } finally {
-        setIsValidating(false);
-      }
-    },
-    validators: {
-      onSubmit: zschema,
-    },
-  });
-
-  const handleClerkAuth = async (email: string) => {
-    if (!signIn) return;
-
-    setIsAuthenticating(true);
-
-    // If user is already signed in, redirect them
-    if (isSignedIn) {
-      router.replace('/onboarding?type=college');
-      return null;
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
     }
 
+    const data = await res.json();
+    if (!data?.isValid) {
+      throw new Error(data?.message || "Your college doesn't have access to sphereai,continue with google");
+    }
+  };
+
+  const handleSendOtp = async () => {
+    if (!email) return;
+    setErrorMessage(null);
+    setIsLoading(true);
+
     try {
-      router.push('/signin');
-    } catch (emailError) {
-      console.error('Email sign-in error:', emailError);
+      setPhase('validating');
+      await validateDomain(email);
+
+      setPhase('sending');
+      await authClient.emailOtp.sendVerificationOtp({
+        email,
+        type: 'sign-in',
+      });
+
+      setOtpSent(true);
+    } catch (err: any) {
       setErrorMessage(
-        'Failed to authenticate. Please try again or contact support.'
+        err?.message || 'Failed to validate domain or send verification code. Please try again.'
       );
-      setIsAuthenticating(false);
+    } finally {
+      setIsLoading(false);
+      setPhase('idle');
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp) return;
+    setErrorMessage(null);
+    setIsLoading(true);
+
+    try {
+      setPhase('verifying');
+      const result = await authClient.signIn.emailOtp({
+        email,
+        otp,
+      });
+
+      if (result?.data) {
+        router.push('/onboarding?type=college');
+        return;
+      }
+
+      setErrorMessage('Invalid verification code. Please try again.');
+    } catch {
+      setErrorMessage('Invalid verification code. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setPhase('idle');
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otpSent) {
+      void handleVerifyOtp();
+    } else {
+      void handleSendOtp();
     }
   };
 
   return (
-    <main className="relative flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-[#0c0c0c]">
+    <main className="relative flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-[#0c0c0c] text-white">
       {/* Noise background */}
       <div
         className="pointer-events-none absolute inset-0 z-10 opacity-20"
@@ -125,47 +137,123 @@ const Indauth = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex h-full w-full flex-col items-center justify-center">
-        <h1 className="font-light text-[2em]">
-          Enter your <span className="font-serif italic">
-            college mail
-          </span>{' '}
+      <div className="relative z-30 flex w-full max-w-md flex-col items-center justify-center px-6">
+        <h1 className="mb-6 text-center font-light text-[2em]">
+          Enter your <span className="font-serif italic">college mail</span>
         </h1>
-        <form.Field name="userPrompt">
-          {({ state, handleBlur, handleChange }) => (
-            <>
-              <textarea
-                className="min-h-[40px] w-1/4 resize-none rounded-lg border-none bg-[#313131] px-2 py-2 text-[#f7eee3] text-lg placeholder:text-gray-500 focus:border-transparent focus:outline-none focus:ring-0 disabled:opacity-50"
-                disabled={isValidating || isAuthenticating}
-                onBlur={handleBlur}
-                onChange={(e) => handleChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    void form.handleSubmit();
-                  }
-                }}
-                placeholder="collage@mail.com"
-                value={state.value}
-              />
-              {(isValidating || isAuthenticating) && (
-                <div className="mt-2 flex items-center justify-center">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  <span className="ml-2 text-sm text-white">
-                    {isValidating
-                      ? 'Validating domain...'
-                      : 'Authenticating...'}
-                  </span>
+
+        <Card className="w-full border-none bg-white/5 backdrop-blur-md">
+          <CardContent className="pt-6">
+            <form onSubmit={handleFormSubmit} className="grid gap-5">
+              <div className="grid gap-2">
+                <Label htmlFor="email" className="text-white/90">
+                  College email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="college@mail.edu"
+                  required
+                  onChange={(e) => setEmail(e.target.value)}
+                  value={email}
+                  disabled={otpSent || isLoading}
+                  className="border-white/20 bg-white/10 text-white placeholder:text-white/40 focus:border-white/40 focus:bg-white/20"
+                />
+              </div>
+
+              {otpSent && (
+                <div className="grid gap-2">
+                  <Label htmlFor="otp" className="text-white/90">
+                    Verification Code
+                  </Label>
+                  <div className="flex justify-center">
+                    <InputOTP
+                      maxLength={8}
+                      pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                      value={otp}
+                      onChange={(value) => setOtp(value)}
+                      className="text-white"
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot
+                          index={0}
+                          className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                        />
+                        <InputOTPSlot
+                          index={1}
+                          className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                        />
+                        <InputOTPSlot
+                          index={2}
+                          className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                        />
+                        <InputOTPSlot
+                          index={3}
+                          className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                        />
+                        <InputOTPSlot
+                          index={4}
+                          className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                        />
+                        <InputOTPSlot
+                          index={5}
+                          className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                        />
+                        <InputOTPSlot
+                          index={6}
+                          className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                        />
+                        <InputOTPSlot
+                          index={7}
+                          className="border-white/20 bg-white/10 text-white focus:border-white/40 focus:bg-white/20"
+                        />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
                 </div>
               )}
+
+              <Button
+                type="submit"
+                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40"
+                disabled={isLoading}
+              >
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {otpSent
+                  ? phase === 'verifying'
+                    ? 'Verifying...'
+                    : 'Verify Code'
+                  : phase === 'validating'
+                    ? 'Validating domain...'
+                    : phase === 'sending'
+                      ? 'Sending Code...'
+                      : 'Send Verification Code'}
+              </Button>
+
+              {otpSent && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-white/20 bg-transparent text-white hover:bg-white/10 hover:border-white/40"
+                  onClick={() => {
+                    setOtpSent(false);
+                    setOtp('');
+                    setErrorMessage(null);
+                  }}
+                  disabled={isLoading}
+                >
+                  Change Email
+                </Button>
+              )}
+
               {errorMessage && (
-                <div className="mt-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-center">
-                  <p className="text-red-400">{errorMessage}</p>
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-center">
+                  <p className="text-sm text-red-400">{errorMessage}</p>
                 </div>
               )}
-            </>
-          )}
-        </form.Field>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

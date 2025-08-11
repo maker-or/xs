@@ -22,6 +22,7 @@ export default function SpecialRoutes({
     '/select',
     '/indauth',
     '/onboarding',
+    '/learning',
     '/waitlist',
   ];
 

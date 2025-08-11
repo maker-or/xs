@@ -10,12 +10,14 @@
 
 import type * as agent from "../agent.js";
 import type * as ai from "../ai.js";
+import type * as auth from "../auth.js";
 import type * as branches from "../branches.js";
 import type * as chats from "../chats.js";
 import type * as context from "../context.js";
 import type * as course from "../course.js";
 import type * as emails_components_BaseEmail from "../emails/components/BaseEmail.js";
 import type * as emails_verifyOTP from "../emails/verifyOTP.js";
+import type * as http from "../http.js";
 import type * as message from "../message.js";
 import type * as resumable from "../resumable.js";
 import type * as stage from "../stage.js";
@@ -37,12 +39,14 @@ import type {
 declare const fullApi: ApiFromModules<{
   agent: typeof agent;
   ai: typeof ai;
+  auth: typeof auth;
   branches: typeof branches;
   chats: typeof chats;
   context: typeof context;
   course: typeof course;
   "emails/components/BaseEmail": typeof emails_components_BaseEmail;
   "emails/verifyOTP": typeof emails_verifyOTP;
+  http: typeof http;
   message: typeof message;
   resumable: typeof resumable;
   stage: typeof stage;

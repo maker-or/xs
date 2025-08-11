@@ -1,5 +1,6 @@
 'use client';
 import { useQuery } from 'convex/react';
+import { useSession } from '../../../lib/auth-client';
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
@@ -29,18 +30,32 @@ const ChatCommandPalette = ({ isOpen, onClose }: ChatCommandPaletteProps) => {
   const [currentMode, setCurrentMode] = useState<Mode>('chat');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch chats and courses from Convex
-  const chats = useQuery(api.chats.listChats);
-  const courses = useQuery(api.course.listCourse);
-  
+  // Better Auth session
+  const { data: session, isPending } = useSession();
+
+  // Fetch chats and courses from Convex only when authenticated
+  const canQuery = isOpen && !isPending && !!session?.user;
+  const chats = useQuery(
+    api.chats.listChats,
+    canQuery ? {} : 'skip'
+  );
+  const courses = useQuery(
+    api.course.listCourse,
+    canQuery ? {} : 'skip'
+  );
+
   const searchChatResults = useQuery(
     api.chats.searchChats,
-    searchQuery.trim() && currentMode === 'chat' ? { query: searchQuery } : 'skip'
+    canQuery && searchQuery.trim() && currentMode === 'chat'
+      ? { query: searchQuery }
+      : 'skip'
   );
-  
+
   const searchCourseResults = useQuery(
     api.course.searchChats,
-    searchQuery.trim() && currentMode === 'learn' ? { query: searchQuery } : 'skip'
+    canQuery && searchQuery.trim() && currentMode === 'learn'
+      ? { query: searchQuery }
+      : 'skip'
   );
 
   // Focus management
@@ -79,7 +94,7 @@ const ChatCommandPalette = ({ isOpen, onClose }: ChatCommandPaletteProps) => {
     const selectedItem = itemId
       ? filteredItems.find((item) => item._id === itemId)
       : filteredItems[selectedIndex];
-      
+
     if (selectedItem) {
       if (currentMode === 'chat') {
         router.push(`/learning/chat/${selectedItem._id}`);
@@ -172,7 +187,7 @@ const ChatCommandPalette = ({ isOpen, onClose }: ChatCommandPaletteProps) => {
                 Learn History
               </button>
             </div>
-            
+
             {/* Search input */}
             <div className="p-4">
               <input
@@ -191,8 +206,8 @@ const ChatCommandPalette = ({ isOpen, onClose }: ChatCommandPaletteProps) => {
           <div className="max-h-96 overflow-y-auto">
             {filteredItems.length === 0 ? (
               <div className="py-8 text-center text-white/50">
-                {searchQuery.trim() 
-                  ? `No ${currentMode === 'chat' ? 'chats' : 'courses'} found` 
+                {searchQuery.trim()
+                  ? `No ${currentMode === 'chat' ? 'chats' : 'courses'} found`
                   : `No ${currentMode === 'chat' ? 'chats' : 'courses'} available`
                 }
               </div>
@@ -220,7 +235,7 @@ const ChatCommandPalette = ({ isOpen, onClose }: ChatCommandPaletteProps) => {
                               <span className="text-sm">📚</span>
                             )}
                           </div>
-                          
+
                           <div className="flex-1">
                             <p className="font-light text-lg">
                               {currentMode === 'chat' && isChat(item)
@@ -240,7 +255,7 @@ const ChatCommandPalette = ({ isOpen, onClose }: ChatCommandPaletteProps) => {
                             </p>
                           </div>
                         </div>
-                        
+
                         {currentMode === 'chat' && isChat(item) && item.pinned && (
                           <span className="text-sm text-yellow-400">📌</span>
                         )}

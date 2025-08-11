@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import { SlidesSchema } from '../src/SlidesSchema';
+// Better Auth schema is handled by the component
 
 const applicationTables = {
   chats: defineTable({
@@ -88,15 +89,7 @@ const applicationTables = {
       searchField: 'title',
       filterFields: ['userId'],
     }),
-  // this for the user table that we are implementing via better-auth
-  users: defineTable({
-    email: v.string(),
-    type: v.union(v.literal("individual"), v.literal("enterprise")),
-    name: v.optional(v.string()),
-    organization_id: v.optional(v.id("organizations")),
-    created_at: v.number(),
-    updated_at: v.number(),
-  }) .index("by_email", ["email"]),
+  // user table is now provided by better-auth schema
 
   // new tabe for the organisations collages
   organizations: defineTable({
@@ -108,7 +101,7 @@ const applicationTables = {
     .index("by_domain", ["domain"]),
   // new table for the mapping between users and organisation
     user_organizations: defineTable({
-    userId:v.id("users"),
+    userId: v.string(), // Better Auth uses string IDs
     organizationId: v.id("organizations"),
     role: v.union(
       v.literal("admin"),
@@ -117,7 +110,8 @@ const applicationTables = {
     ),
     joinedAt: v.number(),
   })
-    .index("by_organizationId", ["organizationId"]),
+    .index("by_organizationId", ["organizationId"])
+    .index("by_userId", ["userId"]),
 
   // to store and verify the OTPs Via Emails
   emailOtps: defineTable({
@@ -130,6 +124,58 @@ const applicationTables = {
     createdAt: v.number(),
   })
     .index("by_email", ["email"])
+    .index("by_expiry", ["expiresAt"]),
+
+  // Better Auth tables
+  user: defineTable({
+    name: v.string(),
+    email: v.string(),
+    emailVerified: v.boolean(),
+    image: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_email", ["email"]),
+
+  session: defineTable({
+    expiresAt: v.number(),
+    token: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    ipAddress: v.optional(v.string()),
+    userAgent: v.optional(v.string()),
+    userId: v.string(),
+  })
+    .index("by_token", ["token"])
+    .index("by_userId", ["userId"]),
+
+  account: defineTable({
+    accountId: v.string(),
+    providerId: v.string(),
+    userId: v.string(),
+    accessToken: v.optional(v.string()),
+    refreshToken: v.optional(v.string()),
+    idToken: v.optional(v.string()),
+    accessTokenExpiresAt: v.optional(v.number()),
+    refreshTokenExpiresAt: v.optional(v.number()),
+    scope: v.optional(v.string()),
+    password: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_provider", ["providerId", "accountId"]),
+
+  verification: defineTable({
+    identifier: v.string(),
+    value: v.string(),
+    type: v.optional(v.string()),
+    expiresAt: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_identifier", ["identifier"])
+    .index("by_value", ["value"])
     .index("by_expiry", ["expiresAt"]),
 
 
@@ -213,6 +259,5 @@ const applicationTables = {
 };
 
 export default defineSchema({
-  // ...authTables,
   ...applicationTables,
 });

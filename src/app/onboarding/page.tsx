@@ -1,12 +1,17 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
+// Clerk usage removed for google_user flow; relying on Better Auth
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { getDefaultRedirectUrl, getUserType } from '~/lib/auth-utils';
+import { useEffect, useState, Suspense } from 'react';
+import { getDefaultRedirectUrl } from '~/lib/auth-utils';
+import { authClient, useSession } from "../../../lib/auth-client";
 
-export default function OnboardingPage() {
-  const { user, isLoaded, isSignedIn } = useUser();
+function OnboardingContent() {
+
+    const { data,isPending } = useSession()
+
+
+  // Using Better Auth session; Clerk is not required here
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState('Checking your account...');
@@ -17,12 +22,12 @@ export default function OnboardingPage() {
   const authType = searchParams.get('type'); // "google" or "college"
 
   useEffect(() => {
-    if (!isLoaded) return;
 
-    if (!isSignedIn) {
-      // User not authenticated, redirect to sign-in
+
+    if (isPending) return;
+    if (!data?.user) {
       console.error('this si from onbording page asn yopu know me');
-      router.replace('/signin');
+      router.replace('/select');
       return;
     }
 
@@ -31,14 +36,14 @@ export default function OnboardingPage() {
         setStatus('Determining your account type...');
         setProgress(10);
 
-        // Determine user type based on authentication method
-        const userType = getUserType(user, authType || undefined);
+        // Determine user type based on authentication method *****************
+        const userType = "google_user";
 
         console.log('User type determined:', userType, 'Auth type:', authType);
 
         // Handle Google users (limited access)
         if (userType === 'google_user') {
-          setStatus('Setting up your Google account...');
+          setStatus('Setting up your  account...');
           setProgress(50);
 
           // Google users get direct access to learning platform
@@ -51,23 +56,21 @@ export default function OnboardingPage() {
           return;
         }
 
-        // Handle college users and admins (full access)
+        // Handle college users and admins (full access) - retained for future migration
         setStatus('Checking your account status...');
         setProgress(30);
 
         // Enhanced organization ID resolution for college users
         const orgIdFromUrl =
           searchParams.get('orgId') || searchParams.get('organization_id');
-        const orgIdFromMetadata = user.publicMetadata?.organizationId as string;
+        const orgIdFromMetadata = undefined as unknown as string;
 
         // Get organization ID from user's current organization memberships
-        const currentOrgMembership = user.organizationMemberships?.find(
-          (membership) => membership.organization?.id
-        );
-        const orgIdFromMemberships = currentOrgMembership?.organization?.id;
+        const currentOrgMembership = undefined as any;
+        const orgIdFromMemberships = undefined as any;
 
         // Get role from organization membership
-        const orgRole = currentOrgMembership?.role;
+        const orgRole = undefined as any;
 
         console.log('Organization ID resolution:', {
           fromUrl: orgIdFromUrl,
@@ -103,11 +106,11 @@ export default function OnboardingPage() {
           setProgress(50);
 
           // Single API call to handle both status check and onboarding
-          const response = await fetch('/api/onboarding/status-and-setup', {
+          const res: Response = await fetch('/api/onboarding/status-and-setup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              email: user.emailAddresses,
+          email: data.user.email,
               organisationId: finalOrgId,
               // Pass the role from organization membership if available
               role: orgRole || 'member', // Default to 'member' if no role specified
@@ -115,23 +118,24 @@ export default function OnboardingPage() {
             }),
           });
 
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
           }
 
-          const data = await response.json();
+          type StatusSetupResponse = { isExistingUser: boolean; role?: string };
+          const result: StatusSetupResponse = await res.json();
           setProgress(80);
 
-          console.log('Onboarding response:', data);
+          console.log('Onboarding response:', result);
 
-          if (data.isExistingUser) {
+          if (result.isExistingUser) {
             setStatus('Welcome back! Redirecting to your dashboard...');
             setProgress(100);
 
             // Redirect based on user type and role
             setTimeout(() => {
               const redirectUrl = getDefaultRedirectUrl(
-                userType === 'admin' || data.role === 'admin'
+                userType === 'admin' || result.role === 'admin'
                   ? 'admin'
                   : userType
               );
@@ -144,7 +148,7 @@ export default function OnboardingPage() {
             // Redirect based on user type and role for new users
             setTimeout(() => {
               const redirectUrl = getDefaultRedirectUrl(
-                userType === 'admin' || data.role === 'admin'
+                userType === 'admin' || result.role === 'admin'
                   ? 'admin'
                   : userType
               );
@@ -173,9 +177,9 @@ export default function OnboardingPage() {
     };
 
     handleOnboarding();
-  }, [isLoaded, user, router, searchParams, authType]);
+  }, [isPending, data?.user, router, searchParams, authType]);
 
-  if (!isLoaded) {
+  if (isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#050A06] text-white">
         <div className="text-center">
@@ -217,22 +221,28 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Show organization info if available */}
-        {user?.organizationMemberships &&
-          user.organizationMemberships.length > 0 && (
-            <div className="mt-6 rounded-lg border border-[#333] bg-[#1a1a1a] p-4">
-              <p className="text-[#d0cfcf] text-sm">
-                Organization:{' '}
-                {user.organizationMemberships?.[0]?.organization?.name ??
-                  user.organizationMemberships?.[0]?.organization?.id ??
-                  'Unknown'}
-              </p>
-              <p className="text-[#FF5E00] text-xs">
-                Role: {user.organizationMemberships?.[0]?.role ?? 'Unknown'}
-              </p>
-            </div>
-          )}
+        {/* Organization info (Clerk-specific) omitted in Better Auth flow */}
       </div>
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function OnboardingLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#050A06] text-white">
+      <div className="text-center">
+        <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-blue-500 border-t-4 border-solid" />
+        <p>Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<OnboardingLoading />}>
+      <OnboardingContent />
+    </Suspense>
   );
 }

@@ -1,14 +1,13 @@
 'use client';
 
-import { useAuth, useUser } from '@clerk/nextjs';
+import { useSession } from '../../../lib/auth-client';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { canAccessRoute, getUserType } from '~/lib/auth-utils';
+import { canAccessRoute } from '~/lib/auth-utils';
 import AccessDenied from './AccessDenied';
 
 export default function RoleRedirect() {
-  const { isSignedIn, isLoaded } = useAuth();
-  const { user, isLoaded: userLoaded } = useUser();
+  const { data, isPending } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [showAccessDenied, setShowAccessDenied] = useState(false);
@@ -17,10 +16,12 @@ export default function RoleRedirect() {
   >('google_user');
 
   useEffect(() => {
-    if (!(isLoaded && userLoaded && isSignedIn && user)) return;
+    if (isPending) return;
+    const user = data?.user as any;
+    if (!user) return;
 
-    // Determine user type
-    const currentUserType = getUserType(user);
+    // Determine user type — for Better Auth, treat Google OAuth users as google_user; default to google_user for this phase
+    const currentUserType = 'google_user' as const;
     setUserType(currentUserType);
 
     // Always allow access to public routes and auth routes
@@ -82,7 +83,7 @@ export default function RoleRedirect() {
 
     // Defer the redirect to avoid render cycle conflicts
     setTimeout(performRedirects, 0);
-  }, [isLoaded, userLoaded, isSignedIn, user, pathname, router]);
+  }, [isPending, data?.user, pathname, router]);
 
   // Show access denied page if user doesn't have permission
   if (showAccessDenied) {

@@ -1,38 +1,48 @@
 'use client';
 
-import { useAuth, useSignIn } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '~/components/ui/button';
+import { authClient, useSession } from "../../../lib/auth-client";
+
+
 
 const Page = () => {
+
+  const { data } = useSession()
   const router = useRouter();
-  const { isSignedIn } = useAuth();
-  const { signIn } = useSignIn();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  //If user is already signed in, redirect them
-  if (isSignedIn) {
-    router.replace('/onboarding');
-    // return null;
-  }
 
-  const handleGoogleSignIn = async () => {
-    if (!signIn) return;
 
+  // Redirect if user is already signed in (avoid calling router during render)
+  useEffect(() => {
+    if (data?.user) {
+      router.replace('/onboarding');
+    }
+  }, [data?.user, router]);
+
+  const handleSignInWithGoogle = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      await signIn.authenticateWithRedirect({
-        strategy: 'oauth_google',
-        redirectUrl: '/onboarding?type=google',
-        redirectUrlComplete: '/onboarding?type=google',
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/learning"
       });
+
+      if (result.error) {
+        setError(result.error.message || "Failed to sign in with Google");
+      } else {
+        // Redirect will happen automatically via callbackURL
+        router.push('/onboarding');
+      }
     } catch (err) {
-      console.error('Google sign-in error:', err);
-      setError('Failed to sign in with Google. Please try again.');
+      console.error("Google sign-in error:", err);
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -71,14 +81,14 @@ const Page = () => {
           </h1>
           <div className="flex w-full flex-col items-center gap-2">
             <Button
-              className="w-1/4 bg-[#313131] p-6 font-light text-[1.2em] hover:bg-[#f7eee3] hover:text-[#313131] disabled:opacity-50"
+              className="w-1/4 bg-[#313131] p-6 font-light text-[1.2em] hover:bg-[#f7eee3] hover:text-[#313131] disabled:opacity-50 transition-all duration-150 active:scale-[0.97]"
               disabled={isLoading}
-              onClick={handleGoogleSignIn}
+              onClick={handleSignInWithGoogle}
             >
               {isLoading ? 'Signing in...' : 'Google'}
             </Button>
             <Button
-              className="w-1/4 bg-[#313131] p-6 font-light text-[1.2em] hover:bg-[#f7eee3] hover:text-[#313131]"
+              className="w-1/4 bg-[#313131] p-6 font-light text-[1.2em] hover:bg-[#f7eee3] hover:text-[#313131] transition-all duration-150 active:scale-[0.97]"
               onClick={() => {
                 router.push('/indauth');
               }}

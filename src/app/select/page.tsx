@@ -34,7 +34,7 @@ const Page = () => {
       });
 
       if (result.error) {
-        setError(result.error.message || "Failed to sign in with Google");
+        console.error(result.error.message || "Failed to sign in with Google");
       } else {
         // Redirect will happen automatically via callbackURL
         router.push('/onboarding');

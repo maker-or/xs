@@ -5,10 +5,25 @@ import { convex } from "@convex-dev/better-auth/plugins";
 import { betterAuthComponent } from "../convex/auth";
 import { GenericCtx } from "../convex/_generated/server";
 
-const createOptions = (ctx: GenericCtx) =>
-  ({
-    baseURL: "http://localhost:3000",
-    trustedOrigins: ["http://localhost:3000", "https://localhost:3000"],
+const createOptions = (ctx: GenericCtx) => {
+  const baseURL = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
+
+  // Temporary logging to verify environment variable
+  console.log("🔍 Better Auth Configuration:");
+  console.log("NODE_ENV:", process.env.NODE_ENV);
+  console.log("BETTER_AUTH_URL:", process.env.BETTER_AUTH_URL);
+  console.log("NEXT_PUBLIC_BETTER_AUTH_URL:", process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
+  console.log("Final baseURL:", baseURL);
+
+  return {
+    baseURL,
+    trustedOrigins: [
+      baseURL,
+      ...(process.env.NODE_ENV === "production"
+        ? [baseURL]
+        : ["http://localhost:3000", "https://localhost:3000"]
+      )
+    ].filter(Boolean),
     database: convexAdapter(ctx, betterAuthComponent),
     account: {
       accountLinking: {
@@ -39,7 +54,8 @@ const createOptions = (ctx: GenericCtx) =>
         expiresIn: 600,
       }),
     ],
-  }) satisfies BetterAuthOptions;
+  } satisfies BetterAuthOptions;
+};
 
 
 

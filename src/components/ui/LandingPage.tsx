@@ -16,7 +16,7 @@ const LandingPage = () => {
 
       <div className="flex min-h-[100svh] w-full flex-col items-center justify-center px-4 py-16 text-center">
         <div className="flex items-center justify-center leading-none tracking-tight">
-          <h1 className="font-display text-4xl font-semibold text-white sm:text-5xl md:text-6xl lg:text-7xl">
+          <h1 className="font-display text-4xl font-light text-white sm:text-5xl md:text-6xl lg:text-7xl">
             New <span className="font-serif italic">knowledge</span> layer{' '}
             <span className="hidden sm:inline"><br /></span>
             for your <span className="font-serif italic">collage</span>

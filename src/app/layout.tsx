@@ -6,14 +6,14 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
 import Head from 'next/head';
+import { ClerkProvider } from '@clerk/nextjs'
 import Script from 'next/script';
 import { extractRouterConfig } from 'uploadthing/server';
 // Temporarily disable PostHog auth wrapper tied to Clerk
 // import { CSPostHogProvider } from '~/app/_analytics/providers';
 import ConvexClientProvider from '~/components/ConvexClientProvider';
 import CommandPlate from '~/components/ui/CommandPlate';
-import RoleRedirect from '~/components/ui/RoleRedirect';
-import SpecialRoutes from '~/components/ui/SpecialRoutes';
+
 import ThemeScript from '~/components/ui/ThemeScript';
 import { TimeProvider } from '~/providers/TimerProvider';
 import { FolderProvider } from '../components/ui/FolderContext';
@@ -28,6 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
+  <ClerkProvider>
     <ConvexClientProvider>
       <html className={'font-sans'} lang="en" suppressHydrationWarning>
         <Head>
@@ -56,7 +57,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <ThemeScript />
 
           {/* Render without Clerk gating; access is controlled within pages */}
-          <RoleRedirect />
+
           <Analytics />
           <SpeedInsights />
 
@@ -65,12 +66,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <CommandPlate />
               <FolderProvider>
                 <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
-                <SpecialRoutes>{children}</SpecialRoutes>
+                {children}
               </FolderProvider>
             </div>
           </TimeProvider>
         </body>
       </html>
     </ConvexClientProvider>
+  </ClerkProvider>
   );
 }

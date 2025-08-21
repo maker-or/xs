@@ -7,7 +7,8 @@ import { useFolder } from '../../components/ui/FolderContext';
 import { UploadButton } from '../../utils/uploadthing';
 import PdfViewer from './PDFViewer';
 import '@uploadthing/react/styles.css';
-import { useSession } from '../../../lib/auth-client';
+import { useAuth } from '@clerk/nextjs';
+
 
 interface ClientComponentProps {
   images: { id: number; url: string; name: string }[];
@@ -44,8 +45,8 @@ const ClientComponent: React.FC<ClientComponentProps> = ({
   const openPdfViewer = (url: string) => {
     setSelectedPdfUrl(url);
   };
-  const { data } = useSession();
-  const userId = data?.user?.id;
+
+  const { userId } =  useAuth()
   console.log(folderId);
 
   const handleUploadComplete = async (

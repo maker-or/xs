@@ -1,5 +1,4 @@
 'use client';
-import { authClient } from '../../../lib/auth-client';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 import PomodoroComponent from '~/components/ui/PomodoroComponent';
@@ -8,18 +7,9 @@ import ExamStatus from './ExamStatus';
 // import ChatComponent from '~/components/ui/ChatComponent';
 import Filesearch from './Filesearch';
 import '~/styles/globals.css';
+import { SignOutButton } from '@clerk/nextjs'
 
-const Logout = () => {
-  return (
-    <button
-      className="rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white hover:bg-white/20"
-      onClick={() => authClient.signOut()}
-      type="button"
-    >
-      Sign out
-    </button>
-  );
-};
+
 
 const CommandPlate = () => {
   const router = useRouter();
@@ -197,7 +187,7 @@ const CommandPlate = () => {
       );
     }
     if (activeView === 'logout') {
-      return <Logout />;
+      return <SignOutButton />;
     }
 
     return (

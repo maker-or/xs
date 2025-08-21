@@ -1,9 +1,8 @@
-// eslint-disable-next-line import/no-anonymous-default-export
 export default {
   providers: [
     {
-      domain: `${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}`,
-      applicationID: "convex",
+      domain: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+      applicationID: 'convex',
     },
   ],
-};
+}

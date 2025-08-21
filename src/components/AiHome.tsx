@@ -1,6 +1,5 @@
 'use client';
 
-import { useSession } from '../../lib/auth-client';
 import { ArrowClockwiseIcon, ArrowUpIcon } from '@phosphor-icons/react';
 import { useForm } from '@tanstack/react-form';
 import React, { useEffect, useState } from 'react';
@@ -8,6 +7,7 @@ import { z } from 'zod';
 import { api } from '../../convex/_generated/api';
 import { Button } from './ui/button';
 import ChatCommandPalette from './ui/ChatCommandPalette';
+import { useConvexAuth } from "convex/react";
 
 import 'katex/dist/katex.min.css';
 
@@ -28,7 +28,7 @@ import { useAuthAction, useAuthMutation } from '~/hooks/useAuthMutation';
 
 const AiHome = () => {
   const navigate = useRouter();
-  const { data: session, isPending: sessionPending } = useSession();
+    const { isAuthenticated,isLoading} = useConvexAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +48,7 @@ const AiHome = () => {
       userPrompt: '',
     } as FormValues,
     onSubmit: async ({ value }) => {
-      if (sessionPending || !session?.user) {
+      if (isLoading || !isAuthenticated) {
         setError('You must be signed in to start a chat.');
         return;
       }

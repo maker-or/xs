@@ -1,16 +1,30 @@
-'use client';
-import CalendarTimeline from '~/components/ui/CalendarTimeline';
-import Fold from '~/components/ui/Fold';
-import Greeting from '~/components/ui/Greeting';
-import Navbar from '~/components/ui/Navbar';
+"use client";
 
-export default function HomePage() {
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useConvexAuth } from "convex/react";
+import Header from "~/components/ui/Header";
+import LandingPage from "~/components/ui/LandingPage";
+
+
+export default function Home() {
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace("/student");
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isAuthenticated) return null;
+
+  // Show landing page for unauthenticated users at root
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#000000] ">
-      <Greeting />
-      <Navbar />
-      <Fold />
-      <CalendarTimeline />
-    </main>
+    <div className="min-h-[100svh] w-[100vw] bg-black text-[#a0a0a0]">
+      <Header />
+      <LandingPage />
+    </div>
   );
 }

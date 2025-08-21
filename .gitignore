@@ -46,3 +46,6 @@ yarn-error.log*
 .idea
 # Sentry Config File
 .env.sentry-build-plugin
+
+# clerk configuration (can include secrets)
+/.clerk/

@@ -1,10 +1,10 @@
 'use client';
-import { useSession } from '../../../lib/auth-client';
 import { useQuery } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import CourseCanvas from '~/components/ui/CourseCanvas';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
+import { useConvexAuth } from "convex/react";
 
 interface CourseProps {
   courseId: string;
@@ -12,7 +12,8 @@ interface CourseProps {
 }
 
 const Course = ({ courseId, isPublic = false }: CourseProps) => {
-  const { data, isPending } = useSession();
+
+      const { isAuthenticated,isLoading} = useConvexAuth();
   const router = useRouter();
   const courseIdTyped = courseId as Id<'Course'>;
 
@@ -20,8 +21,7 @@ const Course = ({ courseId, isPublic = false }: CourseProps) => {
   console.log('the course id is', courseIdTyped);
   console.log('typeof courseId:', typeof courseIdTyped);
   console.log('courseId length:', courseIdTyped?.length);
-  console.log('session loaded:', !isPending);
-  console.log('has user:', !!data?.user);
+  console.log('session loaded:', !isLoading);
   console.log('=== END DEBUG ===');
 
   // use to get the current course based on the courseId from the url
@@ -40,7 +40,7 @@ const Course = ({ courseId, isPublic = false }: CourseProps) => {
   console.log('the different courses', stages);
 
   // Show loading state while auth is being checked
-  if (isPending) {
+  if (isLoading) {
     return (
       <main className="relative flex h-[100svh] w-[100svw] flex-col items-center justify-center">
         <div className="absolute inset-0 z-0 bg-black" />
@@ -53,7 +53,7 @@ const Course = ({ courseId, isPublic = false }: CourseProps) => {
   }
 
   // Redirect to sign-in if not authenticated
-  if (!data?.user) {
+  if (!isAuthenticated) {
     router.push('/select');
     return null;
   }

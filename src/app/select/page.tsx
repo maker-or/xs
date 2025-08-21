@@ -2,15 +2,17 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Button } from '~/components/ui/button';
-import { authClient, useSession } from "../../../lib/auth-client";
+import { Button } from '../../components/ui/button';
+import { useConvexAuth } from "convex/react";
+import { useSignIn } from '@clerk/nextjs';
 
 
 
 const Page = () => {
 
-  const { data } = useSession()
+   const { isAuthenticated } = useConvexAuth();
   const router = useRouter();
+  const { signIn, isLoaded } = useSignIn();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,32 +20,30 @@ const Page = () => {
 
   // Redirect if user is already signed in (avoid calling router during render)
   useEffect(() => {
-    if (data?.user) {
-      router.replace('/onboarding');
+    if (isAuthenticated) {
+      router.replace('/student');
     }
-  }, [data?.user, router]);
+  }, [isAuthenticated, router]);
 
   const handleSignInWithGoogle = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const result = await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/learning"
+      if (!signIn) throw new Error("SignIn object not ready");
+      await signIn.authenticateWithRedirect({
+        strategy: 'oauth_google',
+        redirectUrl: '/auth/callback',
+        redirectUrlComplete: '/student',
+
       });
 
-      if (result.error) {
-        console.error(result.error.message || "Failed to sign in with Google");
-      } else {
-        // Redirect will happen automatically via callbackURL
-        router.push('/onboarding');
-      }
+
+      // Redirect handled by Clerk
     } catch (err) {
       console.error("Google sign-in error:", err);
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // only reset on error; success redirects
     }
   };
   return (
@@ -82,19 +82,12 @@ const Page = () => {
           <div className="flex w-full flex-col items-center gap-2">
             <Button
               className="w-1/4 bg-[#313131] p-6 font-light text-[1.2em] hover:bg-[#f7eee3] hover:text-[#313131] disabled:opacity-50 transition-all duration-150 active:scale-[0.97]"
-              disabled={isLoading}
+              disabled={isLoading || !isLoaded}
               onClick={handleSignInWithGoogle}
             >
               {isLoading ? 'Signing in...' : 'Google'}
             </Button>
-            <Button
-              className="w-1/4 bg-[#313131] p-6 font-light text-[1.2em] hover:bg-[#f7eee3] hover:text-[#313131] transition-all duration-150 active:scale-[0.97]"
-              onClick={() => {
-                router.push('/indauth');
-              }}
-            >
-              College account
-            </Button>
+            {/* College account option removed */}
           </div>
           {error && (
             <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-center">

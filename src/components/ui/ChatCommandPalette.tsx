@@ -1,6 +1,6 @@
 'use client';
 import { useQuery } from 'convex/react';
-import { useSession } from '../../../lib/auth-client';
+import { useConvexAuth } from "convex/react";
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
@@ -25,16 +25,16 @@ const isCourse = (item: any): item is { _id: Id<'Course'>; prompt: string; stage
 
 const ChatCommandPalette = ({ isOpen, onClose }: ChatCommandPaletteProps) => {
   const router = useRouter();
+      const { isAuthenticated,isLoading} = useConvexAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [currentMode, setCurrentMode] = useState<Mode>('chat');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Better Auth session
-  const { data: session, isPending } = useSession();
+
 
   // Fetch chats and courses from Convex only when authenticated
-  const canQuery = isOpen && !isPending && !!session?.user;
+  const canQuery = isOpen && !isLoading && !!isAuthenticated;
   const chats = useQuery(
     api.chats.listChats,
     canQuery ? {} : 'skip'
